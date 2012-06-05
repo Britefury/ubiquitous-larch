@@ -10,30 +10,36 @@ from collections import deque
 from britefury.element.element import Element
 
 
-_page_content_pre = """
+_page_content = """
 <html>
 	<head>
 		<title>The Larch Environment (test)</title>
 		<link rel="stylesheet" type="text/css" href="larch.css"/>
+
+		<script type="text/javascript">
+			<!--
+			__larch_session_id="{0}";
+			// -->
+		</script>
 		<script type="text/javascript" src="jquery-1.7.2.js"></script>
 		<script type="text/javascript" src="larch.js"></script>
 	</head>
 
 	<body>
-"""
-
-
-_page_content_post = """
+	{1}
 	</body>
 </html>
 """
 
+
 class RootElement (Element):
-	def __init__(self):
+	def __init__(self, session_id):
 		super(RootElement, self).__init__()
 		self.__content = None
 		self._parent = None
 		self._root_element = self
+
+		self.__session_id = session_id
 
 		self.__event_queue = deque()
 
@@ -103,4 +109,4 @@ class RootElement (Element):
 
 
 	def __html__(self):
-		return _page_content_pre + Element.html(self.__content) + _page_content_post
+		return _page_content.format(self.__session_id, Element.html(self.__content))

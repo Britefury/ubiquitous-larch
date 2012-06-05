@@ -692,7 +692,7 @@ class RootPres (Pres):
 		fragment_factory = self.__inc_view._get_unique_fragment_factory(self.__inc_view._root_perspective, self.__inc_view._subject_context, SimpleAttributeTable.instance)
 		self.__inc_view._set_root_fragment_factory(fragment_factory)
 
-		self.__inc_view.refresh()
+		self.__inc_view._refresh()
 
 		root_frag_view = self.__inc_view._get_root_fragment_view()
 		self.__inc_view._root_element.content = root_frag_view.refreshed_fragment
@@ -701,7 +701,7 @@ class RootPres (Pres):
 
 
 class IncrementalView (object):
-	def __init__(self, subject):
+	def __init__(self, subject, session_id):
 		self.__subject = subject
 
 		self.__root_model = subject.focus
@@ -718,10 +718,46 @@ class IncrementalView (object):
 		root_pres = RootPres(self)
 		self.__view_pres = root_pres
 
-		self._root_element = RootElement()
+		self._root_element = RootElement(session_id)
 
 		self.__unique_fragment_factories = {}
 
+
+	#
+	#
+	# Root HTML
+	#
+	#
+
+	@property
+	def root_html(self):
+		pres = self.view_pres
+		elem = pres.build(None)
+		return elem.__html__()
+
+
+
+	#
+	#
+	# Events
+	#
+	#
+
+	def synchronize(self):
+		self._root_element.execute_queued_events()
+		cmds = self._root_element.get_client_command_queue()
+		self._root_element.clear_client_command_queue()
+		return cmds
+
+
+
+
+
+	#
+	#
+	# View, mode, subject
+	#
+	#
 
 	@property
 	def view_pres(self):
@@ -738,34 +774,28 @@ class IncrementalView (object):
 
 
 
-	@property
-	def root_element(self):
-		return self._root_element
-
-
-
 	#
 	#
 	# Refreshing
 	#
 	#
 
-	def refresh(self):
+	def _refresh(self):
 		if self.__refresh_required:
 			self.__refresh_required = False
 			self.__perform_refresh()
 
 
-	def queue_refresh(self):
+	def _queue_refresh(self):
 		if not self.__refresh_required:
 			self.__refresh_required = True
-			self._root_element.queue(self.refresh)
+			self._root_element.queue(self._refresh)
 
 
 
 	def _on_node_request_refresh(self, fragment_view):
 		if fragment_view is self.__root_fragment_view:
-			self.queue_refresh()
+			self._queue_refresh()
 
 
 
@@ -831,7 +861,7 @@ class IncrementalView (object):
 	def _set_root_fragment_factory(self, fragment_factory):
 		if fragment_factory is not self.__root_fragment_factory:
 			self.__root_fragment_factory = fragment_factory
-			self.queue_refresh()
+			self._queue_refresh()
 
 
 	def _get_unique_fragment_factory(self, perspective, subject_context, inherited_state):

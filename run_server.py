@@ -1,6 +1,7 @@
 import os
 import cherrypy
 import json
+import random
 
 from britefury.projection.subject import Subject
 from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
@@ -52,30 +53,45 @@ index_page = IndexPage()
 index_subject = Subject(index_page)
 
 
-index_view = IncrementalView(index_subject)
-
-
-index_pres = index_view.view_pres
-
-index_elem = index_pres.build(None)
-index_elem.execute_queued_events()
-
 
 
 class WebCombinatorServer (object):
+	def __init__(self):
+		self.__sessions = {}
+		self.__session_counter = 1
+
+		self.__rng = random.Random()
+
+
 	def index(self):
-		return index_elem.__html__()
+		session_id = self.__new_session_id()
+		view = IncrementalView(index_subject, session_id)
+		self.__sessions[session_id] = view
+		return view.root_html
+
 	index.exposed = True
 
 
-	def event(self):
+
+	def event(self, session_id):
 		index_page.add_item(IndexItem('Paragraph 3'))
-		index_elem.execute_queued_events()
-		cmds = index_elem.get_client_command_queue()
-		index_elem.clear_client_command_queue()
+		try:
+			view = self.__sessions[session_id]
+		except KeyError:
+			return '[]'
+		cmds = view.synchronize()
 		return json.dumps(cmds)
 
 	event.exposed = True
+
+
+
+	def __new_session_id(self):
+		index = self.__session_counter
+		self.__session_counter += 1
+		salt = self.__rng.randint(0, 1<<31)
+		session_id = 'session_{0}{1}'.format(index, salt)
+		return session_id
 
 
 root = WebCombinatorServer()

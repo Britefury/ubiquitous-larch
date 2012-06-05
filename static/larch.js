@@ -24,7 +24,7 @@ function handleEventResponse(msgJson) {
 
 
 function postEvent(ev) {
-    $.ajax("event").done(function(msg) {handleEventResponse(msg)});
+    $.ajax("event?session_id="+__larch_session_id).done(function(msg) {handleEventResponse(msg)});
 }
 
 
