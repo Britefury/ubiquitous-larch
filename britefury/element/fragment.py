@@ -27,6 +27,11 @@ class Fragment (Element):
 		Fragment._unique_id_counter += 1
 
 
+	@property
+	def fragment_id(self):
+		return 'lch_frag_' + str(self.__unique_id)
+
+
 
 	@property
 	def content(self):
@@ -47,7 +52,7 @@ class Fragment (Element):
 
 	def __html__(self):
 		content_html = Element.html(self.__content)
-		return '<span id="{0}">{1}</span>'.format(self.__unique_id, content_html)
+		return '<span id="{0}">{1}</span>'.format(self.fragment_id, content_html)
 
 
 	def _content_html(self):

@@ -9,6 +9,25 @@ from collections import deque
 
 from britefury.element.element import Element
 
+
+_page_content_pre = """
+<html>
+	<head>
+		<title>The Larch Environment (test)</title>
+		<link rel="stylesheet" type="text/css" href="larch.css"/>
+		<script type="text/javascript" src="jquery-1.7.2.js"></script>
+		<script type="text/javascript" src="larch.js"></script>
+	</head>
+
+	<body>
+"""
+
+
+_page_content_post = """
+	</body>
+</html>
+"""
+
 class RootElement (Element):
 	def __init__(self):
 		super(RootElement, self).__init__()
@@ -18,9 +37,9 @@ class RootElement (Element):
 
 		self.__event_queue = deque()
 
-		self._fragment_refresh_queued = False
-
 		self.__fragments_to_refresh = set()
+
+		self.__client_command_queue = []
 
 
 
@@ -50,9 +69,20 @@ class RootElement (Element):
 			f()
 
 
+
+	def post_client_command(self, cmd):
+		self.__client_command_queue.append(cmd)
+
+
+	def get_client_command_queue(self):
+		return self.__client_command_queue
+
+	def clear_client_command_queue(self):
+		self.__client_command_queue = []
+
+
 	def _notify_fragment_modified(self, fragment):
-		if not self._fragment_refresh_queued:
-			self._fragment_refresh_queued = True
+		if len(self.__fragments_to_refresh) == 0:
 			self.queue(self.__refresh_fragments)
 
 		descendants = fragment.ancestor_of_elements(self.__fragments_to_refresh)
@@ -67,9 +97,10 @@ class RootElement (Element):
 	def __refresh_fragments(self):
 		for fragment in self.__fragments_to_refresh:
 			html = fragment._content_html()
-			raise NotImplementedError
+			client_cmd = {'cmd_type' : 'replace_fragment', 'frag_id' : str(fragment.fragment_id), 'frag_content' : html}
+			self.post_client_command(client_cmd)
 		self.__fragments_to_refresh.clear()
 
 
 	def __html__(self):
-		return Element.html(self.__content)
+		return _page_content_pre + Element.html(self.__content) + _page_content_post

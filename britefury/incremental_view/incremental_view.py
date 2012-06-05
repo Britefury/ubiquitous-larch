@@ -233,7 +233,7 @@ class _FragmentView (object):
 			f = q.popleft()
 
 			if f.__ref_state != _FragmentView._FLAG_REFSTATE_UNREFED:
-				inc_view._node_table.unref_fragment(f)
+				inc_view._node_table._unref_fragment_view(f)
 
 				child = f.__children_head
 				while child is not None:
@@ -538,7 +538,7 @@ class _TableForModel (object):
 				self.__unrefed_fragment_views = None
 
 
-	def __get_unrefed_fragment_view_for(self, fragment_factory):
+	def _get_unrefed_fragment_view_for(self, fragment_factory):
 		if self.__unrefed_fragment_views is not None:
 			for v in self.__unrefed_fragment_views:
 				if v.fragment_factory == fragment_factory:
@@ -585,7 +585,7 @@ class IncrementalViewTable (object):
 			sub_table = self.__table[id(model)]
 		except KeyError:
 			return None
-		return sub_table.__get_unrefed_fragment_view_for(fragment_factory)
+		return sub_table._get_unrefed_fragment_view_for(fragment_factory)
 
 
 	def get(self, model):

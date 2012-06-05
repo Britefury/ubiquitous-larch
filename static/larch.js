@@ -1,31 +1,30 @@
-function createStructure() {
-	var s = "[";
-	var i = 0;
-	while (i < 16384)
-	{
-		s += "<span class=\"prim_int\">" + i + "</span><span class=\"punc\">, </span>";
-		i += 1;
-	}
-	s += "]";
-	return s;
+function handleCommandFromServer(command) {
+    var cmd_type = command.cmd_type;
+    if (cmd_type == "replace_fragment") {
+        var frag_id = command.frag_id;
+        var frag_content = command.frag_content;
+        $("#"+frag_id).html(frag_content);
+    }
+    else {
+        // Unreckognised command
+        alert("Unreckognised command" + cmd);
+    }
+}
+
+function handleCommandsFromServer(commands) {
+    for (var i = 0; i < commands.length; i++) {
+        handleCommandFromServer(commands[i]);
+    }
+}
+
+function handleEventResponse(msgJson) {
+    var response = eval(msgJson);
+    handleCommandsFromServer(response);
 }
 
 
-function insertContent() {
-	//var s = createStructure();
-	//$("#content").html(s);
-	var t1 = (new Date).getTime();
-	$("#content").html(global_content);
-	var t2 = (new Date).getTime();
-	var diff = t2 - t1;
-	var deltaTime = "" + diff;
-	$("#time").html(deltaTime);
+function postEvent(ev) {
+    $.ajax("event").done(function(msg) {handleEventResponse(msg)});
 }
 
 
-function initPage() {
-	global_content = createStructure();
-}
-
-
-$(document).ready(initPage);

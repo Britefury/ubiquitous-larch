@@ -41,27 +41,16 @@ class IncrementalMonitor (object):
 	def add_listener(self, listener):
 		if self._listeners is None:
 			self._listeners = []
-		for i in xrange(len(self._listeners) - 1, -1, -1):
-			ref = self._listeners[i]
-			l = ref()
-			if l is listener:
-				return
-			elif l is None:
-				del self._listeners[i]
-		self._listeners.append(weakref.ref(listener))
+		if listener in self._listeners:
+			return
+		self._listeners.append(listener)
 
 	def remove_listener(self, listener):
 		if self._listeners is not None:
-			for i in xrange(len(self._listeners) - 1, -1, -1):
-				ref = self._listeners[i]
-				l = ref()
-				if l is listener:
-					del self._listeners[i]
-					if len(self._listeners) == 0:
-						self._listeners = None
-					return
-				elif l is None:
-					del self._listeners[i]
+			try:
+				self._listeners.remove(listener)
+			except ValueError:
+				pass
 
 
 
@@ -84,13 +73,8 @@ class IncrementalMonitor (object):
 
 	def _emit_changed(self):
 		if self._listeners is not None:
-			for i in xrange(len(self._listeners) - 1, -1, -1):
-				ref = self._listeners[i]
-				l = ref()
-				if l is None:
-					del self._listeners[i]
-				else:
-					l(self)
+			for listener in self._listeners:
+				listener(self)
 
 
 	@staticmethod
