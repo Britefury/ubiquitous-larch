@@ -1,4 +1,8 @@
-function handleMessageFromServer(message) {
+//
+// * This source code is (C) copyright Geoffrey French 2011-2012
+//
+
+__larch.__handleMessageFromServer = function(message) {
     var msg_type = message.msgtype;
     if (msg_type == "replace_fragment") {
         var frag_id = message.frag_id;
@@ -7,18 +11,18 @@ function handleMessageFromServer(message) {
     }
     else {
         // Unreckognised message
-        alert("Unreckognised message" + message);
+        throw ('Larch: unrecognised message" + message');
     }
 }
 
-function handleMessagesFromServer(messages) {
+__larch.__handleMessagesFromServer = function(messages) {
     for (var i = 0; i < messages.length; i++) {
-        handleMessageFromServer(messages[i]);
+        __larch.__handleMessageFromServer(messages[i]);
     }
 }
 
 
-function postEvent(src_element, event_name, event_data) {
+__larch.postEvent = function(src_element, event_name, event_data) {
     var elem = src_element.closest("span.__lch_event_elem");
     var element_id = elem.attr('id');
 
@@ -32,7 +36,7 @@ function postEvent(src_element, event_name, event_data) {
     var ev_json = JSON.stringify(ev_msg);
 
     var ev_data = {
-        session_id: __larch_session_id,
+        session_id: __larch.__session_id,
         event_data: ev_json
     };
 
@@ -41,7 +45,7 @@ function postEvent(src_element, event_name, event_data) {
         url: 'event',
         data: ev_data,
         success: function(msg) {
-            handleMessagesFromServer(msg);
+            __larch.__handleMessagesFromServer(msg);
         },
         dataType: 'json'
     });
@@ -49,5 +53,5 @@ function postEvent(src_element, event_name, event_data) {
 
 
 function aClicked(elem) {
-    postEvent($(elem), "clicked", {});
+    __larch.postEvent($(elem), "clicked", {});
 }

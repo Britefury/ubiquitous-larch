@@ -718,7 +718,7 @@ class IncrementalView (object):
 		root_pres = RootPres(self)
 		self.__view_pres = root_pres
 
-		self._root_element = RootElement(session_id)
+		self._root_element = RootElement(session_id, subject.stylesheet_names, subject.script_names)
 
 		self.__unique_fragment_factories = {}
 

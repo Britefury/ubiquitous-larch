@@ -1,9 +1,5 @@
 ##-*************************
-##-* This program is free software; you can use it, redistribute it and/or modify it
-##-* under the terms of the GNU General Public License version 2 as published by the
-##-* Free Software Foundation. The full text of the GNU General Public License
-##-* version 2 can be found in the file named 'COPYING' that accompanies this
-##-* program. This source code is (C)copyright Geoffrey French 1999-2012.
+##-* This source code is (C) copyright Geoffrey French 2011-2012
 ##-*************************
 from collections import deque
 
@@ -16,32 +12,37 @@ _page_content = """
 	<head>
 		<title>The Larch Environment (test)</title>
 		<link rel="stylesheet" type="text/css" href="larch.css"/>
+		{stylesheet_tags}
 
+		<script type="text/javascript" src="larch_prelude.js"></script>
 		<script type="text/javascript">
 			<!--
-			__larch_session_id="{0}";
+			__larch.__session_id="{session_id}";
 			// -->
 		</script>
 		<script type="text/javascript" src="jquery-1.7.2.js"></script>
 		<script type="text/javascript" src="json2.js"></script>
 		<script type="text/javascript" src="larch.js"></script>
+		{script_tags}
 	</head>
 
 	<body>
-	{1}
+	{content}
 	</body>
 </html>
 """
 
 
 class RootElement (Element):
-	def __init__(self, session_id):
+	def __init__(self, session_id, stylesheet_names, script_names):
 		super(RootElement, self).__init__()
 		self.__content = None
 		self._parent = None
 		self._root_element = self
 
 		self.__session_id = session_id
+		self.__stylesheet_names = stylesheet_names
+		self.__script_names = script_names
 
 		self.__queued_tasks = deque()
 
@@ -128,4 +129,6 @@ class RootElement (Element):
 
 
 	def __html__(self):
-		return _page_content.format(self.__session_id, Element.html(self.__content))
+		stylesheet_tags = '\n'.join(['<link rel="stylesheet" type="text/css" href="{0}"/>'.format(stylesheet_name)   for stylesheet_name in self.__stylesheet_names])
+		script_tags = '\n'.join(['<script type="text/javascript" src="{0}"></script>'.format(script_name)   for script_name in self.__script_names])
+		return _page_content.format(session_id=self.__session_id, stylesheet_tags=stylesheet_tags, script_tags=script_tags, content=Element.html(self.__content))
