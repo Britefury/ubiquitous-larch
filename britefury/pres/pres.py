@@ -5,6 +5,7 @@
 ##-* version 2 can be found in the file named 'COPYING' that accompanies this
 ##-* program. This source code is (C)copyright Geoffrey French 1999-2012.
 ##-*************************
+from britefury.element.event_elem import EventElement
 from britefury.pres.presctx import PresentationContext
 
 
@@ -12,6 +13,22 @@ from britefury.pres.presctx import PresentationContext
 class Pres (object):
 	def build(self, pres_ctx):
 		raise NotImplementedError, 'abstract'
+
+
+	def with_event_handler(self, event_handler_or_filter, event_handler=None):
+		if event_handler is None:
+			return EventSource(event_handler, self)
+		else:
+			if isinstance(event_handler_or_filter, str)  or  isinstance(event_handler, unicode):
+				def _handle(event_name, ev_data):
+					if event_name == event_handler_or_filter:
+						return event_handler(event_name, ev_data)
+					else:
+						return False
+				return EventSource(_handle, self)
+			else:
+				raise TypeError, 'filter should be string or unicode'
+
 
 
 	@staticmethod
@@ -71,3 +88,13 @@ class InnerFragment (Pres):
 		return fragment_view.present_inner_fragment(self.__model, pres_ctx.perspective, inherited_state)
 
 
+
+
+class EventSource (Pres):
+	def __init__(self, event_handler, child):
+		self.__event_handler = event_handler
+		self.__child = Pres.coerce_not_none(child)
+
+
+	def build(self, pres_ctx):
+		return EventElement(self.__event_handler, self.__child.build(pres_ctx))

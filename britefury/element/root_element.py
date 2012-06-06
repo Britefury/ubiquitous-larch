@@ -8,6 +8,7 @@
 from collections import deque
 
 from britefury.element.element import Element
+from britefury.message.replace_fragment_message import ReplaceFragmentMessage
 
 
 _page_content = """
@@ -22,6 +23,7 @@ _page_content = """
 			// -->
 		</script>
 		<script type="text/javascript" src="jquery-1.7.2.js"></script>
+		<script type="text/javascript" src="json2.js"></script>
 		<script type="text/javascript" src="larch.js"></script>
 	</head>
 
@@ -41,11 +43,13 @@ class RootElement (Element):
 
 		self.__session_id = session_id
 
-		self.__event_queue = deque()
+		self.__queued_tasks = deque()
 
 		self.__fragments_to_refresh = set()
 
-		self.__client_command_queue = []
+		self.__client_message_queue = []
+
+		self.__event_elements = {}
 
 
 
@@ -66,25 +70,40 @@ class RootElement (Element):
 
 
 	def queue(self, f):
-		self.__event_queue.append(f)
+		self.__queued_tasks.append(f)
 
 
-	def execute_queued_events(self):
-		while len(self.__event_queue) > 0:
-			f = self.__event_queue.popleft()
+	def execute_queued_tasks(self):
+		while len(self.__queued_tasks) > 0:
+			f = self.__queued_tasks.popleft()
 			f()
 
 
 
-	def post_client_command(self, cmd):
-		self.__client_command_queue.append(cmd)
+	def post_client_message(self, cmd):
+		self.__client_message_queue.append(cmd)
 
 
-	def get_client_command_queue(self):
-		return self.__client_command_queue
+	def get_client_message_queue(self):
+		return self.__client_message_queue
 
-	def clear_client_command_queue(self):
-		self.__client_command_queue = []
+	def clear_client_message_queue(self):
+		self.__client_message_queue = []
+
+
+
+	def _register_event_element(self, element_id, element):
+		self.__event_elements[element_id] = element
+
+
+	def _unregister_event_element(self, element_id):
+		del self.__event_elements[element_id]
+
+
+	def handle_event(self, element_id, event_name, ev_data):
+		element = self.__event_elements[element_id]
+		element.handle_event(event_name, ev_data)
+
 
 
 	def _notify_fragment_modified(self, fragment):
@@ -103,8 +122,8 @@ class RootElement (Element):
 	def __refresh_fragments(self):
 		for fragment in self.__fragments_to_refresh:
 			html = fragment._content_html()
-			client_cmd = {'cmd_type' : 'replace_fragment', 'frag_id' : str(fragment.fragment_id), 'frag_content' : html}
-			self.post_client_command(client_cmd)
+			client_msg = ReplaceFragmentMessage(fragment.fragment_id, html)
+			self.post_client_message(client_msg)
 		self.__fragments_to_refresh.clear()
 
 

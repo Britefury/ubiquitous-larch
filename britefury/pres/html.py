@@ -7,7 +7,7 @@
 ##-*************************
 
 from britefury.pres.pres import Pres
-from britefury.element.html_content import HtmlContent
+from britefury.element.html_content import HtmlContentElem
 
 
 class Html (Pres):
@@ -27,4 +27,4 @@ class Html (Pres):
 				cs.append(c)
 			else:
 				cs.append(c.build(pres_ctx))
-		return HtmlContent(cs)
+		return HtmlContentElem(cs)

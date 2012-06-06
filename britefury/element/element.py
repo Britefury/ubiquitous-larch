@@ -19,7 +19,7 @@ class Element (object):
 	def parent(self, p):
 		self._parent = p
 		root = p.root_element   if p is not None   else None
-		self.__set_root_element(root)
+		self._set_root_element(root)
 
 
 	@property
@@ -32,10 +32,10 @@ class Element (object):
 		return self._root_element
 
 
-	def __set_root_element(self, root):
+	def _set_root_element(self, root):
 		self._root_element = root
 		for c in self.children:
-			c.__set_root_element(root)
+			c._set_root_element(root)
 
 
 

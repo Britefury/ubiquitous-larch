@@ -12,7 +12,7 @@ from britefury.pres.presctx import PresentationContext
 from britefury.pres.pres import Pres
 from britefury.incremental.incremental_monitor import IncrementalMonitor
 from britefury.incremental.incremental_function_monitor import IncrementalFunctionMonitor
-from britefury.element.fragment import Fragment
+from britefury.element.fragment_element import FragmentElement
 from britefury.element.root_element import RootElement
 
 
@@ -52,7 +52,7 @@ class _FragmentView (object):
 		self.__incr.add_listener(self.__on_incremental_monitor_changed)
 
 		# Fragment element
-		self.__fragment = Fragment(self, None)
+		self.__fragment = FragmentElement(self, None)
 		print 'Not implemented - drag source'
 		self.__element = None
 
@@ -744,10 +744,14 @@ class IncrementalView (object):
 	#
 
 	def synchronize(self):
-		self._root_element.execute_queued_events()
-		cmds = self._root_element.get_client_command_queue()
-		self._root_element.clear_client_command_queue()
-		return cmds
+		self._root_element.execute_queued_tasks()
+		client_messages = self._root_element.get_client_message_queue()
+		self._root_element.clear_client_message_queue()
+		return client_messages
+
+
+	def handle_event(self, element_id, event_name, ev_data):
+		self._root_element.handle_event(element_id, event_name, ev_data)
 
 
 

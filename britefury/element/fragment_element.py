@@ -12,19 +12,19 @@ from britefury.element.element import Element
 
 
 
-class Fragment (Element):
+class FragmentElement (Element):
 	_unique_id_counter = 1
 
 
 	def __init__(self, fragment_view, content):
-		super(Fragment, self).__init__()
+		super(FragmentElement, self).__init__()
 		self.__fragment_view = fragment_view
 		self.__content = content
 		if self.__content is not None:
 			self.__content.parent = self
 
-		self.__unique_id = Fragment._unique_id_counter
-		Fragment._unique_id_counter += 1
+		self.__unique_id = FragmentElement._unique_id_counter
+		FragmentElement._unique_id_counter += 1
 
 
 	@property

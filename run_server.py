@@ -9,6 +9,7 @@ from britefury.incremental_view.incremental_view import IncrementalView
 from britefury.pres.presctx import PresentationContext
 from britefury.pres.html import Html
 from britefury.default_perspective.default_perspective import DefaultPerspective
+from britefury.message.event_message import EventMessage
 
 
 
@@ -29,7 +30,10 @@ class IndexItem (object):
 
 class ActionItem (object):
 	def __present__(self, fragment, inherited_state):
-		return Html('<p><a href="javascript:postEvent(0)">Action</a></p>')
+		def handle_event(event_name, ev_data):
+			index_page.add_item(IndexItem('New paragraph'))
+
+		return Html('<p><a href="javascript:" onclick="javascript:aClicked(this);">Action</a></p>').with_event_handler('clicked', handle_event)
 
 
 class IndexPage (object):
@@ -73,14 +77,25 @@ class WebCombinatorServer (object):
 
 
 
-	def event(self, session_id):
-		index_page.add_item(IndexItem('Paragraph 3'))
+	def event(self, session_id, event_data):
+		# Get the view for the given session
 		try:
 			view = self.__sessions[session_id]
 		except KeyError:
 			return '[]'
-		cmds = view.synchronize()
-		return json.dumps(cmds)
+
+		# Get the event message
+		event_json = json.loads(event_data)
+		msg = EventMessage.__from_json__(event_json)
+
+		# Handle the event
+		view.handle_event(msg.element_id, msg.event_name, msg.ev_data)
+
+		# Synchronise the view
+		client_messages = view.synchronize()
+
+		# Send messages to the client
+		return json.dumps([message.__to_json__()   for message in client_messages])
 
 	event.exposed = True
 
