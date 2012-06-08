@@ -1,3 +1,6 @@
+##-*************************
+##-* This source code is (C)copyright Geoffrey French 2011-2012.
+##-*************************
 import os
 import cherrypy
 import json

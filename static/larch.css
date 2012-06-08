@@ -1,2 +1,32 @@
 .__lch_event_elem {
 }
+
+.pyprim_punctuation {
+    color : #0000ff
+}
+
+.pyprim_none {
+    color : #000000
+}
+
+.pyprim_bool {
+    color : #008000
+}
+
+.pyprim_string {
+    color : #000000
+}
+
+.pyprim_int {
+    color : #000000
+}
+
+.pyprim_long {
+    color : #000000
+}
+
+.pyprim_float {
+    color : #000000
+}
+
+

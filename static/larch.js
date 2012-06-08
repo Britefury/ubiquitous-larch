@@ -1,6 +1,6 @@
-//
-// * This source code is (C) copyright Geoffrey French 2011-2012
-//
+//-*************************
+//-* This source code is (C)copyright Geoffrey French 2011-2012.
+//-*************************
 
 __larch.__handleMessageFromServer = function(message) {
     var msg_type = message.msgtype;
