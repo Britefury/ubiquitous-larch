@@ -56,6 +56,13 @@ def present_float(x):
 		return Html('<span class="pyprim_float">{0}</span>'.format(s))
 
 
+def present_complex(x):
+	if x.real == 0.0:
+		return Html(present_float(x.imag), _complex_j)
+	else:
+		return Html(_open_paren, present_float(x.real), _plus, present_float(x.imag), _complex_j + _close_paren)
+
+
 _open_paren = _punct_html('(')
 _close_paren = _punct_html(')')
 _open_bracket = _punct_html('[')
@@ -65,6 +72,8 @@ _close_brace = _punct_html('}')
 _comma = _punct_html(',')
 _comma_space = _punct_html(',') + ' '
 _colon = _punct_html(':')
+_plus = _punct_html('+')
+_complex_j = '<span class="pyprim_complex_j">j</span>'
 
 
 
@@ -119,6 +128,34 @@ def present_dict(xs):
 	return Html(*contents)
 
 
+_present_data_fn_table = {
+	type(None) : present_none,
+	bool : present_bool,
+	str : present_string,
+	unicode : present_string,
+	int : present_int,
+	long : present_long,
+	float : present_float,
+	complex : present_complex,
+	list : present_list,
+	set : present_set,
+	dict : present_dict
+}
+
+def is_primitive_data(x):
+	return type(x) in _present_data_fn_table
+
+
+def present_primitive_data(x):
+	fn = _present_data_fn_table.get(type(x))
+	if fn is not None:
+		return fn(x)
+	else:
+		return None
+
+
+
+
 _present_fn_table = {
 	type(None) : present_none,
 	bool : present_bool,
@@ -127,12 +164,11 @@ _present_fn_table = {
 	int : present_int,
 	long : present_long,
 	float : present_float,
+	complex : present_complex,
 	list : present_list,
 	set : present_set,
 	dict : present_dict
 }
-
-
 
 def is_primitive(x):
 	return type(x) in _present_fn_table
