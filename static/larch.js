@@ -22,6 +22,58 @@ __larch.__handleMessagesFromServer = function(messages) {
 }
 
 
+
+__larch.__handleKeyEvent = function(event, keys) {
+    for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        if (key.keyCode == undefined  ||  event.keyCode == key.keyCode) {
+            if (key.altKey != undefined  &&  event.altKey != key.altKey) {
+                break;
+            }
+            if (key.ctrlKey != undefined  &&  event.ctrlKey != key.ctrlKey) {
+                break;
+            }
+            if (key.shiftKey != undefined  &&  event.shiftKey != key.shiftKey) {
+                break;
+            }
+            if (key.metaKey != undefined  &&  event.metaKey != key.metaKey) {
+                break;
+            }
+            // We have a match
+            var k = {};
+            k.keyCode = event.keyCode;
+            k.altKey = event.altKey;
+            k.ctrlKey = event.ctrlKey;
+            k.shiftKey = event.shiftKey;
+            k.metaKey = event.metaKey;
+            return k;
+        }
+        return undefined;
+    }
+}
+
+__larch.__onkeydown = function(event, keys) {
+    var k = __larch.__handleKeyEvent(event, keys);
+    if (k != undefined) {
+        __larch.postEvent(event.target, 'keydown', k);
+    }
+}
+
+__larch.__onkeyup = function(event, keys) {
+    var k = __larch.__handleKeyEvent(event, keys);
+    if (k != undefined) {
+        __larch.postEvent(event.target, 'keyup', k);
+    }
+}
+
+__larch.__onkeypress = function(event, keys) {
+    var k = __larch.__handleKeyEvent(event, keys);
+    if (k != undefined) {
+        __larch.postEvent(event.target, 'keypress', k);
+    }
+}
+
+
 __larch.postEvent = function(src_element, event_name, event_data) {
     var elem = src_element.closest("span.__lch_event_elem");
     var element_id = elem.attr('id');
