@@ -4,6 +4,7 @@
 from collections import deque
 
 from britefury.element.element import Element
+from britefury.element.abstract_event_elem import AbstractEventElement
 from britefury.message.replace_fragment_message import ReplaceFragmentMessage
 
 
@@ -103,7 +104,12 @@ class RootElement (Element):
 
 	def handle_event(self, element_id, event_name, ev_data):
 		element = self.__event_elements[element_id]
-		element.handle_event(event_name, ev_data)
+		while element is not None:
+			if isinstance(element, AbstractEventElement):
+				if element.handle_event(event_name, ev_data):
+					return True
+			element = element.parent
+		return False
 
 
 

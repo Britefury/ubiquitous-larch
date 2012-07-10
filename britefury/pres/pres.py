@@ -2,6 +2,7 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
 from britefury.element.event_elem import EventElement
+from britefury.element.key_event_elem import KeyEventElement, Key
 from britefury.pres.presctx import PresentationContext
 
 
@@ -24,6 +25,11 @@ class Pres (object):
 				return EventSource(_handle, self)
 			else:
 				raise TypeError, 'filter should be string or unicode'
+
+
+	def with_key_handler(self, keys, handler):
+		keys_and_handlers = [(key, handler)   for key in keys]
+		return KeyEventSource(keys_and_handlers, self)
 
 
 
@@ -94,3 +100,19 @@ class EventSource (Pres):
 
 	def build(self, pres_ctx):
 		return EventElement(self.__event_handler, self.__child.build(pres_ctx))
+
+
+
+class KeyEventSource (Pres):
+	def __init__(self, keys_and_handlers, child):
+		self.__keys_and_handlers = keys_and_handlers
+		self.__child = Pres.coerce_not_none(child)
+
+
+	def with_key_handler(self, keys, handler):
+		keys_and_handlers = [(key, handler)   for key in keys]
+		return KeyEventSource(self.__keys_and_handlers + keys_and_handlers, self)
+
+
+	def build(self, pres_ctx):
+		return KeyEventElement(self.__child.build(pres_ctx), self.__keys_and_handlers)

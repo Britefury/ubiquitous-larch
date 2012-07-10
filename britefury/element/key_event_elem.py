@@ -141,19 +141,23 @@ class KeyEventElement (AbstractEventElement):
 			ev_key = Key.__from_keypress_json__(ev_data)
 			keys_and_handlers = self.__keypress
 		else:
-			raise ValueError, 'event name should be keydown, keyup or keypress'
+			return False
 
 		for key, handler in keys_and_handlers:
 			if ev_key.matches(key):
-				handler(ev_key)
+				return handler(ev_key)
 				break
+		return False
 
 
 
 	def __html__(self):
 		content_html = Element.html(self._content)
-		return '<span class="__lch_event_elem" id="{elem_id}" ' + \
-		       'onkeydown="return __larch.__onkeydown(event, {down})"' +\
-		       'onkeyup="return __larch.__onkeyup(event, {up})"' +\
-		       'onkeypress="return __larch.__onkeypress(event, {press})"' +\
-		       '>{content}</span>'.format(elem_id=self.event_id, content=content_html, down=self.__keydown_json_str, up=self.__keyup_json_str, press=self.__keypress_json_str)
+		keydown_json = self.__keydown_json_str.replace('"', '\'')
+		keyup_json = self.__keyup_json_str.replace('"', '\'')
+		keypress_json = self.__keypress_json_str.replace('"', '\'')
+		return ('<span class="__lch_event_elem" id="{elem_id}" ' + \
+		       'onkeydown="return __larch.__onkeydown(event, {down});"' +\
+		       'onkeyup="return __larch.__onkeyup(event, {up});"' +\
+		       'onkeypress="return __larch.__onkeypress(event, {press});"' +\
+		       '>{content}</span>').format(elem_id=self.event_id, content=content_html, down=keydown_json, up=keyup_json, press=keypress_json)

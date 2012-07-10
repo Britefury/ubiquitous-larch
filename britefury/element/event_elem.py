@@ -15,7 +15,7 @@ class EventElement (AbstractEventElement):
 
 
 	def handle_event(self, event_name, ev_data):
-		self.__event_handler(event_name, ev_data)
+		return self.__event_handler(event_name, ev_data)
 
 
 	def __html__(self):

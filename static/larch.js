@@ -55,21 +55,21 @@ __larch.__handleKeyEvent = function(event, keys) {
 __larch.__onkeydown = function(event, keys) {
     var k = __larch.__handleKeyEvent(event, keys);
     if (k != undefined) {
-        __larch.postEvent(event.target, 'keydown', k);
+        __larch.postEvent($(event.target), 'keydown', k);
     }
 }
 
 __larch.__onkeyup = function(event, keys) {
     var k = __larch.__handleKeyEvent(event, keys);
     if (k != undefined) {
-        __larch.postEvent(event.target, 'keyup', k);
+        __larch.postEvent($(event.target), 'keyup', k);
     }
 }
 
 __larch.__onkeypress = function(event, keys) {
     var k = __larch.__handleKeyEvent(event, keys);
     if (k != undefined) {
-        __larch.postEvent(event.target, 'keypress', k);
+        __larch.postEvent($(event.target), 'keypress', k);
     }
 }
 

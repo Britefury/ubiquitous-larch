@@ -1,6 +1,7 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
+import datetime
 import os
 import cherrypy
 import json
@@ -11,7 +12,7 @@ from britefury.incremental.incremental_value_monitor import IncrementalValueMoni
 from britefury.incremental_view.incremental_view import IncrementalView
 from britefury.pres.presctx import PresentationContext
 from britefury.pres.html import Html
-from britefury.pres.pres import Pres
+from britefury.pres.pres import Pres, Key
 from britefury.default_perspective.default_perspective import DefaultPerspective
 from britefury.message.event_message import EventMessage
 
@@ -89,17 +90,23 @@ class CodeItem (object):
 			result = [eval(eval_code, env)]   if eval_code is not None   else None
 			self.__result_container.result = result
 
+		def on_execute_key(key):
+			print 'Executing...'
+			on_execute('key', key)
+
 
 		code_area = Html('<textarea class="python_code">{code}</textarea>'.format(code=self.__code)).with_event_handler('changed', on_change)
 		execute_button = Html('<p><a href="javascript:" onclick="javascript:__larch.postEvent($(this),\'clicked\', {});">Execute</a></p>').with_event_handler('clicked', on_execute)
 		res = self.__result_container
 
-		return Html('<div>', code_area, execute_button, res, '</div>')
+		code_area_with_key_handler = code_area.with_key_handler([Key(Key.KEY_DOWN, 13, ctrl=True)], on_execute_key)
+
+		return Html('<div>', code_area_with_key_handler, execute_button, res, '</div>')
 
 
 class IndexPage (object):
 	def __init__(self):
-		self.__items = [ActionItem(), IndexItem('Paragraph 1'), IndexItem('Paragraph 2'), CodeItem('print \'Hello world\'')]
+		self.__items = [ActionItem(), IndexItem('Paragraph 1'), IndexItem('Paragraph 2'), CodeItem('x = 1\nx\n')]
 		self.__incr = IncrementalValueMonitor()
 
 
@@ -139,6 +146,7 @@ class WebCombinatorServer (object):
 
 
 	def event(self, session_id, event_data):
+		t1 = datetime.datetime.now()
 		# Get the view for the given session
 		try:
 			view = self.__sessions[session_id]
@@ -156,7 +164,11 @@ class WebCombinatorServer (object):
 		client_messages = view.synchronize()
 
 		# Send messages to the client
-		return json.dumps([message.__to_json__()   for message in client_messages])
+		result = json.dumps([message.__to_json__()   for message in client_messages])
+		t2 = datetime.datetime.now()
+		delta_t = t2 - t1
+		print 'Event response time {0}'.format(delta_t)
+		return result
 
 	event.exposed = True
 
