@@ -89,6 +89,7 @@ def present_tuple(xs):
 			if not first:
 				contents.append(_comma_space)
 			contents.append(x)
+			first = False
 		contents.append(_close_paren)
 		return Html(*contents)
 
@@ -100,6 +101,7 @@ def present_list(xs):
 		if not first:
 			contents.append(_comma_space)
 		contents.append(x)
+		first = False
 	contents.append(_close_bracket)
 	return Html(*contents)
 
@@ -111,6 +113,7 @@ def present_set(xs):
 		if not first:
 			contents.append(_comma_space)
 		contents.append(x)
+		first = False
 	contents.append(_close_brace)
 	return Html(*contents)
 
@@ -124,6 +127,7 @@ def present_dict(xs):
 		contents.append(key)
 		contents.append(_colon)
 		contents.append(value)
+		first = False
 	contents.append(_close_brace)
 	return Html(*contents)
 
@@ -137,6 +141,7 @@ _present_data_fn_table = {
 	long : present_long,
 	float : present_float,
 	complex : present_complex,
+	tuple : present_tuple,
 	list : present_list,
 	set : present_set,
 	dict : present_dict
@@ -165,6 +170,7 @@ _present_fn_table = {
 	long : present_long,
 	float : present_float,
 	complex : present_complex,
+	tuple : present_tuple,
 	list : present_list,
 	set : present_set,
 	dict : present_dict

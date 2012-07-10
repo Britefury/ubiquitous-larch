@@ -49,7 +49,7 @@ class _FragmentView (object):
 
 		# Fragment element
 		self.__fragment = FragmentElement(self, None)
-		print 'Not implemented - drag source'
+		#print 'Not implemented - drag source'
 		self.__element = None
 
 

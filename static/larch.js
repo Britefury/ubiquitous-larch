@@ -7,7 +7,8 @@ __larch.__handleMessageFromServer = function(message) {
     if (msg_type == "replace_fragment") {
         var frag_id = message.frag_id;
         var frag_content = message.frag_content;
-        $("#"+frag_id).html(frag_content);
+        var fragment_element = document.getElementById(frag_id);
+        fragment_element.innerHTML = frag_content;
     }
     else {
         // Unreckognised message

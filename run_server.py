@@ -146,7 +146,7 @@ class WebCombinatorServer (object):
 
 
 	def event(self, session_id, event_data):
-		t1 = datetime.datetime.now()
+		#t1 = datetime.datetime.now()
 		# Get the view for the given session
 		try:
 			view = self.__sessions[session_id]
@@ -165,9 +165,9 @@ class WebCombinatorServer (object):
 
 		# Send messages to the client
 		result = json.dumps([message.__to_json__()   for message in client_messages])
-		t2 = datetime.datetime.now()
-		delta_t = t2 - t1
-		print 'Event response time {0}'.format(delta_t)
+		#t2 = datetime.datetime.now()
+		#delta_t = t2 - t1
+		#print 'Event response time {0} for {1} messages, {2} chars'.format(delta_t, len(client_messages), len(str(result)))
 		return result
 
 	event.exposed = True
