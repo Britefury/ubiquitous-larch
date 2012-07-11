@@ -13,6 +13,8 @@ from britefury.incremental_view.incremental_view import IncrementalView
 from britefury.pres.presctx import PresentationContext
 from britefury.pres.html import Html
 from britefury.pres.pres import Pres, Key
+from britefury.pres.controls.actionlink import action_link
+from britefury.pres.controls.button import button
 from britefury.default_perspective.default_perspective import DefaultPerspective
 from britefury.message.event_message import EventMessage
 
@@ -24,21 +26,6 @@ config = {'/':
 			   }
 }
 
-
-class IndexItem (object):
-	def __init__(self, text):
-		self.__text = text
-
-	def __present__(self, fragment, inherited_state):
-		return Html('<p>{0}</p>'.format(self.__text))
-
-
-class ActionItem (object):
-	def __present__(self, fragment, inherited_state):
-		def handle_event(event_name, ev_data):
-			index_page.add_item(IndexItem('New paragraph'))
-
-		return Html('<p><a href="javascript:" onclick="javascript:__larch.postEvent($(this),\'clicked\', {});">Action</a></p>').with_event_handler('clicked', handle_event)
 
 
 
@@ -75,7 +62,7 @@ class CodeItem (object):
 		def on_change(event_name, ev_data):
 			self.__code = ev_data
 
-		def on_execute(event_name, ev_data):
+		def on_execute():
 			lines = self.__code.split('\n')
 			exec_code = self.__code
 			eval_code = None
@@ -92,11 +79,11 @@ class CodeItem (object):
 
 		def on_execute_key(key):
 			print 'Executing...'
-			on_execute('key', key)
+			on_execute()
 
 
 		code_area = Html('<textarea class="python_code">{code}</textarea>'.format(code=self.__code)).with_event_handler('changed', on_change)
-		execute_button = Html('<p><a href="javascript:" onclick="javascript:__larch.postEvent($(this),\'clicked\', {});">Execute</a></p>').with_event_handler('clicked', on_execute)
+		execute_button = button('Execute', on_execute)
 		res = self.__result_container
 
 		code_area_with_key_handler = code_area.with_key_handler([Key(Key.KEY_DOWN, 13, ctrl=True)], on_execute_key)
@@ -106,7 +93,7 @@ class CodeItem (object):
 
 class IndexPage (object):
 	def __init__(self):
-		self.__items = [ActionItem(), IndexItem('Paragraph 1'), IndexItem('Paragraph 2'), CodeItem('x = 1\nx\n')]
+		self.__items = [CodeItem('x = 1\nx\n')]
 		self.__incr = IncrementalValueMonitor()
 
 
