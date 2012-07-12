@@ -70,6 +70,10 @@ class Element (object):
 
 
 
+	def __html__(self):
+		return ''
+
+
 	@staticmethod
 	def html(x):
 		if isinstance(x, str) or isinstance(x, unicode):

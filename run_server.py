@@ -72,7 +72,7 @@ class CodeItem (object):
 					exec_code = '\n'.join(lines[:i])
 					eval_code = lines[i]
 					break
-			env = {}
+			env = {'CodeItem' : CodeItem}
 			exec exec_code in env
 			result = [eval(eval_code, env)]   if eval_code is not None   else None
 			self.__result_container.result = result
@@ -82,7 +82,7 @@ class CodeItem (object):
 			on_execute()
 
 
-		code_area = Html('<textarea class="python_code">{code}</textarea>'.format(code=self.__code)).with_event_handler('changed', on_change)
+		code_area = Html('<textarea class="python_code">{code}</textarea>'.format(code=self.__code)).call_js('__pythonCodeArea.initPythonCodeArea').with_event_handler('changed', on_change)
 		execute_button = button('Execute', on_execute)
 		res = self.__result_container
 

@@ -3,6 +3,7 @@
 ##-*************************
 from britefury.element.event_elem import EventElement
 from britefury.element.key_event_elem import KeyEventElement, Key
+from britefury.element.js_element import JSElement
 from britefury.pres.presctx import PresentationContext
 
 
@@ -12,13 +13,13 @@ class Pres (object):
 		raise NotImplementedError, 'abstract'
 
 
-	def with_event_handler(self, event_handler_or_filter, event_handler=None):
+	def with_event_handler(self, event_filter_or_handler, event_handler=None):
 		if event_handler is None:
-			return EventSource(event_handler, self)
+			return EventSource(event_filter_or_handler, self)
 		else:
-			if isinstance(event_handler_or_filter, str)  or  isinstance(event_handler, unicode):
+			if isinstance(event_filter_or_handler, str)  or  isinstance(event_filter_or_handler, unicode):
 				def _handle(event_name, ev_data):
-					if event_name == event_handler_or_filter:
+					if event_name == event_filter_or_handler:
 						return event_handler(event_name, ev_data)
 					else:
 						return False
@@ -30,6 +31,10 @@ class Pres (object):
 	def with_key_handler(self, keys, handler):
 		keys_and_handlers = [(key, handler)   for key in keys]
 		return KeyEventSource(keys_and_handlers, self)
+
+
+	def call_js(self, js_fun_name):
+		return JSCall([js_fun_name], self)
 
 
 
@@ -111,8 +116,23 @@ class KeyEventSource (Pres):
 
 	def with_key_handler(self, keys, handler):
 		keys_and_handlers = [(key, handler)   for key in keys]
-		return KeyEventSource(self.__keys_and_handlers + keys_and_handlers, self)
+		return KeyEventSource(self.__keys_and_handlers + keys_and_handlers, self.__child)
 
 
 	def build(self, pres_ctx):
 		return KeyEventElement(self.__child.build(pres_ctx), self.__keys_and_handlers)
+
+
+
+class JSCall (Pres):
+	def __init__(self, js_fn_names, child):
+		self.__js_fn_names = js_fn_names
+		self.__child = Pres.coerce_not_none(child)
+
+
+	def call_js(self, js_fun_name):
+		return JSCall(self.__js_fn_names + [js_fun_name], self.__child)
+
+
+	def build(self, pres_ctx):
+		return JSElement(self.__js_fn_names, self.__child.build(pres_ctx))

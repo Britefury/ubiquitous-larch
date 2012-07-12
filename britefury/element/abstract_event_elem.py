@@ -1,26 +1,15 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
-from britefury.element.element import Element
+from britefury.element.elem_with_id import ElementWithId
 
 
-class AbstractEventElement (Element):
-	_unique_id_counter = 1
-
-
+class AbstractEventElement (ElementWithId):
 	def __init__(self, content):
 		super(AbstractEventElement, self).__init__()
 		self._content = content
 		if self._content is not None:
 			self._content.parent = self
-
-		self.__unique_id = AbstractEventElement._unique_id_counter
-		AbstractEventElement._unique_id_counter += 1
-
-
-	@property
-	def event_id(self):
-		return 'lch_event_' + str(self.__unique_id)
 
 
 	def handle_event(self, event_name, ev_data):
@@ -40,10 +29,10 @@ class AbstractEventElement (Element):
 
 	def _set_root_element(self, root):
 		if self._root_element is not None:
-			self._root_element._unregister_event_element(self.event_id)
+			self._root_element._unregister_event_element(self.element_id)
 		super(AbstractEventElement, self)._set_root_element(root)
 		if self._root_element is not None:
-			self._root_element._register_event_element(self.event_id, self)
+			self._root_element._register_event_element(self.element_id, self)
 
 
 	def __html__(self):

@@ -1,11 +1,12 @@
-$(document).ready(function(){
-    var onChange = function(editor, edit) {
-        var elem = editor.getWrapperElement();
-        elem = $(elem);
-        __larch.postEvent(elem, "changed", editor.getValue());
-    };
+__pythonCodeArea = {};
 
-    var codeAreas = $('.python_code');
+__pythonCodeArea.onChange = function(editor, edit) {
+    var elem = editor.getWrapperElement();
+    elem = $(elem);
+    __larch.postEvent(elem, "changed", editor.getValue());
+};
+
+__pythonCodeArea.initPythonCodeArea = function(textArea) {
     var config = {
         mode: {name: "python",
             version: 2,
@@ -14,9 +15,8 @@ $(document).ready(function(){
         indentUnit: 4,
         tabMode: "shift",
         matchBrackets: true,
-        onChange: onChange
+        onChange: __pythonCodeArea.onChange
     };
-    for (var i = 0; i < codeAreas.size(); i++) {
-        CodeMirror.fromTextArea(codeAreas.get(i), config);
-    }
-});
+    CodeMirror.fromTextArea(textArea, config);
+};
+

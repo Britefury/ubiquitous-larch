@@ -160,4 +160,4 @@ class KeyEventElement (AbstractEventElement):
 		       'onkeydown="return __larch.__onkeydown(event, {down});"' +\
 		       'onkeyup="return __larch.__onkeyup(event, {up});"' +\
 		       'onkeypress="return __larch.__onkeypress(event, {press});"' +\
-		       '>{content}</span>').format(elem_id=self.event_id, content=content_html, down=keydown_json, up=keyup_json, press=keypress_json)
+		       '>{content}</span>').format(elem_id=self.element_id, content=content_html, down=keydown_json, up=keyup_json, press=keypress_json)

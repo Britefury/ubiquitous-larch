@@ -6,6 +6,7 @@ from collections import deque
 from britefury.element.element import Element
 from britefury.element.abstract_event_elem import AbstractEventElement
 from britefury.message.replace_fragment_message import ReplaceFragmentMessage
+from britefury.message.execute_js_message import ExecuteJSMessage
 
 
 _page_content = """
@@ -25,6 +26,11 @@ _page_content = """
 		<script type="text/javascript" src="json2.js"></script>
 		<script type="text/javascript" src="larch.js"></script>
 		{script_tags}
+		<script type="text/javascript">
+			<!--
+			{init_script}
+			// -->
+		</script>
 	</head>
 
 	<body>
@@ -48,6 +54,8 @@ class RootElement (Element):
 		self.__queued_tasks = deque()
 
 		self.__fragments_to_refresh = set()
+
+		self.__js_queue = []
 
 		self.__client_message_queue = []
 
@@ -94,6 +102,17 @@ class RootElement (Element):
 
 
 
+	def _queue_js_to_execute(self, js):
+		self.__js_queue.append( js )
+
+
+	def __post_execute_js_messages(self):
+		if len(self.__js_queue) > 0:
+			self.post_client_message(ExecuteJSMessage('\n'.join(self.__js_queue)))
+			self.__js_queue = []
+
+
+
 	def _register_event_element(self, element_id, element):
 		self.__event_elements[element_id] = element
 
@@ -117,6 +136,7 @@ class RootElement (Element):
 		if len(self.__fragments_to_refresh) == 0:
 			self.queue(self.__refresh_fragments)
 
+		# TODO: Not likely to be efficient in any way....
 		descendants = fragment.ancestor_of_elements(self.__fragments_to_refresh)
 		if len(descendants) > 0:
 			self.__fragments_to_refresh.difference_update(descendants)
@@ -132,9 +152,18 @@ class RootElement (Element):
 			client_msg = ReplaceFragmentMessage(fragment.fragment_id, html)
 			self.post_client_message(client_msg)
 		self.__fragments_to_refresh.clear()
+		self.__post_execute_js_messages()
+
 
 
 	def __html__(self):
 		stylesheet_tags = '\n'.join(['<link rel="stylesheet" type="text/css" href="{0}"/>'.format(stylesheet_name)   for stylesheet_name in self.__stylesheet_names])
 		script_tags = '\n'.join(['<script type="text/javascript" src="{0}"></script>'.format(script_name)   for script_name in self.__script_names])
-		return _page_content.format(session_id=self.__session_id, stylesheet_tags=stylesheet_tags, script_tags=script_tags, content=Element.html(self.__content))
+		if len(self.__js_queue) > 0:
+			js_to_exec = '\n'.join(self.__js_queue)
+			js_to_exec = '$(document).ready(function(){\n\t' + js_to_exec + '\n});'
+			self.__js_queue = []
+		else:
+			js_to_exec = ''
+
+		return _page_content.format(session_id=self.__session_id, stylesheet_tags=stylesheet_tags, script_tags=script_tags, content=Element.html(self.__content), init_script=js_to_exec)

@@ -2,6 +2,10 @@
 //-* This source code is (C)copyright Geoffrey French 2011-2012.
 //-*************************
 
+__larch.__executeJS = function(js_code) {
+    eval(js_code);
+}
+
 __larch.__handleMessageFromServer = function(message) {
     var msg_type = message.msgtype;
     if (msg_type == "replace_fragment") {
@@ -9,6 +13,10 @@ __larch.__handleMessageFromServer = function(message) {
         var frag_content = message.frag_content;
         var fragment_element = document.getElementById(frag_id);
         fragment_element.innerHTML = frag_content;
+    }
+    else if (msg_type == "execute_js") {
+        var js_code = message.js_code;
+        __larch.__executeJS(js_code);
     }
     else {
         // Unreckognised message
