@@ -3,11 +3,31 @@
 ##-*************************
 import inspect
 from britefury.projection.abstract_perspective import AbstractPerspective
+from britefury.util.polymorphic_map import PolymorphicMap
 
 
 class ObjectPresPerspective (AbstractPerspective):
 	__present_method_name__ = NotImplemented
 	__fallback_perspective__ = NotImplemented
+
+
+
+	def __init__(self):
+		self.__presenters = PolymorphicMap()
+
+
+
+	def register_presenter(self, obj_type, presenter):
+		self.__presenters[obj_type] = presenter
+		return presenter
+
+
+	# Decorator
+	def presenter(self, obj_type):
+		def deco_fn(presenter):
+			self.register_presenter(obj_type, presenter)
+		return deco_fn
+
 
 
 
@@ -28,6 +48,15 @@ class ObjectPresPerspective (AbstractPerspective):
 
 		if present_method is not None:
 			result = present_method(fragment_view, inherited_state)
+
+		if result is None:
+			# Try object presenters
+			try:
+				presenter = self.__presenters[type(model)]
+			except KeyError:
+				pass
+			else:
+				result = presenter(model, fragment_view, inherited_state)
 
 		if result is None:
 			if self.__fallback_perspective__ is NotImplemented:

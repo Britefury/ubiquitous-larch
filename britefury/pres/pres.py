@@ -73,6 +73,14 @@ class Pres (object):
 
 
 
+class CompositePres (Pres):
+	def build(self, pres_ctx):
+		return self.pres(pres_ctx).build(pres_ctx)
+
+	def pres(self, pres_ctx):
+		raise NotImplementedError, 'abstract'
+
+
 class ApplyPerspective (Pres):
 	def __init__(self, perspective, child):
 		self.__perspective = perspective

@@ -9,7 +9,7 @@ def _punct_html(x):
 
 
 _none = Html('<span class="pyprim_none">None</span>')
-def present_none():
+def present_none(x=None):
 	return _none
 
 
@@ -153,6 +153,7 @@ def is_primitive_data(x):
 
 def present_primitive_data(x):
 	fn = _present_data_fn_table.get(type(x))
+	print 'Got fn {0} for {1}'.format(fn, type(x))
 	if fn is not None:
 		return fn(x)
 	else:

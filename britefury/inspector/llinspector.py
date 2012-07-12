@@ -11,7 +11,7 @@ class LLInspectorPerspective (AbstractPerspective):
 		if p is not None:
 			return p
 		else:
-			raise NotImplementedError, 'not implemented low level inspect for types that are not primitive data types'
+			raise NotImplementedError, 'not implemented low level inspect for types that are not primitive data types ({0})'.format(type(p).__name__)
 
 LLInspectorPerspective.instance = LLInspectorPerspective()
 

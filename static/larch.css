@@ -5,34 +5,65 @@
 }
 
 .pyprim_punctuation {
-    color : #0000ff
+    color : #0000ff;
 }
 
 .pyprim_none {
-    color : #000000
+    color : #000000;
 }
 
 .pyprim_bool {
-    color : #008000
+    color : #008000;
 }
 
 .pyprim_string {
-    color : #000000
+    color : #000000;
 }
 
 .pyprim_int {
-    color : #800080
+    color : #800080;
 }
 
 .pyprim_long {
-    color : #800080
+    color : #800080;
 }
 
 .pyprim_float {
-    color : #400080
+    color : #400080;
 }
 
 .pyprim_complex_j {
-    color : #004040
+    color : #004040;
 }
 
+
+.error_box {
+    border-width: 1px;
+    border-style: solid;
+    border-color: #ff0000;
+    background: #ffe0e0;
+    border-radius: 5px;
+    padding: 3px;
+}
+
+.error_box_caption {
+    color : #ff0000;
+    font-size: 70%;
+}
+
+.error_box_content {
+    margin: 5px;
+}
+
+
+.exception_name {
+    color : #ff0000;
+}
+
+.exception_message {
+    color : #800000;
+}
+
+.exception_traceback {
+    color : #c00000;
+}

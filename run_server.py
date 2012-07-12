@@ -3,6 +3,7 @@
 ##-*************************
 import datetime
 import os
+import sys
 import cherrypy
 import json
 import random
@@ -17,6 +18,7 @@ from britefury.pres.controls.actionlink import action_link
 from britefury.pres.controls.button import button
 from britefury.default_perspective.default_perspective import DefaultPerspective
 from britefury.message.event_message import EventMessage
+from britefury.inspector.present_exception import present_exception
 
 
 
@@ -27,7 +29,25 @@ config = {'/':
 }
 
 
+sample_code = """
+from britefury.live.live_value import LiveValue
+from britefury.live.live_function import LiveFunction
+from britefury.pres.controls.button import button
+from britefury.pres.html import Html
 
+
+x=LiveValue(1)
+
+y=LiveFunction(lambda: x.value*x.value)
+
+
+def on_press():
+    x.value = x.static_value + 1
+
+b=button('Press me', on_press)
+
+Html('<div>',x,'</div>', '<div>',b,'</div>', '<div>',y,'</div>')
+"""
 
 class CodeResult (object):
 	def __init__(self):
@@ -73,9 +93,13 @@ class CodeItem (object):
 					eval_code = lines[i]
 					break
 			env = {'CodeItem' : CodeItem}
-			exec exec_code in env
-			result = [eval(eval_code, env)]   if eval_code is not None   else None
-			self.__result_container.result = result
+			try:
+				exec exec_code in env
+				result = [eval(eval_code, env)]   if eval_code is not None   else None
+			except Exception, e:
+				self.__result_container.result = [present_exception(e, sys.exc_info()[2])]
+			else:
+				self.__result_container.result = result
 
 		def on_execute_key(key):
 			print 'Executing...'
@@ -93,7 +117,7 @@ class CodeItem (object):
 
 class IndexPage (object):
 	def __init__(self):
-		self.__items = [CodeItem('x = 1\nx\n')]
+		self.__items = [CodeItem(sample_code)]
 		self.__incr = IncrementalValueMonitor()
 
 
