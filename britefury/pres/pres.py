@@ -1,7 +1,7 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
-from britefury.element.event_elem import EventElement
+from britefury.element.event_elem import EventElement, post_event_js_code, post_event_js_code_for_handler
 from britefury.element.key_event_elem import KeyEventElement, Key
 from britefury.element.js_element import JSElement
 from britefury.pres.presctx import PresentationContext

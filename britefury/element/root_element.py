@@ -69,8 +69,12 @@ class RootElement (Element):
 
 	@content.setter
 	def content(self, c):
+		if self.__content is not None:
+			#self.__content._set_root_element(None)
+			self.__content.parent = None
 		self.__content = c
-		c.parent = self
+		self.__content.parent = self
+		#self.__content._set_root_element(self)
 
 
 	@property

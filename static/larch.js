@@ -84,7 +84,7 @@ __larch.__onkeypress = function(event, keys) {
 
 
 __larch.postEvent = function(src_element, event_name, event_data) {
-    var elem = src_element.closest("span.__lch_event_elem");
+    var elem = $(src_element).closest("span.__lch_event_elem");
     var element_id = elem.attr('id');
 
     var ev_msg = {
@@ -112,7 +112,3 @@ __larch.postEvent = function(src_element, event_name, event_data) {
     });
 }
 
-
-function aClicked(elem) {
-    __larch.postEvent($(elem), "clicked", {});
-}

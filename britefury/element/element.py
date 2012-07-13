@@ -14,8 +14,8 @@ class Element (object):
 	@parent.setter
 	def parent(self, p):
 		self._parent = p
-		root = p.root_element   if p is not None   else None
-		self._set_root_element(root)
+		if p is not None  and  p.root_element is not None:
+			self._set_root_element(p.root_element)
 
 
 	@property

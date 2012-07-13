@@ -12,6 +12,8 @@ class JSElement (ElementWithId):
 		super(JSElement, self).__init__()
 		self.__js_fn_names = js_fn_names
 		self._content = content
+		if self._content is not None:
+			self._content.parent = self
 
 
 

@@ -102,7 +102,6 @@ class CodeItem (object):
 				self.__result_container.result = result
 
 		def on_execute_key(key):
-			print 'Executing...'
 			on_execute()
 
 

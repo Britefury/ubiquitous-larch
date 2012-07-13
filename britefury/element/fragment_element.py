@@ -35,6 +35,8 @@ class FragmentElement (Element):
 
 	@content.setter
 	def content(self, c):
+		if self.__content is not None:
+			self.__content.parent = None
 		self.__content = c
 		c.parent = self
 		if self._root_element is not None:

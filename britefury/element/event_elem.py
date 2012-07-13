@@ -1,6 +1,8 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
+import json
+
 from britefury.element.element import Element
 from britefury.element.abstract_event_elem import AbstractEventElement
 
@@ -21,3 +23,11 @@ class EventElement (AbstractEventElement):
 	def __html__(self):
 		content_html = Element.html(self._content)
 		return '<span class="__lch_event_elem" id="{0}">{1}</span>'.format(self.element_id, content_html)
+
+
+
+def post_event_js_code(event_name, event_json={}, event_source_js='this'):
+	return '__larch.postEvent({0},\'{1}\', {2});'.format(event_source_js, event_name, json.dumps(event_json))
+
+def post_event_js_code_for_handler(event_name, event_json={}, event_source_js='this'):
+	return 'javascript:__larch.postEvent({0},\'{1}\', {2});'.format(event_source_js, event_name, json.dumps(event_json))

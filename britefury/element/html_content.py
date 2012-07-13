@@ -8,7 +8,11 @@ from britefury.element.element import Element
 
 class HtmlContentElem (Element):
 	def __init__(self, contents):
+		super(HtmlContentElem, self).__init__()
 		self.__contents = contents
+		for c in contents:
+			if isinstance(c, Element):
+				c.parent = self
 
 
 

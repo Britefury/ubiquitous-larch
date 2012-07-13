@@ -2,7 +2,6 @@ __pythonCodeArea = {};
 
 __pythonCodeArea.onChange = function(editor, edit) {
     var elem = editor.getWrapperElement();
-    elem = $(elem);
     __larch.postEvent(elem, "changed", editor.getValue());
 };
 
