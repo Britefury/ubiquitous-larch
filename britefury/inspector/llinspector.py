@@ -26,7 +26,7 @@ def present_python_object(x, fragment_view, inherited_state):
 	a = Html.div(dropdown_expander(Html('Attributes'), attrs))
 	print repr(x)
 	s = Html.div(dropdown_expander(Html('repr'), present_string(repr(x))))
-	return Html('<span class="pythonobject">', Html(t, a, s), '</span>')
+	return Html('<div class="pythonobject">', Html(t, a, s), '</div>')
 
 
 
