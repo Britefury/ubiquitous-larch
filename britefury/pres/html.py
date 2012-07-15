@@ -23,3 +23,11 @@ class Html (Pres):
 			else:
 				cs.append(c.build(pres_ctx))
 		return HtmlContentElem(cs)
+
+
+	@staticmethod
+	def div(x, cls=None):
+		if cls is None:
+			return Html('<div>', x, '</div>')
+		else:
+			return Html('<div class={0}>'.format(cls), x, '</div>')

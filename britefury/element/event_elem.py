@@ -22,7 +22,7 @@ class EventElement (AbstractEventElement):
 
 	def __html__(self):
 		content_html = Element.html(self._content)
-		return '<span class="__lch_event_elem" id="{0}">{1}</span>'.format(self.element_id, content_html)
+		return '<span class="lch_event_elem" id="{0}">{1}</span>'.format(self.element_id, content_html)
 
 
 

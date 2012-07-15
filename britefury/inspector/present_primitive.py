@@ -23,15 +23,16 @@ _quote = _punct_html('"')
 _triple_quote = _punct_html('"""')
 
 def present_string(x):
+	xx = x.replace('<', '&lt;').replace('>', '&gt;')
 	print 'TODO: handle escape characters when presenting strings'
 	if '\n' in x:
-		lines = ['<span class="pyprim_string">{0}</span>'.format(line)   for line in x.split('\n')]
+		lines = ['<span class="pyprim_string">{0}</span>'.format(line)   for line in xx.split('\n')]
 		lines[0] = _triple_quote + lines[0]
 		lines[-1] += _triple_quote
 		lines = ['<div>{0}</div>'.format(line)   for line in lines]
 		return Html(''.join(lines))
 	else:
-		return Html(_quote + '<span class="pyprim_string">{0}</span>'.format(x) + _quote)
+		return Html(_quote + '<span class="pyprim_string">{0}</span>'.format(xx) + _quote)
 
 
 def present_int(x):
@@ -147,13 +148,19 @@ _present_data_fn_table = {
 	dict : present_dict
 }
 
+_small_primitive_types = {
+	type(None), bool, str, unicode, int, long, float, complex
+}
+
+def is_small_primitive_data(x):
+	return type(x) in _small_primitive_types
+
 def is_primitive_data(x):
 	return type(x) in _present_data_fn_table
 
 
 def present_primitive_data(x):
 	fn = _present_data_fn_table.get(type(x))
-	print 'Got fn {0} for {1}'.format(fn, type(x))
 	if fn is not None:
 		return fn(x)
 	else:

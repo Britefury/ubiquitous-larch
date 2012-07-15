@@ -4,7 +4,7 @@
 from britefury.pres.pres import Pres, CompositePres, InnerFragment
 from britefury.pres.obj_pres import error_box
 from britefury.inspector import present_primitive
-from britefury.default_perspective.default_perspective import DefaultPerspective
+from britefury.inspector import present_exception
 
 
 class AbstractLive (CompositePres):
@@ -18,7 +18,7 @@ class AbstractLive (CompositePres):
 			try:
 				value = self.__live.value
 			except Exception, e:
-				exception_view = DefaultPerspective.instance.apply_to(e)
+				exception_view = present_exception.present_exception_no_traceback(e)
 				return error_box('Exception during live evaluation', exception_view)
 
 			if value is not None:

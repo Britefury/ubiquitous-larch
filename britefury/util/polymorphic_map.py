@@ -4,8 +4,9 @@
 
 
 class PolymorphicMap (object):
-	def __init__(self):
+	def __init__(self, map={}):
 		self.__map = {}
+		self.__map.update(map)
 		self.__map_cache = None
 
 
@@ -15,7 +16,12 @@ class PolymorphicMap (object):
 		try:
 			return self.__map_cache[cls]
 		except KeyError:
-			for base in cls.mro():
+			try:
+				bases = cls.mro()
+			except TypeError:
+				raise KeyError
+
+			for base in bases:
 				if base in self.__map_cache:
 					x = self.__map_cache[base]
 					self.__map_cache[cls] = x

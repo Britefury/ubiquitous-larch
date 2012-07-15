@@ -52,7 +52,7 @@
 }
 
 .error_box_content {
-    margin: 5px;
+    margin-left: 5px;
 }
 
 
@@ -67,3 +67,34 @@
 .exception_traceback {
     color : #c00000;
 }
+
+
+.dropdown_expander_header {
+    border-width: 1px;
+    border-style: solid;
+    border-color: #808080;
+    background: #e0e0e0;
+    border-radius: 5px;
+    padding: 3px;
+}
+
+.dropdown_expander_content {
+    margin-left: 15px;
+}
+
+.pythonobject {
+    border-width: 1px;
+    border-style: solid;
+    border-color: #808080;
+    border-radius: 5px;
+    padding: 3px;
+}
+
+.field_name {
+    color : #000080;
+}
+
+.field_value {
+    padding-left: 15px;
+}
+
