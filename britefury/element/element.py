@@ -1,7 +1,13 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
+
+
+
 class Element (object):
+	LEVEL_BLOCK = 'block'
+	LEVEL_INLINE = 'inline'
+
 	def __init__(self):
 		self._parent = None
 		self._root_element = None
@@ -70,8 +76,19 @@ class Element (object):
 
 
 
-	def __html__(self):
+	def __html__(self, level):
 		return ''
+
+
+	def _container(self, level, attrs, content):
+		a = ' '.join(['{0}="{1}"'.format(key, value)   for key, value in attrs.items()])
+		if level == Element.LEVEL_BLOCK:
+			return '<div {0}>{1}</div>'.format(a, content)
+		elif level == Element.LEVEL_INLINE:
+			return '<span {0}>{1}</span>'.format(a, content)
+		else:
+			raise ValueError, 'Invalid element level {0}'.format(level)
+
 
 
 	@staticmethod

@@ -37,6 +37,5 @@ class JSElement (ElementWithId):
 
 
 
-	def __html__(self):
-		content_html = Element.html(self._content)
-		return '<span class="__lch_exec_js_elem" id="{0}">{1}</span>'.format(self.element_id, content_html)
+	def __html__(self, level):
+		return self._container(level, {'class': '__lch_exec_js_elem', 'id': self.element_id}, self._content.__html__(level))

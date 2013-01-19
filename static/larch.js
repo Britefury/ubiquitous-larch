@@ -6,13 +6,96 @@ __larch.__executeJS = function(js_code) {
     eval(js_code);
 }
 
+
+__larch.__replaceNode = function(before, after) {
+    var parent = before.parentNode;
+    parent.insertBefore(after, before);
+    parent.removeChild(before);
+}
+
+__larch.__createElementFromSource = function(content) {
+    var elem = document.createElement("div");
+    elem.innerHTML = content;
+    return elem.childNodes[0];
+}
+
+__larch.__getPlaceHolders = function() {
+    if (document.getElementsByClassName) {
+        return document.getElementsByClassName("__lch_placeholder");
+    }
+    else {
+        var els = document.getElementsByTagName("span");
+        var i = 0;
+        var elem = null;
+        var placeHolders = [];
+        while (elem = els[i++]) {
+            if (elem.className == "__lch_placeholder") {
+                placeHolders.push(elem);
+            }
+        }
+        return placeHolders;
+    }
+}
+
+__larch.__applyChanges = function(changes) {
+    var removed = changes.removed;
+    var added = changes.added;
+    var modified = changes.modified;
+
+    var id_to_elem = __larch.__id_to_element_table;
+
+    // Handle removals
+    for (var i = 0; i < removed.length; i++) {
+        delete id_to_elem[removed[o]];
+    }
+
+    // Handle additions
+    for (var i = 0; i < added.length; i++) {
+        var key = added[i][0];
+        var content = added[i][1];
+
+        id_to_elem[key] = {'elem': __larch.__createElementFromSource(content), 'in_document': false};
+    }
+
+    // Handle modifications
+    for (var i = 0; i < modified.length; i++) {
+        var key = modified[i][0];
+        var content = modified[i][1];
+
+        var state = id_to_elem[key];
+
+        if (state.in_document) {
+            var newElem = __larch.__createElementFromSource(content);
+            __larch.__replaceNode(state.elem, newElem);
+            state.elem = newElem;
+        }
+        else {
+            state.elem = __larch.__createElementFromSource(content);
+        }
+    }
+
+    // Handle the placeholders
+    var placeHolders = __larch.__getPlaceHolders();
+    while (placeHolders.length > 0) {
+        for (var i = 0; i < placeHolders.length; i++) {
+            var p = placeHolders[i];
+            var key = p.innerHTML;
+
+            var state = id_to_elem[key];
+            state.in_document = true;
+            __larch.__replaceNode(p, state.elem);
+        }
+
+        placeHolders = __larch.__getPlaceHolders();
+    }
+
+}
+
 __larch.__handleMessageFromServer = function(message) {
     var msg_type = message.msgtype;
-    if (msg_type == "replace_fragment") {
-        var frag_id = message.frag_id;
-        var frag_content = message.frag_content;
-        var fragment_element = document.getElementById(frag_id);
-        fragment_element.innerHTML = frag_content;
+    if (msg_type == "modify_document") {
+        var changes = message.changes;
+        __larch.__applyChanges(changes);
     }
     else if (msg_type == "execute_js") {
         var js_code = message.js_code;
@@ -90,6 +173,33 @@ __larch.postEvent = function(src_element, event_name, event_data) {
     var ev_msg = {
         msgtype: 'event',
         element_id: element_id,
+        event_name: event_name,
+        ev_data: event_data
+    };
+
+    var ev_json = JSON.stringify(ev_msg);
+
+    var ev_data = {
+        session_id: __larch.__session_id,
+        event_data: ev_json
+    };
+
+    $.ajax({
+        type: 'POST',
+        url: 'event',
+        data: ev_data,
+        success: function(msg) {
+            __larch.__handleMessagesFromServer(msg);
+        },
+        dataType: 'json'
+    });
+}
+
+
+__larch.postDocumentEvent = function(event_name, event_data) {
+    var ev_msg = {
+        msgtype: 'event',
+        element_id: null,
         event_name: event_name,
         ev_data: event_data
     };

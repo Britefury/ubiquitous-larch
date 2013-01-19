@@ -3,5 +3,6 @@
 //
 
 __larch = {
-    __session_id: undefined
+    __session_id: undefined,
+    __id_to_element_table: {}
 };

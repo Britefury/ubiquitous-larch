@@ -29,15 +29,11 @@ class AbstractEventElement (ElementWithId):
 
 	def _set_root_element(self, root):
 		if self._root_element is not None:
-			self._root_element._unregister_event_element(self.element_id)
+			self._root_element._unregister_event_segment(self.element_id)
 		super(AbstractEventElement, self)._set_root_element(root)
 		if self._root_element is not None:
-			self._root_element._register_event_element(self.element_id, self)
+			self._root_element._register_event_segment(self.element_id, self)
 
 
-	def __html__(self):
+	def __html__(self, level):
 		raise NotImplementedError, 'abstract'
-
-
-	def _content_html(self):
-		return Element.html(self._content)

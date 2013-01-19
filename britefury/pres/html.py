@@ -2,7 +2,7 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
 from britefury.pres.pres import Pres
-from britefury.element.html_content import HtmlContentElem
+from britefury.webdoc.web_document import HtmlContent
 
 
 class Html (Pres):
@@ -22,4 +22,4 @@ class Html (Pres):
 				cs.append(c)
 			else:
 				cs.append(c.build(pres_ctx))
-		return HtmlContentElem(cs)
+		return HtmlContent(cs)

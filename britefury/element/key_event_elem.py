@@ -151,13 +151,15 @@ class KeyEventElement (AbstractEventElement):
 
 
 
-	def __html__(self):
+	def __html__(self, level):
 		content_html = Element.html(self._content)
 		keydown_json = self.__keydown_json_str.replace('"', '\'')
 		keyup_json = self.__keyup_json_str.replace('"', '\'')
 		keypress_json = self.__keypress_json_str.replace('"', '\'')
-		return ('<span class="__lch_event_elem" id="{elem_id}" ' + \
-		       'onkeydown="return __larch.__onkeydown(event, {down});"' +\
-		       'onkeyup="return __larch.__onkeyup(event, {up});"' +\
-		       'onkeypress="return __larch.__onkeypress(event, {press});"' +\
-		       '>{content}</span>').format(elem_id=self.element_id, content=content_html, down=keydown_json, up=keyup_json, press=keypress_json)
+		a = {'class' : '__lch_event_elem',
+		     'id': str(self.element_id),
+		     'onkeydown': 'return __larch.__onkeydown(event, {0});'.format(keydown_json),
+		     'onkeyup': 'return __larch.__onkeyup(event, {0});'.format(keyup_json),
+		     'onkeypress': 'return __larch.__onkeypress(event, {0});'.format(keypress_json)}
+
+		return self._container(level, a, self._content.__html__(level))

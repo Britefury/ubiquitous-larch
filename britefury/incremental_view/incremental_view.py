@@ -8,7 +8,7 @@ from britefury.pres.presctx import PresentationContext
 from britefury.pres.pres import Pres
 from britefury.incremental.incremental_monitor import IncrementalMonitor
 from britefury.incremental.incremental_function_monitor import IncrementalFunctionMonitor
-from britefury.element.fragment_element import FragmentElement
+from britefury.webdoc.web_document import WebDocument
 from britefury.element.root_element import RootElement
 
 
@@ -47,14 +47,15 @@ class _FragmentView (object):
 		self.__incr = IncrementalFunctionMonitor(self)
 		self.__incr.add_listener(self.__on_incremental_monitor_changed)
 
-		# Fragment element
-		self.__fragment = FragmentElement(self, None)
-		#print 'Not implemented - drag source'
-		self.__element = None
+		# Segments
+		self.__segment = inc_view.web_document.new_segment()
+		self.__sub_segments = []
 
 
 	def _dispose(self):
 		self.__incr.remove_listener(self.__on_incremental_monitor_changed)
+		for sub_seg in self.__sub_segments:
+			self.__inc_view.web_document.remove_segment(sub_seg)
 
 
 
@@ -65,17 +66,13 @@ class _FragmentView (object):
 	#
 
 	@property
-	def fragment(self):
-		return self.__fragment
+	def segment_reference(self):
+		return self.__segment.reference()
 
 	@property
-	def refreshed_fragment(self):
+	def refreshed_segment_reference(self):
 		self.refresh()
-		return self.__fragment
-
-	@property
-	def fragment_content(self):
-		return self.__element
+		return self.__segment.reference()
 
 
 
@@ -151,6 +148,19 @@ class _FragmentView (object):
 
 	#
 	#
+	# Sub-segments
+	#
+	#
+
+	def create_sub_segment(self, content):
+		sub_seg = self.__inc_view.web_document.new_segment( content )
+		self.__sub_segments.append(sub_seg)
+		return sub_seg
+
+
+
+	#
+	#
 	# Fragment factory
 	#
 	#
@@ -193,14 +203,14 @@ class _FragmentView (object):
 	def __refresh_subtree(self):
 		self.__set_flag(self._FLAG_NODE_REFRESH_IN_PROGRESS)
 
-		self.__inc_view.on_element_change_from(self, self.__element)
+		content = self.__segment.content
+		self.__inc_view.on_fragment_content_change_from(self, content)
 
-		new_element = self.__element
 		if self.__test_flag(self._FLAG_NODE_REFRESH_REQUIRED):
 			# Compute result for this fragment, and refresh all children
 			refresh_state = self.__incr.on_refresh_begin()
 			if refresh_state is not None:
-				new_element = self.__compute_fragment_content_element()
+				content = self.__compute_fragment_content()
 			self.__incr.on_refresh_end(refresh_state)
 
 		# Refresh each child
@@ -211,10 +221,10 @@ class _FragmentView (object):
 
 		if self.__test_flag(self._FLAG_NODE_REFRESH_REQUIRED):
 			self.__incr.on_access()
-			# Set the element
-			self.__update_fragment_result(new_element)
+			# Set the content
+			self.__segment.content = content
 
-		self.__inc_view.on_element_change_to(self, new_element)
+		self.__inc_view.on_fragment_content_change_to(self, content)
 		self.__clear_flag(self._FLAG_NODE_REFRESH_REQUIRED)
 		self.__clear_flag(self._FLAG_NODE_REFRESH_IN_PROGRESS)
 
@@ -277,7 +287,7 @@ class _FragmentView (object):
 
 
 
-	def __compute_fragment_content_element(self):
+	def __compute_fragment_content(self):
 		# Unregister existing child relationships
 		child = self.__children_head
 		while child is not None:
@@ -290,14 +300,20 @@ class _FragmentView (object):
 			child = next
 		self.__children_head = self.__children_tail = None
 
+		# Remove sub segments
+		for sub_seg in self.__sub_segments:
+			self.__inc_view.web_document.remove_segment(sub_seg)
+		del self.__sub_segments[:]
+
 		self.__on_compute_node_result_begin()
 		self.__clear_flag(self._FLAG_DISABLE_INSPECTOR)
 
+		content = None
 		if self.__fragment_factory is not None:
-			element = self.__fragment_factory(self.__inc_view, self, self.__model)   if self.__fragment_factory is not None   else None
+			content = self.__fragment_factory(self.__inc_view, self, self.__model)   if self.__fragment_factory is not None   else None
 
 		self.__on_compute_node_result_end()
-		return element
+		return content
 
 
 
@@ -349,12 +365,6 @@ class _FragmentView (object):
 	#
 	#
 
-	def __update_fragment_result(self, elem):
-		if elem is not self.__element:
-			self.__element = elem
-			self.__fragment.content = elem
-
-
 	def __on_compute_node_result_begin(self):
 		pass
 
@@ -401,7 +411,7 @@ class _FragmentView (object):
 			child_fragment_view.refresh()
 			IncrementalMonitor.unblock_access_tracking(current)
 
-		return child_fragment_view.fragment
+		return child_fragment_view.segment_reference
 
 
 
@@ -691,8 +701,7 @@ class RootPres (Pres):
 		self.__inc_view._refresh()
 
 		root_frag_view = self.__inc_view._get_root_fragment_view()
-		self.__inc_view._root_element.content = root_frag_view.refreshed_fragment
-		return self.__inc_view._root_element
+		return root_frag_view.refreshed_segment_reference
 
 
 
@@ -714,9 +723,9 @@ class IncrementalView (object):
 		root_pres = RootPres(self)
 		self.__view_pres = root_pres
 
-		self._root_element = RootElement(session_id, subject.stylesheet_names, subject.script_names)
-
 		self.__unique_fragment_factories = {}
+
+		self.__web_document = WebDocument(session_id, subject.stylesheet_names, subject.script_names)
 
 
 	#
@@ -729,7 +738,7 @@ class IncrementalView (object):
 	def root_html(self):
 		pres = self.view_pres
 		elem = pres.build(None)
-		return elem.__html__()
+		return self.__web_document.html(elem.html())
 
 
 
@@ -740,14 +749,14 @@ class IncrementalView (object):
 	#
 
 	def synchronize(self):
-		self._root_element.execute_queued_tasks()
-		client_messages = self._root_element.get_client_message_queue()
-		self._root_element.clear_client_message_queue()
+		self.__web_document.execute_queued_tasks()
+		client_messages = self.__web_document.get_client_message_queue()
+		self.__web_document.clear_client_message_queue()
 		return client_messages
 
 
-	def handle_event(self, element_id, event_name, ev_data):
-		self._root_element.handle_event(element_id, event_name, ev_data)
+	def handle_event(self, segment_id, event_name, ev_data):
+		self.__web_document.handle_event(segment_id, event_name, ev_data)
 
 
 
@@ -772,6 +781,9 @@ class IncrementalView (object):
 	def subject(self):
 		return self.__subject
 
+	@property
+	def web_document(self):
+		return self.__web_document
 
 
 	#
@@ -789,7 +801,7 @@ class IncrementalView (object):
 	def _queue_refresh(self):
 		if not self.__refresh_required:
 			self.__refresh_required = True
-			self._root_element.queue(self._refresh)
+			self.__web_document.queue(self._refresh)
 
 
 
@@ -874,9 +886,9 @@ class IncrementalView (object):
 
 
 
-	def on_element_change_from(self, fragment_view, element):
+	def on_fragment_content_change_from(self, fragment_view, content):
 		pass
 
 
-	def on_element_change_to(self, fragment_view, element):
+	def on_fragment_content_change_to(self, fragment_view, content):
 		pass

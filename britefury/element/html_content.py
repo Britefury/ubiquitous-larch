@@ -23,5 +23,11 @@ class HtmlContentElem (Element):
 				yield c
 
 
-	def __html__(self):
-		return ''.join([Element.html(x)  for x in self.__contents])
+	def __html__(self, level):
+		xs = []
+		for x in self.__contents:
+			if isinstance(x, str) or isinstance(x, unicode):
+				xs.append(x)
+			else:
+				xs.append(x.__html__(level))
+		return ''.join(xs)

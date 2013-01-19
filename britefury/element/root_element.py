@@ -160,7 +160,7 @@ class RootElement (Element):
 
 
 
-	def __html__(self):
+	def __html__(self, level=Element.LEVEL_BLOCK):
 		stylesheet_tags = '\n'.join(['<link rel="stylesheet" type="text/css" href="{0}"/>'.format(stylesheet_name)   for stylesheet_name in self.__stylesheet_names])
 		script_tags = '\n'.join(['<script type="text/javascript" src="{0}"></script>'.format(script_name)   for script_name in self.__script_names])
 		if len(self.__js_queue) > 0:

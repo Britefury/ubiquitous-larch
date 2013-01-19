@@ -48,10 +48,9 @@ class FragmentElement (Element):
 		yield self.__content
 
 
-	def __html__(self):
-		content_html = Element.html(self.__content)
-		return '<span id="{0}">{1}</span>'.format(self.fragment_id, content_html)
+	def __html__(self, level):
+		return self._container(level, {'class': '__lch_fragment_elem', 'id': self.fragment_id}, self.__content.__html__(level))
 
 
-	def _content_html(self):
-		return Element.html(self.__content)
+	def _content_html(self, level):
+		return self.__content.__html__(level)

@@ -1,9 +1,7 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
-from britefury.element.event_elem import EventElement, post_event_js_code, post_event_js_code_for_handler
-from britefury.element.key_event_elem import KeyEventElement, Key
-from britefury.element.js_element import JSElement
+from britefury.webdoc.web_document import HtmlContent
 from britefury.pres.presctx import PresentationContext
 
 
@@ -105,6 +103,19 @@ class InnerFragment (Pres):
 
 
 
+class SubSegmentPres (Pres):
+	def __init__(self, child):
+		self.__child = Pres.coerce_not_none(child)
+
+
+	def build(self, pres_ctx):
+		seg = pres_ctx.fragment_view.create_sub_segment(self.__child.build(pres_ctx))
+		return HtmlContent([seg.reference()])
+
+
+
+
+
 class EventSource (Pres):
 	def __init__(self, event_handler, child):
 		self.__event_handler = event_handler
@@ -112,7 +123,8 @@ class EventSource (Pres):
 
 
 	def build(self, pres_ctx):
-		return EventElement(self.__event_handler, self.__child.build(pres_ctx))
+		return self.__child.build(pres_ctx)
+#		return EventElement(self.__event_handler, self.__child.build(pres_ctx))
 
 
 
@@ -128,7 +140,8 @@ class KeyEventSource (Pres):
 
 
 	def build(self, pres_ctx):
-		return KeyEventElement(self.__child.build(pres_ctx), self.__keys_and_handlers)
+		return self.__child.build(pres_ctx)
+#		return KeyEventElement(self.__child.build(pres_ctx), self.__keys_and_handlers)
 
 
 
@@ -143,4 +156,5 @@ class JSCall (Pres):
 
 
 	def build(self, pres_ctx):
-		return JSElement(self.__js_fn_names, self.__child.build(pres_ctx))
+		return self.__child.build(pres_ctx)
+#		return JSElement(self.__js_fn_names, self.__child.build(pres_ctx))
