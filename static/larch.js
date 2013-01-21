@@ -7,29 +7,33 @@ __larch.__executeJS = function(js_code) {
 }
 
 
-__larch.__replaceNode = function(before, after) {
-    var parent = before.parentNode;
-    parent.insertBefore(after, before);
-    parent.removeChild(before);
+__larch.__replaceNodes = function(oldNodeList, newNodeList) {
+    var first = oldNodeList[0];
+    var parent = first.parentNode;
+    var children = parent.childNodes;
+    var i = children.indexOf(first);
+    var j = children.indexOf(oldNodeList[oldNodeList.length-1]);
+    children.splice.apply(children, [i,j-i].concat(newNodeList));
 }
 
-__larch.__createElementFromSource = function(content) {
+__larch.__createNodesFromSource = function(content) {
     var elem = document.createElement("div");
     elem.innerHTML = content;
-    return elem.childNodes[0];
+    return elem.childNodes;
 }
 
-__larch.__getPlaceHolders = function() {
+__larch.__getPlaceHolderNodes = function() {
     if (document.getElementsByClassName) {
-        return document.getElementsByClassName("__lch_placeholder");
+        return document.getElementsByClassName("__lch_seg_placeholder");
     }
     else {
+        // IE does not support getElementsByClassName
         var els = document.getElementsByTagName("span");
         var i = 0;
         var elem = null;
         var placeHolders = [];
         while (elem = els[i++]) {
-            if (elem.className == "__lch_placeholder") {
+            if (elem.className == "__lch_seg_placeholder") {
                 placeHolders.push(elem);
             }
         }
@@ -37,58 +41,136 @@ __larch.__getPlaceHolders = function() {
     }
 }
 
+__larch.__getInlineNodes = function() {
+    if (document.getElementsByClassName) {
+        return document.getElementsByClassName("__lch_seg_inline_begin");
+    }
+    else {
+        // IE does not support getElementsByClassName
+        var els = document.getElementsByTagName("span");
+        var i = 0;
+        var elem = null;
+        var placeHolders = [];
+        while (elem = els[i++]) {
+            if (elem.className == "__lch_seg_inline_begin") {
+                placeHolders.push(elem);
+            }
+        }
+        return placeHolders;
+    }
+}
+
+__larch.__handleInlineNodes = function() {
+    var segment_table = __larch.__segment_table;
+
+    var inlines = __larch.__getInlineNodes();
+
+    // Take a copy of the node list, since we are about the mutate the DOM
+    var inlineNodes = [];
+    for (var i = 0; i < inlines.length; i++) {
+        inlineNodes.push(inlines[i]);
+    }
+    for (var i = 0; i < inlineNodes.length; i++) {
+        // Get the start node and extract the segment ID
+        var start = inlineNodes[i];
+        var segment_id = start.innerHTML;
+
+        // The list of nodes in this segment
+        var nodeRange = [];
+
+        // Iterate forwards until we find an end node. Accumulate only inner nodes into @nodeRange
+        var n = start.nextSibling;
+        while (true) {
+            if (n.getAttribute  &&  n.getAttribute("class") == '__lch_seg_inline_end') {
+                break;
+            }
+            nodeRange.push(n);
+            n = n.nextSibling;
+        }
+
+        // @n is now the end node
+
+        // Get the parent
+        var parent = start.parentNode;
+
+        // In the case of an empty segment, add an empty span element in between, so that we have a node to reference
+        // in the future.
+        if (nodeRange.length == 0) {
+            // No nodes within the guards; create an empty span
+            var s = document.createElement("span");
+            parent.insertBefore(s, n);
+            nodeRange.push(s);
+        }
+
+        // Remove the start and end span nodes
+        parent.removeChild(start);
+        parent.removeChild(n);
+
+        // Put an entry in our segment table
+        segment_table[segment_id] = {'elems': nodeRange, 'in_document': true};
+    }
+}
+
+
+
 __larch.__applyChanges = function(changes) {
     var removed = changes.removed;
     var added = changes.added;
     var modified = changes.modified;
 
-    var id_to_elem = __larch.__id_to_element_table;
+    var segment_table = __larch.__segment_table;
 
     // Handle removals
     for (var i = 0; i < removed.length; i++) {
-        delete id_to_elem[removed[o]];
+        // Just remove them from the table
+        // The DOM modifications will remove the nodes
+        delete segment_table[removed[i]];
     }
 
     // Handle additions
-    for (var i = 0; i < added.length; i++) {
+    /*for (var i = 0; i < added.length; i++) {
         var key = added[i][0];
         var content = added[i][1];
 
-        id_to_elem[key] = {'elem': __larch.__createElementFromSource(content), 'in_document': false};
-    }
+        id_to_elem[key] = {'elem': __larch.__createElementsFromSource(content), 'in_document': false};
+    }*/
 
     // Handle modifications
     for (var i = 0; i < modified.length; i++) {
-        var key = modified[i][0];
+        // Get the segment ID and content
+        var segment_id = modified[i][0];
         var content = modified[i][1];
 
-        var state = id_to_elem[key];
+        var state = segment_table[segment_id];
 
         if (state.in_document) {
-            var newElem = __larch.__createElementFromSource(content);
-            __larch.__replaceNode(state.elem, newElem);
-            state.elem = newElem;
+            var newNodes = __larch.__createNodesFromSource(content);
+
+            __larch.__replaceNodes(state.nodes, newNodes);
+            state.nodes = newNodes;
         }
         else {
-            state.elem = __larch.__createElementFromSource(content);
+            state.nodes = __larch.__createNodesFromSource(content);
         }
     }
 
     // Handle the placeholders
-    var placeHolders = __larch.__getPlaceHolders();
+    var placeHolders = __larch.__getPlaceHolderNodes();
     while (placeHolders.length > 0) {
         for (var i = 0; i < placeHolders.length; i++) {
             var p = placeHolders[i];
-            var key = p.innerHTML;
+            var segment_id = p.innerHTML;
 
-            var state = id_to_elem[key];
+            var state = segment_table[segment_id];
             state.in_document = true;
-            __larch.__replaceNode(p, state.elem);
+            __larch.__replaceNodes([p], state.nodes);
         }
 
-        placeHolders = __larch.__getPlaceHolders();
+        placeHolders = __larch.__getPlaceHolderNodes();
     }
 
+    // Handle the inline elements
+    __larch.__handleInlineNodes();
 }
 
 __larch.__handleMessageFromServer = function(message) {

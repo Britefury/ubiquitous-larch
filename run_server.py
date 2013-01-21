@@ -127,7 +127,7 @@ class IndexPage (object):
 
 	def __present__(self, fragment, inherited_state):
 		self.__incr.on_access()
-		contents = ['<div><h1>Index page</h1>'] + self.__items + [range(256)*4, '</div>']
+		contents = ['<div><h1>Index page</h1>'] + self.__items + [range(256)*64, '</div>']
 		return Html(*contents)
 
 

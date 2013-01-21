@@ -8,8 +8,7 @@ from britefury.pres.presctx import PresentationContext
 from britefury.pres.pres import Pres
 from britefury.incremental.incremental_monitor import IncrementalMonitor
 from britefury.incremental.incremental_function_monitor import IncrementalFunctionMonitor
-from britefury.webdoc.web_document import WebDocument
-from britefury.element.root_element import RootElement
+from britefury.webdoc.web_document import WebDocument, HtmlContent
 
 
 
@@ -701,7 +700,7 @@ class RootPres (Pres):
 		self.__inc_view._refresh()
 
 		root_frag_view = self.__inc_view._get_root_fragment_view()
-		return root_frag_view.refreshed_segment_reference
+		return HtmlContent([root_frag_view.refreshed_segment_reference.inline_html()])
 
 
 
@@ -737,8 +736,8 @@ class IncrementalView (object):
 	@property
 	def root_html(self):
 		pres = self.view_pres
-		elem = pres.build(None)
-		return self.__web_document.html(elem.html())
+		html_content = pres.build(None)
+		return self.__web_document.page_html(html_content.html())
 
 
 

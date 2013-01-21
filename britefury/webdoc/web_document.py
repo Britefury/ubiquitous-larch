@@ -5,6 +5,7 @@ from britefury.message.modify_document_message import ModifyDocumentMessage
 
 
 _page_content = """
+<!doctype html>
 <html>
 	<head>
 		<title>The Larch Environment (test)</title>
@@ -55,7 +56,7 @@ class WebDocument (object):
 
 		self._root_segment = None
 
-		self._queue_js_to_execute('__larch.postDocumentEvent("initialise_document", {});')
+		self._queue_js_to_execute('__larch.__handleInlineNodes()')
 
 
 
@@ -141,7 +142,7 @@ class WebDocument (object):
 		self.__post_execute_js_messages()
 
 
-	def html(self, root_content):
+	def page_html(self, root_content):
 		stylesheet_tags = '\n'.join(['<link rel="stylesheet" type="text/css" href="{0}"/>'.format(stylesheet_name)   for stylesheet_name in self.__stylesheet_names])
 		script_tags = '\n'.join(['<script type="text/javascript" src="{0}"></script>'.format(script_name)   for script_name in self.__script_names])
 		if len(self.__js_queue) > 0:
@@ -155,6 +156,59 @@ class WebDocument (object):
 
 
 
+
+
+def _wrap_segment_html(seg_html):
+	raise NotImplementedError
+
+
+
+
+
+class _ChangeSet (object):
+	def __init__(self, added_segs, removed_segs, modified_segs):
+		self.__added_segs = added_segs
+
+		self.__added_seg_to_html = {}
+
+		self.removed = [seg.id   for seg in removed_segs]
+		self.added = []
+		self.modified = []
+
+		assert isinstance(self.__added_segs, set)
+		while len(self.__added_segs) > 0:
+			seg = added_segs.pop()
+			html = seg.html(self.__resolve_reference)
+			self.__added_seg_to_html[seg] = html
+
+		for seg in modified_segs:
+			html = seg.html(self.__resolve_reference)
+			self.modified.append((seg.id, html))
+
+		assert len(self.__added_segs) == 0  and  len(self.__added_seg_to_html) == 0
+		for seg, html in self.__added_seg_to_html.items():
+			self.added.append((seg.id, html))
+
+
+
+	def json(self):
+		return {'added': self.added, 'removed': self.removed, 'modified': self.modified}
+
+
+	def __resolve_reference(self, seg):
+		if seg in self.__added_segs:
+			self.__added_segs.remove(seg)
+			return seg._wrap_html(seg.html(self.__resolve_reference))
+		elif seg in self.__added_seg_to_html:
+			html = self.__added_seg_to_html[seg]
+			del self.__added_seg_to_html[seg]
+			return seg._wrap_html(html)
+		else:
+			return seg._place_holder()
+
+
+
+
 class _SegmentTable (object):
 	def __init__(self, doc):
 		self.__doc = doc
@@ -162,19 +216,20 @@ class _SegmentTable (object):
 		self.__id_counter = 1
 		self.__id_to_segment = {}
 
-		self.__changes_added = {}
+		self.__changes_added = set()
 		self.__changes_removed = set()
-		self.__changes_modified = {}
-
+		self.__changes_modified = set()
 
 
 
 	def get_recent_changes(self):
-		changes = {'added': list(self.__changes_added.items()), 'removed': list(self.__changes_removed), 'modified': list(self.__changes_modified.items())}
-		self.__changes_added = {}
+		changes = _ChangeSet(self.__changes_added, self.__changes_removed, self.__changes_modified)
+
+		self.__changes_added = set()
 		self.__changes_removed = set()
-		self.__changes_modified = {}
-		return changes
+		self.__changes_modified = set()
+
+		return changes.json()
 
 
 
@@ -184,7 +239,7 @@ class _SegmentTable (object):
 		seg = _HtmlSegment(self.__doc, id, content)
 		self.__id_to_segment[id] = seg
 
-		self.__changes_added[id] = content.html()   if content is not None   else ''
+		self.__changes_added.add(seg)
 
 		self.__doc._notify_document_modified()
 
@@ -195,17 +250,14 @@ class _SegmentTable (object):
 		id = segment.id
 		del self.__id_to_segment[id]
 
-		self.__changes_removed.add(id)
+		self.__changes_removed.add(segment)
 
 		self.__doc._notify_document_modified()
 
 
 	def _segment_modified(self, segment, content):
-		id = segment.id
-		if id in self.__changes_added:
-			self.__changes_added[id] = content.html()   if content is not None   else ''
-		else:
-			self.__changes_modified[segment.id] = content.html()   if content is not None   else ''
+		if segment not in self.__changes_added:
+			self.__changes_modified.add(segment)
 
 		self.__doc._notify_document_modified()
 
@@ -219,6 +271,7 @@ class _HtmlSegment (object):
 	def __init__(self, doc, id, content=None):
 		self.__doc = doc
 		self.__id = id
+		assert content is None  or  isinstance(content, HtmlContent)
 		self.__content = content
 		self.__parent = None
 
@@ -238,10 +291,26 @@ class _HtmlSegment (object):
 
 	@content.setter
 	def content(self, x):
+		assert x is None  or  isinstance(x, HtmlContent)
 		self.__disconnect_children()
 		self.__content = x
 		self.__connect_children()
 		self.__doc._table._segment_modified(self, x)
+
+
+	def html(self, ref_resolver=None):
+		return self.__content.html(ref_resolver)   if self.__content is not None   else ''
+
+
+	def _place_holder(self):
+		return '<span class="__lch_seg_placeholder">{0}</span>'.format(self.__id)
+
+	def _wrap_html(self, html):
+		return '<span class="__lch_seg_inline_begin">{0}</span>{1}<span class="__lch_seg_inline_end"></span>'.format(self.__id, html)
+
+	def _inline_html(self, ref_resolver):
+		return self._wrap_html(self.html(ref_resolver))
+
 
 
 	def __connect_children(self):
@@ -267,15 +336,25 @@ class _HtmlSegment (object):
 class SegmentRef (object):
 	def __init__(self, segment):
 		self.__segment = segment
-		self.__html = '<span class="__lch_placeholder">{0}</span>'.format(segment.id)
 
 
 	@property
 	def segment(self):
 		return self.__segment
 
-	def html(self):
-		return self.__html
+	def html(self, ref_resolver=None):
+		if ref_resolver is not None:
+			return ref_resolver(self.__segment)
+		else:
+			return self.__segment._place_holder()
+
+
+	def inline_html(self):
+		return self.html(self.__resolve_inline)
+
+
+	def __resolve_inline(self, seg):
+		return seg._inline_html(self.__resolve_inline)
 
 
 
@@ -284,11 +363,11 @@ class HtmlContent (list):
 		super(HtmlContent, self).__init__(contents)
 
 
-	def html(self):
+	def html(self, ref_resolver=None):
 		xs = []
 		for x in self:
 			if isinstance(x, str)  or  isinstance(x, unicode):
 				xs.append(x)
 			else:
-				xs.append(x.html())
+				xs.append(x.html(ref_resolver))
 		return ''.join(xs)

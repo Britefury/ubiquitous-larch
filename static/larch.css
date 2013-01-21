@@ -1,3 +1,18 @@
+.__lch_seg_placeholder {
+    display: none;
+    visibility: hidden;
+}
+
+.__lch_seg_inline_begin {
+    display: none;
+    visibility: hidden;
+}
+
+.__lch_seg_inline_end {
+    display: none;
+    visibility: hidden;
+}
+
 .__lch_event_elem {
 }
 
