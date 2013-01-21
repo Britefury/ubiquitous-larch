@@ -60,7 +60,7 @@ def present_complex(x):
 	if x.real == 0.0:
 		return Html(present_float(x.imag), _complex_j)
 	else:
-		return Html('<span>', _open_paren, present_float(x.real), _plus, present_float(x.imag), _complex_j + _close_paren, '</span>')
+		return Html(_open_paren, present_float(x.real), _plus, present_float(x.imag), _complex_j + _close_paren)
 
 
 _open_paren = _punct_html('(')
@@ -83,7 +83,7 @@ def present_tuple(xs):
 	if len(xs) == 1:
 		return Html(_open_paren, xs[0], _comma + _close_paren)
 	else:
-		contents = ['<span>', _open_paren]
+		contents = [_open_paren]
 		first = True
 		for x in xs:
 			if not first:
@@ -91,12 +91,11 @@ def present_tuple(xs):
 			contents.append(x)
 			first = False
 		contents.append(_close_paren)
-		contents.append('</span>')
 		return Html(*contents)
 
 
 def present_list(xs):
-	contents = ['<span>', _open_bracket]
+	contents = [_open_bracket]
 	first = True
 	for x in xs:
 		if not first:
@@ -104,12 +103,11 @@ def present_list(xs):
 		contents.append(x)
 		first = False
 	contents.append(_close_bracket)
-	contents.append('</span>')
 	return Html(*contents)
 
 
 def present_set(xs):
-	contents = ['<span>', _open_brace]
+	contents = [_open_brace]
 	first = True
 	for x in xs:
 		if not first:
@@ -117,12 +115,11 @@ def present_set(xs):
 		contents.append(x)
 		first = False
 	contents.append(_close_brace)
-	contents.append('</span>')
 	return Html(*contents)
 
 
 def present_dict(xs):
-	contents = ['<span>', _open_brace]
+	contents = [_open_brace]
 	first = True
 	for key, value in xs.items():
 		if not first:
@@ -132,7 +129,6 @@ def present_dict(xs):
 		contents.append(value)
 		first = False
 	contents.append(_close_brace)
-	contents.append('</span>')
 	return Html(*contents)
 
 
