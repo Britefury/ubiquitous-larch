@@ -136,19 +136,19 @@ class EventSource (SubSegmentPres):
 
 
 
-class JSCall (Pres):
+class JSCall (SubSegmentPres):
 	def __init__(self, js_fn_names, child):
+		super(JSCall, self).__init__(child)
 		self.__js_fn_names = js_fn_names
-		self.__child = Pres.coerce_not_none(child)
 
 
 	def call_js(self, js_fun_name):
 		return JSCall(self.__js_fn_names + [js_fun_name], self.__child)
 
 
-	def build(self, pres_ctx):
-		return self.__child.build(pres_ctx)
-#		return JSElement(self.__js_fn_names, self.__child.build(pres_ctx))
+	def initialise_segment(self, seg, pres_ctx):
+		for fn_name in self.__js_fn_names:
+			seg.add_initialiser('{0}(node);'.format(fn_name))
 
 
 

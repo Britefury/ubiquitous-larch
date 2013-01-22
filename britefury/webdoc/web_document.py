@@ -3,6 +3,8 @@ from collections import deque
 
 import json
 
+from copy import copy
+
 from britefury.message.execute_js_message import ExecuteJSMessage
 from britefury.message.modify_document_message import ModifyDocumentMessage
 
@@ -170,12 +172,6 @@ class WebDocument (object):
 
 
 
-def _wrap_segment_html(seg_html):
-	raise NotImplementedError
-
-
-
-
 
 class _ChangeSet (object):
 	def __init__(self, added_segs, removed_segs, modified_segs):
@@ -194,10 +190,11 @@ class _ChangeSet (object):
 			html = seg.html(self.__resolve_reference)
 			self.__added_seg_to_html[seg] = html
 
-
 		for seg in modified_segs:
+			print '_ChangeSet() before: {0}'.format(len(modified_segs))
 			html = seg.html(self.__resolve_reference)
 			self.modified.append((seg.id, html))
+			print '_ChangeSet() after: {0}'.format(len(modified_segs))
 
 		assert len(self.__added_seg_to_html) == 0
 		for seg, html in self.__added_seg_to_html.items():
@@ -256,7 +253,7 @@ class _SegmentTable (object):
 
 
 	def get_recent_changes(self):
-		changes = _ChangeSet(self.__changes_added, self.__changes_removed, self.__changes_modified)
+		changes = _ChangeSet(copy(self.__changes_added), copy(self.__changes_removed), copy(self.__changes_modified))
 
 		return changes.json()
 
@@ -410,6 +407,7 @@ class _HtmlSegment (object):
 
 class SegmentRef (object):
 	def __init__(self, segment):
+		assert isinstance(segment, _HtmlSegment)
 		self.__segment = segment
 
 
@@ -435,6 +433,8 @@ class SegmentRef (object):
 
 class HtmlContent (list):
 	def __init__(self, contents):
+		for x in contents:
+			assert isinstance(x, str)  or  isinstance(x, unicode)  or  isinstance(x, SegmentRef)  or  isinstance(x, HtmlContent)
 		super(HtmlContent, self).__init__(contents)
 
 

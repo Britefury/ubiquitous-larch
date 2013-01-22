@@ -43,14 +43,12 @@ y=LiveFunction(lambda: x.value*x.value)
 
 
 def on_press():
-    print 'PRESSED'
     x.value = x.static_value + 1
 
 b=button('Press me', on_press)
 
 Html(x,b,y)
 
-range(256)*64
 """
 
 class CodeResult (object):
@@ -110,7 +108,8 @@ class CodeItem (object):
 			return True
 
 
-		code_area = Html('<textarea class="python_code">{code}</textarea>'.format(code=self.__code)).call_js('__pythonCodeArea.initPythonCodeArea').with_event_handler('changed', on_change)
+		code_area = Html('<textarea class="python_code">{code}</textarea>'.format(code=self.__code)).call_js('__pythonCodeArea.initPythonCodeArea')
+		code_area = Html('<div>', code_area, '</div>').with_event_handler('changed', on_change)
 		execute_button = button('Execute', on_execute)
 		res = self.__result_container
 

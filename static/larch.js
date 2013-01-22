@@ -34,7 +34,7 @@ __larch.__isSegmentNode = function(node) {
     return false;
 }
 
-__larch.__createSegmentContentNodesFromSource = function(content, segment_id, initialisers) {
+__larch.__createSegmentContentNodesFromSource = function(content) {
     var elem = document.createElement("div");
     elem.innerHTML = content;
     var nodes = elem.childNodes;
@@ -44,7 +44,6 @@ __larch.__createSegmentContentNodesFromSource = function(content, segment_id, in
         if (__larch.__isSegmentNode(n)) {
             continue;
         }
-        n.__lch_seg_id = segment_id;
         newNodes.push(n);
     }
     return newNodes;
@@ -182,7 +181,7 @@ __larch.__applyChanges = function(changes) {
 
         var state = segment_table[segment_id];
 
-        var newNodes = __larch.__createSegmentContentNodesFromSource(content, segment_id, initialisers);
+        var newNodes = __larch.__createSegmentContentNodesFromSource(content);
 
         // Unregister segment IDs
         for (var j = 0; j < state.nodes.length; j++) {
@@ -193,8 +192,8 @@ __larch.__applyChanges = function(changes) {
         state.nodes = newNodes;
 
         // Register segment IDs
-        for (var j = 0; j < state.nodes.length; j++) {
-            state.nodes[j].__lch_seg_id = segment_id;
+        for (var j = 0; j < newNodes.length; j++) {
+            newNodes[j].__lch_seg_id = segment_id;
         }
     }
 
