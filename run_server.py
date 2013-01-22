@@ -13,8 +13,7 @@ from britefury.incremental.incremental_value_monitor import IncrementalValueMoni
 from britefury.incremental_view.incremental_view import IncrementalView
 from britefury.pres.presctx import PresentationContext
 from britefury.pres.html import Html
-from britefury.pres.pres import Pres
-from britefury.element.key_event_elem import Key
+from britefury.pres.pres import Pres, Key
 from britefury.pres.controls.actionlink import action_link
 from britefury.pres.controls.button import button
 from britefury.default_perspective.default_perspective import DefaultPerspective

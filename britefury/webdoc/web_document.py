@@ -191,10 +191,8 @@ class _ChangeSet (object):
 			self.__added_seg_to_html[seg] = html
 
 		for seg in modified_segs:
-			print '_ChangeSet() before: {0}'.format(len(modified_segs))
 			html = seg.html(self.__resolve_reference)
 			self.modified.append((seg.id, html))
-			print '_ChangeSet() after: {0}'.format(len(modified_segs))
 
 		assert len(self.__added_seg_to_html) == 0
 		for seg, html in self.__added_seg_to_html.items():

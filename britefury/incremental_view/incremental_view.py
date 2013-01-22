@@ -510,14 +510,14 @@ class FragmentFactory (object):
 			raise
 
 		try:
-			element = self.__pres_to_elements(fragment_pres, fragment_view)
+			html_content = self.__pres_to_html_content(fragment_pres, fragment_view)
 		except:
 			raise
 
-		return element
+		return html_content
 
 
-	def __pres_to_elements(self, fragment_pres, fragment_view):
+	def __pres_to_html_content(self, fragment_pres, fragment_view):
 		return fragment_pres.build(PresentationContext(fragment_view, self.__perspective, self.__inherited_state))
 
 

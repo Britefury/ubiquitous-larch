@@ -1,4 +1,4 @@
-from britefury.element.event_elem import post_event_js_code_for_handler
+from britefury.pres.pres import post_event_js_code_for_handler
 from britefury.pres.html import Html
 
 
