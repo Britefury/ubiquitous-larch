@@ -1,8 +1,11 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
+import json
+
 from britefury.webdoc.web_document import HtmlContent
 from britefury.pres.presctx import PresentationContext
+from britefury.pres.key_event import Key
 
 
 
@@ -108,40 +111,28 @@ class SubSegmentPres (Pres):
 		self.__child = Pres.coerce_not_none(child)
 
 
+
+	def initialise_segment(self, seg, pres_ctx):
+		pass
+
 	def build(self, pres_ctx):
 		seg = pres_ctx.fragment_view.create_sub_segment(self.__child.build(pres_ctx))
+		self.initialise_segment(seg, pres_ctx)
 		return HtmlContent([seg.reference()])
 
 
 
 
 
-class EventSource (Pres):
+class EventSource (SubSegmentPres):
 	def __init__(self, event_handler, child):
+		super(EventSource, self).__init__(child)
 		self.__event_handler = event_handler
-		self.__child = Pres.coerce_not_none(child)
 
 
-	def build(self, pres_ctx):
-		return self.__child.build(pres_ctx)
-#		return EventElement(self.__event_handler, self.__child.build(pres_ctx))
+	def initialise_segment(self, seg, pres_ctx):
+		seg.add_event_handler(self.__event_handler)
 
-
-
-class KeyEventSource (Pres):
-	def __init__(self, keys_and_handlers, child):
-		self.__keys_and_handlers = keys_and_handlers
-		self.__child = Pres.coerce_not_none(child)
-
-
-	def with_key_handler(self, keys, handler):
-		keys_and_handlers = [(key, handler)   for key in keys]
-		return KeyEventSource(self.__keys_and_handlers + keys_and_handlers, self.__child)
-
-
-	def build(self, pres_ctx):
-		return self.__child.build(pres_ctx)
-#		return KeyEventElement(self.__child.build(pres_ctx), self.__keys_and_handlers)
 
 
 
@@ -158,3 +149,59 @@ class JSCall (Pres):
 	def build(self, pres_ctx):
 		return self.__child.build(pres_ctx)
 #		return JSElement(self.__js_fn_names, self.__child.build(pres_ctx))
+
+
+
+class KeyEventSource (EventSource):
+	def __init__(self, keys_and_handlers, child):
+		super(KeyEventSource, self).__init__(self.__handle_key_event, child)
+
+		self.__keys_and_handlers = keys_and_handlers
+
+		self.__keydown = [k   for k in keys_and_handlers   if k[0].event_type == Key.KEY_DOWN]
+		self.__keyup = [k   for k in keys_and_handlers   if k[0].event_type == Key.KEY_DOWN]
+		self.__keypress = [k   for k in keys_and_handlers   if k[0].event_type == Key.KEY_DOWN]
+
+		self.__keydown_json_str = json.dumps([k[0].__to_json__()   for k in self.__keydown])
+		self.__keyup_json_str = json.dumps([k[0].__to_json__()   for k in self.__keyup])
+		self.__keypress_json_str = json.dumps([k[0].__to_json__()   for k in self.__keypress])
+
+
+
+	def with_key_handler(self, keys, handler):
+		keys_and_handlers = [(key, handler)   for key in keys]
+		return KeyEventSource(self.__keys_and_handlers + keys_and_handlers, self._child)
+
+
+	def __handle_key_event(self, event_name, ev_data):
+		if event_name == 'keydown':
+			ev_key = Key.__from_keydown_json__(ev_data)
+			keys_and_handlers = self.__keydown
+		elif event_name == 'keyup':
+			ev_key = Key.__from_keyup_json__(ev_data)
+			keys_and_handlers = self.__keyup
+		elif event_name == 'keypress':
+			ev_key = Key.__from_keypress_json__(ev_data)
+			keys_and_handlers = self.__keypress
+		else:
+			return False
+
+		for key, handler in keys_and_handlers:
+			if ev_key.matches(key):
+				return handler(ev_key)
+
+		return False
+
+
+
+	def initialise_segment(self, seg, pres_ctx):
+		super(KeyEventSource, self).initialise_segment(seg, pres_ctx)
+		keydown_json = self.__keydown_json_str.replace('"', '\'')
+		keyup_json = self.__keyup_json_str.replace('"', '\'')
+		keypress_json = self.__keypress_json_str.replace('"', '\'')
+		seg.add_initialiser('node.onkeydown = function(event) {{__larch.__onkeydown(event, {0});}}'.format(keydown_json))
+		seg.add_initialiser('node.onkeyup = function(event) {{__larch.__onkeyup(event, {0});}}'.format(keyup_json))
+		seg.add_initialiser('node.onkeypress = function(event) {{__larch.__onkeypress(event, {0});}}'.format(keypress_json))
+
+
+

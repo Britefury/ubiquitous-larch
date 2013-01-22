@@ -10,60 +10,94 @@ __larch.__executeJS = function(js_code) {
 __larch.__replaceNodes = function(oldNodeList, newNodeList) {
     var first = oldNodeList[0];
     var parent = first.parentNode;
-    var children = parent.childNodes;
-    var i = children.indexOf(first);
-    var j = children.indexOf(oldNodeList[oldNodeList.length-1]);
-    children.splice.apply(children, [i,j-i].concat(newNodeList));
+
+    for (var i = 0; i < newNodeList.length; i++) {
+        parent.insertBefore(newNodeList[i], first);
+    }
+    for (var i = 0; i < oldNodeList.length; i++) {
+        parent.removeChild(oldNodeList[i]);
+    }
+//    var children = Array.prototype.slice.call(parent.childNodes, 0, parent.childNodes.length);
+//    var i = children.indexOf(first);
+//    var j = children.indexOf(oldNodeList[oldNodeList.length-1])+1;
+//    //children.splice.apply(children, [i,j-i].concat(newNodeList));
+//    Array.prototype.splice.apply(parent.childNodes, [i,j-i].concat(newNodeList));
 }
 
-__larch.__createNodesFromSource = function(content) {
+__larch.__isSegmentNode = function(node) {
+    if (node.className) {
+        var c = node.className;
+        if (c == "__lch_seg_placeholder"  ||  c == "__lch_seg_inline_begin"  ||  c == "__lch_seg_inline_end") {
+            return true;
+        }
+    }
+    return false;
+}
+
+__larch.__createSegmentContentNodesFromSource = function(content, segment_id, initialisers) {
     var elem = document.createElement("div");
     elem.innerHTML = content;
-    return elem.childNodes;
+    var nodes = elem.childNodes;
+    var newNodes = [];
+    for (var i = 0; i < nodes.length; i++) {
+        var n = nodes[i];
+        if (__larch.__isSegmentNode(n)) {
+            continue;
+        }
+        n.__lch_seg_id = segment_id;
+        newNodes.push(n);
+    }
+    return newNodes;
+}
+
+__larch.__getElementsOfClass = function(className, tagName) {
+    if (document.getElementsByClassName) {
+        return document.getElementsByClassName(className);
+    }
+    else {
+        // IE does not support getElementsByClassName
+        var els = document.getElementsByTagName(tagName);
+        var i = 0;
+        var elem = null;
+        var placeHolders = [];
+        while (elem = els[i++]) {
+            if (elem.className == className) {
+                placeHolders.push(elem);
+            }
+        }
+        return placeHolders;
+    }
 }
 
 __larch.__getPlaceHolderNodes = function() {
-    if (document.getElementsByClassName) {
-        return document.getElementsByClassName("__lch_seg_placeholder");
-    }
-    else {
-        // IE does not support getElementsByClassName
-        var els = document.getElementsByTagName("span");
-        var i = 0;
-        var elem = null;
-        var placeHolders = [];
-        while (elem = els[i++]) {
-            if (elem.className == "__lch_seg_placeholder") {
-                placeHolders.push(elem);
-            }
-        }
-        return placeHolders;
-    }
+    return __larch.__getElementsOfClass("__lch_seg_placeholder", "span");
 }
 
-__larch.__getInlineNodes = function() {
-    if (document.getElementsByClassName) {
-        return document.getElementsByClassName("__lch_seg_inline_begin");
-    }
-    else {
-        // IE does not support getElementsByClassName
-        var els = document.getElementsByTagName("span");
-        var i = 0;
-        var elem = null;
-        var placeHolders = [];
-        while (elem = els[i++]) {
-            if (elem.className == "__lch_seg_inline_begin") {
-                placeHolders.push(elem);
+__larch.__getInlineBeginNodes = function() {
+    return __larch.__getElementsOfClass("__lch_seg_inline_begin", "span");
+}
+
+__larch.__executeInitialisers = function(initialisers) {
+    var segment_table = __larch.__segment_table;
+    for (var i = 0; i < initialisers.length; i++) {
+        var x = initialisers[i];
+        var segment_id = x[0];
+        var inits = x[1];
+        var state = segment_table[segment_id];
+        var nodes = state.nodes;
+        for (var j = 0; j < nodes.length; j++) {
+            var node = nodes[j];
+            for (var k = 0; k < inits.length; k++) {
+                eval(inits[k]);
             }
         }
-        return placeHolders;
     }
 }
 
 __larch.__handleInlineNodes = function() {
     var segment_table = __larch.__segment_table;
 
-    var inlines = __larch.__getInlineNodes();
+    var inlines = __larch.__getInlineBeginNodes();
 
     // Take a copy of the node list, since we are about the mutate the DOM
     var inlineNodes = [];
@@ -78,13 +112,16 @@ __larch.__handleInlineNodes = function() {
         // The list of nodes in this segment
         var nodeRange = [];
 
-        // Iterate forwards until we find an end node. Accumulate only inner nodes into @nodeRange
+        // Iterate forwards until we find the matching end node. Accumulate only inner nodes into @nodeRange
         var n = start.nextSibling;
         while (true) {
-            if (n.getAttribute  &&  n.getAttribute("class") == '__lch_seg_inline_end') {
+            if (n.getAttribute  &&  n.getAttribute("class") == '__lch_seg_inline_end'  && n.innerHTML == segment_id) {
                 break;
             }
-            nodeRange.push(n);
+            if (!__larch.__isSegmentNode(n)) {
+                nodeRange.push(n);
+                n.__lch_seg_id = segment_id;
+            }
             n = n.nextSibling;
         }
 
@@ -98,6 +135,7 @@ __larch.__handleInlineNodes = function() {
         if (nodeRange.length == 0) {
             // No nodes within the guards; create an empty span
             var s = document.createElement("span");
+            s.__lch_seg_id = segment_id;
             parent.insertBefore(s, n);
             nodeRange.push(s);
         }
@@ -107,7 +145,7 @@ __larch.__handleInlineNodes = function() {
         parent.removeChild(n);
 
         // Put an entry in our segment table
-        segment_table[segment_id] = {'elems': nodeRange, 'in_document': true};
+        segment_table[segment_id] = {'nodes': nodeRange};
     }
 }
 
@@ -117,6 +155,7 @@ __larch.__applyChanges = function(changes) {
     var removed = changes.removed;
     var added = changes.added;
     var modified = changes.modified;
+    var initialisers = changes.initialisers;
 
     var segment_table = __larch.__segment_table;
 
@@ -129,10 +168,10 @@ __larch.__applyChanges = function(changes) {
 
     // Handle additions
     /*for (var i = 0; i < added.length; i++) {
-        var key = added[i][0];
+        var segment_id = added[i][0];
         var content = added[i][1];
 
-        id_to_elem[key] = {'elem': __larch.__createElementsFromSource(content), 'in_document': false};
+        id_to_elem[key] = {'nodes': __larch.__createSegmentContentNodesFromSource(content, segment_id, initialisers)};
     }*/
 
     // Handle modifications
@@ -143,14 +182,19 @@ __larch.__applyChanges = function(changes) {
 
         var state = segment_table[segment_id];
 
-        if (state.in_document) {
-            var newNodes = __larch.__createNodesFromSource(content);
+        var newNodes = __larch.__createSegmentContentNodesFromSource(content, segment_id, initialisers);
 
-            __larch.__replaceNodes(state.nodes, newNodes);
-            state.nodes = newNodes;
+        // Unregister segment IDs
+        for (var j = 0; j < state.nodes.length; j++) {
+            state.nodes[j].__lch_seg_id = null;
         }
-        else {
-            state.nodes = __larch.__createNodesFromSource(content);
+
+        __larch.__replaceNodes(state.nodes, newNodes);
+        state.nodes = newNodes;
+
+        // Register segment IDs
+        for (var j = 0; j < state.nodes.length; j++) {
+            state.nodes[j].__lch_seg_id = segment_id;
         }
     }
 
@@ -162,7 +206,6 @@ __larch.__applyChanges = function(changes) {
             var segment_id = p.innerHTML;
 
             var state = segment_table[segment_id];
-            state.in_document = true;
             __larch.__replaceNodes([p], state.nodes);
         }
 
@@ -171,6 +214,10 @@ __larch.__applyChanges = function(changes) {
 
     // Handle the inline elements
     __larch.__handleInlineNodes();
+
+
+    // Handle initialisers
+    __larch.__executeInitialisers(initialisers);
 }
 
 __larch.__handleMessageFromServer = function(message) {
@@ -229,52 +276,62 @@ __larch.__handleKeyEvent = function(event, keys) {
 __larch.__onkeydown = function(event, keys) {
     var k = __larch.__handleKeyEvent(event, keys);
     if (k != undefined) {
-        __larch.postEvent($(event.target), 'keydown', k);
+        __larch.postEvent(event.target, 'keydown', k);
     }
 }
 
 __larch.__onkeyup = function(event, keys) {
     var k = __larch.__handleKeyEvent(event, keys);
     if (k != undefined) {
-        __larch.postEvent($(event.target), 'keyup', k);
+        __larch.postEvent(event.target, 'keyup', k);
     }
 }
 
 __larch.__onkeypress = function(event, keys) {
     var k = __larch.__handleKeyEvent(event, keys);
     if (k != undefined) {
-        __larch.postEvent($(event.target), 'keypress', k);
+        __larch.postEvent(event.target, 'keypress', k);
     }
 }
 
 
 __larch.postEvent = function(src_element, event_name, event_data) {
-    var elem = $(src_element).closest("span.__lch_event_elem");
-    var element_id = elem.attr('id');
+    var n = src_element;
+    var segment_id = null;
+    while (n != null) {
+        if (n.__lch_seg_id) {
+            // We have a segment ID
+            segment_id = n.__lch_seg_id;
+            break;
+        }
+        n = n.parentNode;
+    }
 
-    var ev_msg = {
-        msgtype: 'event',
-        element_id: element_id,
-        event_name: event_name,
-        ev_data: event_data
-    };
+    if (segment_id != null) {
+        var ev_msg = {
+            msgtype: 'event',
+            segment_id: segment_id,
+            event_name: event_name,
+            ev_data: event_data
+        };
 
-    var ev_json = JSON.stringify(ev_msg);
+        var ev_json = JSON.stringify(ev_msg);
 
-    var ev_data = {
-        session_id: __larch.__session_id,
-        event_data: ev_json
-    };
+        var ev_data = {
+            session_id: __larch.__session_id,
+            event_data: ev_json
+        };
 
-    $.ajax({
-        type: 'POST',
-        url: 'event',
-        data: ev_data,
-        success: function(msg) {
-            __larch.__handleMessagesFromServer(msg);
-        },
-        dataType: 'json'
-    });
+        $.ajax({
+            type: 'POST',
+            url: 'event',
+            data: ev_data,
+            success: function(msg) {
+                __larch.__handleMessagesFromServer(msg);
+            },
+            dataType: 'json'
+        });
+    }
 }
 
 
@@ -302,5 +359,11 @@ __larch.postDocumentEvent = function(event_name, event_data) {
         },
         dataType: 'json'
     });
+}
+
+
+__larch.__onDocumentReady = function(initialisers) {
+    __larch.__handleInlineNodes();
+    __larch.__executeInitialisers(initialisers);
 }
 

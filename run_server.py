@@ -43,11 +43,14 @@ y=LiveFunction(lambda: x.value*x.value)
 
 
 def on_press():
+    print 'PRESSED'
     x.value = x.static_value + 1
 
 b=button('Press me', on_press)
 
-Html('<div>',x,'</div>', '<div>',b,'</div>', '<div>',y,'</div>')
+Html(x,b,y)
+
+range(256)*64
 """
 
 class CodeResult (object):
@@ -104,6 +107,7 @@ class CodeItem (object):
 
 		def on_execute_key(key):
 			on_execute()
+			return True
 
 
 		code_area = Html('<textarea class="python_code">{code}</textarea>'.format(code=self.__code)).call_js('__pythonCodeArea.initPythonCodeArea').with_event_handler('changed', on_change)
@@ -127,7 +131,7 @@ class IndexPage (object):
 
 	def __present__(self, fragment, inherited_state):
 		self.__incr.on_access()
-		contents = ['<div><h1>Index page</h1>'] + self.__items + [range(256)*64, '</div>']
+		contents = ['<div><h1>Index page</h1>'] + self.__items + ['</div>']
 		return Html(*contents)
 
 
@@ -170,7 +174,7 @@ class WebCombinatorServer (object):
 		msg = EventMessage.__from_json__(event_json)
 
 		# Handle the event
-		view.handle_event(msg.element_id, msg.event_name, msg.ev_data)
+		view.handle_event(msg.segment_id, msg.event_name, msg.ev_data)
 
 		# Synchronise the view
 		client_messages = view.synchronize()

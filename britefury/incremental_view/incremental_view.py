@@ -410,7 +410,7 @@ class _FragmentView (object):
 			child_fragment_view.refresh()
 			IncrementalMonitor.unblock_access_tracking(current)
 
-		return child_fragment_view.segment_reference
+		return HtmlContent([child_fragment_view.segment_reference])
 
 
 
@@ -700,7 +700,8 @@ class RootPres (Pres):
 		self.__inc_view._refresh()
 
 		root_frag_view = self.__inc_view._get_root_fragment_view()
-		return HtmlContent([root_frag_view.refreshed_segment_reference.inline_html()])
+		self.__inc_view.web_document.root_segment = root_frag_view.refreshed_segment_reference
+		return
 
 
 
@@ -735,9 +736,8 @@ class IncrementalView (object):
 
 	@property
 	def root_html(self):
-		pres = self.view_pres
-		html_content = pres.build(None)
-		return self.__web_document.page_html(html_content.html())
+		self.view_pres.build(None)
+		return self.__web_document.page_html()
 
 
 

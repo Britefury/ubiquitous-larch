@@ -1,5 +1,8 @@
 
 from collections import deque
+
+import json
+
 from britefury.message.execute_js_message import ExecuteJSMessage
 from britefury.message.modify_document_message import ModifyDocumentMessage
 
@@ -24,6 +27,7 @@ _page_content = """
 		{script_tags}
 		<script type="text/javascript">
 			<!--
+			$(document).ready(function(){{__larch.__onDocumentReady({initialisers});}});
 			{init_script}
 			// -->
 		</script>
@@ -44,8 +48,6 @@ class WebDocument (object):
 
 		self.__client_message_queue = []
 
-		self.__event_segments = []
-
 		self.__session_id = session_id
 		self.__stylesheet_names = stylesheet_names
 		self.__script_names = script_names
@@ -54,22 +56,28 @@ class WebDocument (object):
 
 		self.__document_modified = False
 
-		self._root_segment = None
+		self.__root_segment = None
 
-		self._queue_js_to_execute('__larch.__handleInlineNodes()')
 
 
 
 	# Changes and segments
-
-	def get_recent_changes(self):
-		return self._table.get_recent_changes()
 
 	def new_segment(self, content=None):
 		return self._table.new_segment(content)
 
 	def remove_segment(self, segment):
 		self._table.remove_segment(segment)
+
+	@property
+	def root_segment(self):
+		return self.__root_segment
+
+	@root_segment.setter
+	def root_segment(self, seg):
+		if isinstance(seg, SegmentRef):
+			seg = seg.segment
+		self.__root_segment = seg
 
 
 
@@ -107,24 +115,18 @@ class WebDocument (object):
 
 
 	# Event handling
-	def _register_event_segment(self, element_id, element):
-		self.__event_segments[element_id] = element
-
-
-	def _unregister_event_segment(self, element_id):
-		del self.__event_segments[element_id]
-
-
 	def handle_event(self, segment_id, event_name, ev_data):
 		if segment_id is None:
 			return True
 		else:
-			segment = self.__event_segments[segment_id]
+			try:
+				segment = self._table[segment_id]
+			except KeyError:
+				return False
+
 			while segment is not None:
-				#if isinstance(segment, AbstractEventElement):
-				if False:
-					if segment.handle_event(event_name, ev_data):
-						return True
+				if segment.handle_event(event_name, ev_data):
+					return True
 				segment = segment.parent
 			return False
 
@@ -137,14 +139,22 @@ class WebDocument (object):
 
 	def __refresh_document(self):
 		changes = self._table.get_recent_changes()
+		self._table.clear_changes()
 		client_msg = ModifyDocumentMessage(changes)
 		self.post_client_message(client_msg)
 		self.__post_execute_js_messages()
+		self.__document_modified = False
 
 
-	def page_html(self, root_content):
+	def page_html(self):
+		root_content = self.__root_segment.reference().inline_html()
+
 		stylesheet_tags = '\n'.join(['<link rel="stylesheet" type="text/css" href="{0}"/>'.format(stylesheet_name)   for stylesheet_name in self.__stylesheet_names])
 		script_tags = '\n'.join(['<script type="text/javascript" src="{0}"></script>'.format(script_name)   for script_name in self.__script_names])
+
+		initialisers = self._table.get_all_initialisers()
+		initialisers_json_str = json.dumps(initialisers)
+
 		if len(self.__js_queue) > 0:
 			js_to_exec = '\n'.join(self.__js_queue)
 			js_to_exec = '$(document).ready(function(){\n\t' + js_to_exec + '\n});'
@@ -152,7 +162,9 @@ class WebDocument (object):
 		else:
 			js_to_exec = ''
 
-		return _page_content.format(session_id=self.__session_id, stylesheet_tags=stylesheet_tags, script_tags=script_tags, content=root_content, init_script=js_to_exec)
+		self._table.clear_changes()
+
+		return _page_content.format(session_id=self.__session_id, stylesheet_tags=stylesheet_tags, script_tags=script_tags, content=root_content, init_script=js_to_exec, initialisers=initialisers_json_str)
 
 
 
@@ -174,6 +186,7 @@ class _ChangeSet (object):
 		self.removed = [seg.id   for seg in removed_segs]
 		self.added = []
 		self.modified = []
+		self.initialisers = []
 
 		assert isinstance(self.__added_segs, set)
 		while len(self.__added_segs) > 0:
@@ -181,18 +194,27 @@ class _ChangeSet (object):
 			html = seg.html(self.__resolve_reference)
 			self.__added_seg_to_html[seg] = html
 
+
 		for seg in modified_segs:
 			html = seg.html(self.__resolve_reference)
 			self.modified.append((seg.id, html))
 
-		assert len(self.__added_segs) == 0  and  len(self.__added_seg_to_html) == 0
+		assert len(self.__added_seg_to_html) == 0
 		for seg, html in self.__added_seg_to_html.items():
 			self.added.append((seg.id, html))
+
+		for seg in modified_segs:
+			initialisers = seg.initialisers
+			if initialisers is not None:
+				self.initialisers.append((seg.id, initialisers))
+
+		print 'CHANGES TO SEND: {0} added, {1} removed, {2} modified'.format(len(self.added), len(self.removed), len(self.modified))
+
 
 
 
 	def json(self):
-		return {'added': self.added, 'removed': self.removed, 'modified': self.modified}
+		return {'added': self.added, 'removed': self.removed, 'modified': self.modified, 'initialisers': self.initialisers}
 
 
 	def __resolve_reference(self, seg):
@@ -222,14 +244,29 @@ class _SegmentTable (object):
 
 
 
-	def get_recent_changes(self):
-		changes = _ChangeSet(self.__changes_added, self.__changes_removed, self.__changes_modified)
+	def __getitem__(self, segment_id):
+		return self.__id_to_segment[segment_id]
 
+
+
+	def clear_changes(self):
 		self.__changes_added = set()
 		self.__changes_removed = set()
 		self.__changes_modified = set()
 
+
+	def get_recent_changes(self):
+		changes = _ChangeSet(self.__changes_added, self.__changes_removed, self.__changes_modified)
+
 		return changes.json()
+
+
+	def get_all_initialisers(self):
+		initialisers = []
+		for segment in self.__id_to_segment.values():
+			if segment.initialisers is not None:
+				initialisers.append((segment.id, segment.initialisers))
+		return initialisers
 
 
 
@@ -274,6 +311,9 @@ class _HtmlSegment (object):
 		assert content is None  or  isinstance(content, HtmlContent)
 		self.__content = content
 		self.__parent = None
+		self.__event_handlers = None
+		self.__initialisers = None
+		self.__connect_children()
 
 
 	@property
@@ -298,6 +338,37 @@ class _HtmlSegment (object):
 		self.__doc._table._segment_modified(self, x)
 
 
+
+	@property
+	def initialisers(self):
+		return self.__initialisers
+
+
+
+	# Event handling
+	def add_event_handler(self, handler):
+		if self.__event_handlers is None:
+			self.__event_handlers = []
+		self.__event_handlers.append(handler)
+
+
+	def handle_event(self, event_name, ev_data):
+		if self.__event_handlers is not None:
+			for handler in self.__event_handlers:
+				if handler(event_name, ev_data):
+					return True
+		return False
+
+
+	# Initialisation
+	def add_initialiser(self, initialiser):
+		if self.__initialisers is None:
+			self.__initialisers = []
+		self.__initialisers.append(initialiser)
+
+
+
+	# HTML generation
 	def html(self, ref_resolver=None):
 		return self.__content.html(ref_resolver)   if self.__content is not None   else ''
 
@@ -306,7 +377,7 @@ class _HtmlSegment (object):
 		return '<span class="__lch_seg_placeholder">{0}</span>'.format(self.__id)
 
 	def _wrap_html(self, html):
-		return '<span class="__lch_seg_inline_begin">{0}</span>{1}<span class="__lch_seg_inline_end"></span>'.format(self.__id, html)
+		return '<span class="__lch_seg_inline_begin">{0}</span>{1}<span class="__lch_seg_inline_end">{0}</span>'.format(self.__id, html)
 
 	def _inline_html(self, ref_resolver):
 		return self._wrap_html(self.html(ref_resolver))
@@ -316,12 +387,16 @@ class _HtmlSegment (object):
 	def __connect_children(self):
 		if self.__content is not None:
 			for x in self.__content:
+				if isinstance(x, SegmentRef):
+					x = x.segment
 				if isinstance(x, _HtmlSegment):
 					x.__parent = self
 
 	def __disconnect_children(self):
 		if self.__content is not None:
 			for x in self.__content:
+				if isinstance(x, SegmentRef):
+					x = x.segment
 				if isinstance(x, _HtmlSegment) and x.__parent is self:
 					x.__parent = None
 
