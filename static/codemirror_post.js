@@ -19,3 +19,17 @@ __pythonCodeArea.initPythonCodeArea = function(textArea) {
     CodeMirror.fromTextArea(textArea, config);
 };
 
+
+__pythonCodeArea.initPythonCodeAreaNonEditable = function(textArea) {
+    var config = {
+        mode: {name: "python",
+            version: 2,
+            singleLineStringErrors: false},
+        lineNumbers: true,
+        indentUnit: 4,
+        tabMode: "shift",
+        matchBrackets: true,
+        editable: false
+    };
+    CodeMirror.fromTextArea(textArea, config);
+};
