@@ -167,6 +167,8 @@ class WebCombinatorServer (object):
 		except KeyError:
 			return '[]'
 
+		view.lock()
+
 		# Get the event message
 		event_json = json.loads(event_data)
 		msg = EventMessage.__from_json__(event_json)
@@ -182,6 +184,9 @@ class WebCombinatorServer (object):
 		#t2 = datetime.datetime.now()
 		#delta_t = t2 - t1
 		#print 'Event response time {0} for {1} messages, {2} chars'.format(delta_t, len(client_messages), len(str(result)))
+
+		view.unlock()
+
 		return result
 
 	event.exposed = True
@@ -197,5 +202,5 @@ class WebCombinatorServer (object):
 
 
 root = WebCombinatorServer()
-cherrypy.server.socket_port = 8000
+cherrypy.server.socket_port = 5000
 cherrypy.quickstart(root, config=config)

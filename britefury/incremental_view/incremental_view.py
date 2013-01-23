@@ -3,6 +3,8 @@
 ##-*************************
 from collections import deque
 
+import threading
+
 from britefury.attribute_table.simple_attribute_table import SimpleAttributeTable
 from britefury.pres.presctx import PresentationContext
 from britefury.pres.pres import Pres
@@ -727,6 +729,8 @@ class IncrementalView (object):
 
 		self.__web_document = WebDocument(session_id, subject.stylesheet_names, subject.script_names)
 
+		self.__lock = None
+
 
 	#
 	#
@@ -758,6 +762,23 @@ class IncrementalView (object):
 		self.__web_document.handle_event(segment_id, event_name, ev_data)
 
 
+
+
+
+	#
+	#
+	# Threads/locking
+	#
+	#
+
+	def lock(self):
+		if self.__lock is None:
+			self.__lock = threading.Lock()
+		self.__lock.acquire()
+
+	def unlock(self):
+		if self.__lock is not None:
+			self.__lock.release()
 
 
 
