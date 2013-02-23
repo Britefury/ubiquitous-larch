@@ -187,23 +187,24 @@ class _ChangeSet (object):
 		assert isinstance(self.__added_segs, set)
 		while len(self.__added_segs) > 0:
 			seg = added_segs.pop()
+			initialisers = seg.initialisers
+			if initialisers is not None:
+				self.initialisers.append((seg.id, initialisers))
 			html = seg._wrap_html(seg.html(self.__resolve_reference))
 			self.__added_seg_to_html[seg] = html
 
 		for seg in modified_segs:
 			html = seg._wrap_html(seg.html(self.__resolve_reference))
 			self.modified.append((seg.id, html))
+			initialisers = seg.initialisers
+			if initialisers is not None:
+				self.initialisers.append((seg.id, initialisers))
 
 		assert len(self.__added_seg_to_html) == 0
 		for seg, html in self.__added_seg_to_html.items():
 			self.added.append((seg.id, html))
 
-		for seg in modified_segs:
-			initialisers = seg.initialisers
-			if initialisers is not None:
-				self.initialisers.append((seg.id, initialisers))
-
-		print 'CHANGES TO SEND: {0} added, {1} removed, {2} modified'.format(len(self.added), len(self.removed), len(self.modified))
+		print 'CHANGES TO SEND: {0} added, {1} removed, {2} modified, {3} initialisers'.format(len(self.added), len(self.removed), len(self.modified), len(self.initialisers))
 
 
 

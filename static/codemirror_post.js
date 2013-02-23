@@ -6,6 +6,7 @@ __pythonCodeArea.onChange = function(editor, edit) {
 };
 
 __pythonCodeArea.initPythonCodeArea = function(textArea) {
+    console.log("Initialising editable code area");
     var config = {
         mode: {name: "python",
             version: 2,
@@ -21,6 +22,7 @@ __pythonCodeArea.initPythonCodeArea = function(textArea) {
 
 
 __pythonCodeArea.initPythonCodeAreaNonEditable = function(textArea) {
+    console.log("Initialising non-editable code area");
     var config = {
         mode: {name: "python",
             version: 2,

@@ -179,7 +179,7 @@ __larch.__register_segments = function() {
 
             // Extract the segment ID
             var segment_id = start.innerHTML;
-            console.log("Initialised " + segment_id);
+            //console.log("Initialised " + segment_id);
 
             // Iterate forwards until we find the matching end node.
             var n = start;
@@ -207,7 +207,7 @@ __larch.__register_segments = function() {
 
 
 __larch.__applyChanges = function(changes) {
-    console.log("Starting update");
+    //console.log("Starting update");
     var removed = changes.removed;
     var added = changes.added;
     var modified = changes.modified;
@@ -238,7 +238,7 @@ __larch.__applyChanges = function(changes) {
 
         var state = segment_table[segment_id];
 
-        console.log("Replaced " + segment_id);
+        //console.log("Replaced " + segment_id);
 
         var newState = __larch.__createSegmentContentNodesFromSource(content);
 
@@ -266,7 +266,7 @@ __larch.__applyChanges = function(changes) {
             // Get the segment that is to take its place
             var segment = segment_table[segment_id];
 
-            console.log("Replacing placeholder " + segment_id);
+            //console.log("Replacing placeholder " + segment_id);
 
             // Replace it
             __larch.__replacePlaceholder(p, segment);
@@ -281,7 +281,7 @@ __larch.__applyChanges = function(changes) {
 
     // Execute initialisers
     __larch.__executeInitialisers(initialisers);
-    console.log("Finishing update");
+    //console.log("Finishing update");
 }
 
 __larch.__handleMessageFromServer = function(message) {
