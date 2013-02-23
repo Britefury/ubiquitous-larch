@@ -7,69 +7,117 @@ __larch.__executeJS = function(js_code) {
 }
 
 
-__larch.__iterateThroughStateWithoutMutations = function(state, fn) {
-    var n = state.start;
-    while (n != state.end) {
-        var next = n.nextSibling;
-        fn(n);
-        n = next;
+
+
+__larch.__buildConnectivity = function(segment) {
+    // The state consists of the start and end nodes of a segment.
+    // We often remove elements from the DOM in order to alter its contents.
+    // Sometimes we put these nodes back in again. In such cases, the nextSibling attribute will be null,
+    // preventing us from using it for iterating across the sequence of nodes.
+    // So, we create a __lch_next attribute that points to the next sibling, so we can iterate using this instead.
+    var p = null;
+    for (var n = segment.start; n != segment.end; n = n.nextSibling) {
+        if (p != null) {
+            p.__lch_next = n;
+        }
+        p = n;
     }
-    fn(n);
+    p.__lch_next = segment.end;
 }
 
-__larch.__getNodesInState = function(state) {
+__larch.__clearConnectivity = function(nodes) {
+    // Clear connectivity built earlier
+    var p = null;
+    for (var i = 0; i < nodes.length; i++)
+    {
+        var n = nodes[i];
+        if (p != null) {
+            p.__lch_next = null;
+        }
+        p = n;
+    }
+}
+
+
+__larch.__newSegmentState = function(start, end) {
+    // This creates a new 'segment state' to go into the segment table.
+    return {'start': start, 'end': end}
+}
+
+__larch.__getNodesInActiveSegment = function(segment) {
     var nodeList = [];
-    for (var n = state.start; n != state.end; n = n.nextSibling) {
+    for (var n = segment.start; n != segment.end; n = n.nextSibling) {
         nodeList.push(n);
     }
-    nodeList.push(state.end);
+    nodeList.push(segment.end);
+    return nodeList;
+}
+
+__larch.__getNodesInInactiveSegment = function(segment) {
+    // Iterate using __lch_next attribute; see __newSegmentState function for explanation
+    var nodeList = [];
+    var start = segment.start;
+    if (start.hasOwnProperty('__lch_next')  &&  start.__lch_next !== null) {
+        // This inactive segment was directly removed in a previous replacement operation.
+        // We must use the __lch_next property to iterate.
+        for (var n = segment.start; n != segment.end; n = n.__lch_next) {
+            nodeList.push(n);
+        }
+    }
+    else {
+        // This segment was removed as a result of a parent being removed, hence __lch_next has
+        // not been initialised. Iterate using nextSibling.
+        for (var n = segment.start; n != segment.end; n = n.nextSibling) {
+            nodeList.push(n);
+        }
+    }
+    nodeList.push(segment.end);
     return nodeList;
 }
 
 
-__larch.__replaceNodeRange = function(oldState, newState) {
-    var first = oldState.start;
+
+
+__larch.__replaceSegment = function(oldSegmentState, newSegmentState) {
+    var first = oldSegmentState.start;
     var parent = first.parentNode;
 
-    var oldNodes = __larch.__getNodesInState(oldState);
-    var newNodes = __larch.__getNodesInState(newState);
+    // The nodes that we are about to remove from the DOM may be reused later.
+    // Build out own connectivity structure so that we can iterate through them
+    __larch.__buildConnectivity(oldSegmentState);
 
-    for (var i = 0; i < newNodes.length; i++) {
-        parent.insertBefore(newNodes[i], first);
-    }
+    var oldNodes = __larch.__getNodesInActiveSegment(oldSegmentState);
+    var newNodes = __larch.__getNodesInActiveSegment(newSegmentState);
 
-    for (var i = 0; i < oldNodes.length; i++) {
-        parent.removeChild(oldNodes[i]);
-    }
+    newNodes.forEach(function(n) {parent.insertBefore(n, first);});
+    oldNodes.forEach(function(n) {parent.removeChild(n);});
 }
 
-__larch.__replacePlaceholder = function(placeHolder, newState) {
+
+__larch.__replacePlaceholder = function(placeHolder, existingInactiveSegmentState) {
     var parent = placeHolder.parentNode;
 
-    var newNodes = __larch.__getNodesInState(newState);
+    var newNodes = __larch.__getNodesInInactiveSegment(existingInactiveSegmentState);
 
-    for (var i = 0; i < newNodes.length; i++) {
-        parent.insertBefore(newNodes[i], placeHolder);
-    }
+    newNodes.forEach(function(n) {parent.insertBefore(n, placeHolder);});
+
+    // These nodes are active: clear connectivity
+    __larch.__clearConnectivity(newNodes);
 
     parent.removeChild(placeHolder);
 }
 
-__larch.__isSegmentNode = function(node) {
-    if (node.className) {
-        var c = node.className;
-        if (c == "__lch_seg_placeholder"  ||  c == "__lch_seg_inline_begin"  ||  c == "__lch_seg_inline_end") {
-            return true;
-        }
-    }
-    return false;
-}
+
+
+
 
 __larch.__createSegmentContentNodesFromSource = function(content) {
     var elem = document.createElement("div");
     elem.innerHTML = content;
-    return {'start': elem.firstChild, 'end': elem.lastChild};
+    return __larch.__newSegmentState(elem.firstChild, elem.lastChild);
 }
+
+
 
 __larch.__getElementsOfClass = function(className, tagName) {
     if (document.getElementsByClassName) {
@@ -94,8 +142,8 @@ __larch.__getPlaceHolderNodes = function() {
     return __larch.__getElementsOfClass("__lch_seg_placeholder", "span");
 }
 
-__larch.__getInlineBeginNodes = function() {
-    return __larch.__getElementsOfClass("__lch_seg_inline_begin", "span");
+__larch.__getSegmentBeginNodes = function() {
+    return __larch.__getElementsOfClass("__lch_seg_begin", "span");
 }
 
 __larch.__executeInitialisers = function(initialisers) {
@@ -105,7 +153,7 @@ __larch.__executeInitialisers = function(initialisers) {
         var segment_id = x[0];
         var inits = x[1];
         var state = segment_table[segment_id];
-        var nodes = __larch.__getNodesInState(state);
+        var nodes = __larch.__getNodesInActiveSegment(state);
         for (var j = 0; j < nodes.length; j++) {
             // The 'unused' variable node is referenced by the source code contained in the initialiser; it is needed by eval()
             var node = nodes[j];
@@ -116,49 +164,50 @@ __larch.__executeInitialisers = function(initialisers) {
     }
 }
 
-__larch.__handleInlineNodes = function() {
+__larch.__register_segments = function() {
     var segment_table = __larch.__segment_table;
 
-    var inlines = __larch.__getInlineBeginNodes();
+    var inlines = __larch.__getSegmentBeginNodes();
 
-    // Take a copy of the node list, since we are about the mutate the DOM
-    var inlineNodes = [];
     for (var i = 0; i < inlines.length; i++) {
-        inlineNodes.push(inlines[i]);
-    }
-    for (var i = 0; i < inlineNodes.length; i++) {
         // Get the start node and extract the segment ID
-        var start = inlineNodes[i];
-        var segment_id = start.innerHTML;
+        var start = inlines[i];
 
-        // Iterate forwards until we find the matching end node.
-        var n = start;
-        while (true) {
-            // Set the node's segment ID
-            n.__lch_seg_id = segment_id;
+        // Check if it is uninitialised
+        if (!start.hasOwnProperty('__lch_initialised')) {
+            start.__lch_initialised = true;
 
-            if (n.getAttribute  &&  n.getAttribute("class") == '__lch_seg_inline_end'  && n.innerHTML == segment_id) {
-                break;
+            // Extract the segment ID
+            var segment_id = start.innerHTML;
+            console.log("Initialised " + segment_id);
+
+            // Iterate forwards until we find the matching end node.
+            var n = start;
+            while (true) {
+                // Set the node's segment ID
+                n.__lch_seg_id = segment_id;
+
+                if (n.getAttribute  &&  n.getAttribute("class") == '__lch_seg_end'  && n.innerHTML == segment_id) {
+                    break;
+                }
+
+                // Next
+                n = n.nextSibling;
             }
 
-            // Next
-            n = n.nextSibling;
+            // @n is now the end node
+            var end = n;
+
+            // Put an entry in our segment table
+            segment_table[segment_id] = __larch.__newSegmentState(start, end);
         }
-
-        // @n is now the end node
-        var end = n;
-
-        // Get the parent
-        var parent = start.parentNode;
-
-        // Put an entry in our segment table
-        segment_table[segment_id] = {'start': start, 'end': end};
     }
 }
 
 
 
 __larch.__applyChanges = function(changes) {
+    console.log("Starting update");
     var removed = changes.removed;
     var added = changes.added;
     var modified = changes.modified;
@@ -189,37 +238,50 @@ __larch.__applyChanges = function(changes) {
 
         var state = segment_table[segment_id];
 
+        console.log("Replaced " + segment_id);
+
         var newState = __larch.__createSegmentContentNodesFromSource(content);
 
         // Unregister segment IDs
-        __larch.__iterateThroughStateWithoutMutations(state, function(n) {n.__lch_seg_id = null; } );
+        var oldNodes = __larch.__getNodesInActiveSegment(state);
+        oldNodes.forEach(function(n) {n.__lch_seg_id = null;});
 
-        __larch.__replaceNodeRange(state, newState);
+        __larch.__replaceSegment(state, newState);
 
         // Register segment IDs
-        __larch.__iterateThroughStateWithoutMutations(newState, function(n) {n.__lch_seg_id = segment_id; } );
+        var newNodes = __larch.__getNodesInActiveSegment(newState);
+        newNodes.forEach(function(n) {n.__lch_seg_id = segment_id;});
     }
 
-    // Handle the placeholders
+    // Replace the placeholders with the segments that they reference
     var placeHolders = __larch.__getPlaceHolderNodes();
+    // Replacing a placeholder may introduce content that contains yet more placeholders....
     while (placeHolders.length > 0) {
         for (var i = 0; i < placeHolders.length; i++) {
+            // Get the placeholder node
             var p = placeHolders[i];
+            // Extract the segment ID that if references
             var segment_id = p.innerHTML;
 
-            var state = segment_table[segment_id];
-            __larch.__replacePlaceholder(p, state);
+            // Get the segment that is to take its place
+            var segment = segment_table[segment_id];
+
+            console.log("Replacing placeholder " + segment_id);
+
+            // Replace it
+            __larch.__replacePlaceholder(p, segment);
         }
 
         placeHolders = __larch.__getPlaceHolderNodes();
     }
 
-    // Handle the inline elements
-    __larch.__handleInlineNodes();
+    // Register any unregistered segments that have been introduced by modifications
+    __larch.__register_segments();
 
 
-    // Handle initialisers
+    // Execute initialisers
     __larch.__executeInitialisers(initialisers);
+    console.log("Finishing update");
 }
 
 __larch.__handleMessageFromServer = function(message) {
@@ -251,16 +313,16 @@ __larch.__handleKeyEvent = function(event, keys) {
         var key = keys[i];
         if (key.keyCode == undefined  ||  event.keyCode == key.keyCode) {
             if (key.altKey != undefined  &&  event.altKey != key.altKey) {
-                break;
+                continue;
             }
             if (key.ctrlKey != undefined  &&  event.ctrlKey != key.ctrlKey) {
-                break;
+                continue;
             }
             if (key.shiftKey != undefined  &&  event.shiftKey != key.shiftKey) {
-                break;
+                continue;
             }
             if (key.metaKey != undefined  &&  event.metaKey != key.metaKey) {
-                break;
+                continue;
             }
             // We have a match
             var k = {};
@@ -271,8 +333,8 @@ __larch.__handleKeyEvent = function(event, keys) {
             k.metaKey = event.metaKey;
             return k;
         }
-        return undefined;
     }
+    return undefined;
 }
 
 __larch.__onkeydown = function(event, keys) {
@@ -365,7 +427,7 @@ __larch.postDocumentEvent = function(event_name, event_data) {
 
 
 __larch.__onDocumentReady = function(initialisers) {
-    __larch.__handleInlineNodes();
+    __larch.__register_segments();
     __larch.__executeInitialisers(initialisers);
 }
 

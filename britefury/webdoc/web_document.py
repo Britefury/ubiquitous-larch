@@ -187,11 +187,11 @@ class _ChangeSet (object):
 		assert isinstance(self.__added_segs, set)
 		while len(self.__added_segs) > 0:
 			seg = added_segs.pop()
-			html = seg.html(self.__resolve_reference)
+			html = seg._wrap_html(seg.html(self.__resolve_reference))
 			self.__added_seg_to_html[seg] = html
 
 		for seg in modified_segs:
-			html = seg.html(self.__resolve_reference)
+			html = seg._wrap_html(seg.html(self.__resolve_reference))
 			self.modified.append((seg.id, html))
 
 		assert len(self.__added_seg_to_html) == 0
@@ -219,7 +219,8 @@ class _ChangeSet (object):
 		elif seg in self.__added_seg_to_html:
 			html = self.__added_seg_to_html[seg]
 			del self.__added_seg_to_html[seg]
-			return seg._wrap_html(html)
+			# Don't need to wrap the HTML as this was done in the constructor above
+			return html
 		else:
 			return seg._place_holder()
 
@@ -372,7 +373,7 @@ class _HtmlSegment (object):
 		return '<span class="__lch_seg_placeholder">{0}</span>'.format(self.__id)
 
 	def _wrap_html(self, html):
-		return '<span class="__lch_seg_inline_begin">{0}</span>{1}<span class="__lch_seg_inline_end">{0}</span>'.format(self.__id, html)
+		return '<span class="__lch_seg_begin">{0}</span>{1}<span class="__lch_seg_end">{0}</span>'.format(self.__id, html)
 
 	def _inline_html(self, ref_resolver):
 		return self._wrap_html(self.html(ref_resolver))

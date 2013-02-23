@@ -3,12 +3,12 @@
     visibility: hidden;
 }
 
-.__lch_seg_inline_begin {
+.__lch_seg_begin {
     display: none;
     visibility: hidden;
 }
 
-.__lch_seg_inline_end {
+.__lch_seg_end {
     display: none;
     visibility: hidden;
 }
