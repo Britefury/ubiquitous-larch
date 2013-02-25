@@ -134,8 +134,8 @@ class _FragmentView (object):
 
 
 	@property
-	def subject_context(self):
-		return self.fragment_factory.subject_context
+	def subject(self):
+		return self.fragment_factory.subject
 
 	@property
 	def perspective(self):
@@ -382,9 +382,9 @@ class _FragmentView (object):
 	#
 	#
 
-	def present_inner_fragment(self, model, perspective, inherited_state, subject_context=None):
-		if subject_context is None:
-			subject_context = self.__fragment_factory._subject_context
+	def present_inner_fragment(self, model, perspective, inherited_state, subject=None):
+		if subject is None:
+			subject = self.__fragment_factory._subject
 
 		if model is None:
 			raise NotImplementedError, 'presentation of null value not implemented'
@@ -392,7 +392,7 @@ class _FragmentView (object):
 		if inherited_state is None:
 			raise ValueError, 'inherited_state is None'
 
-		child_fragment_view = self.__inc_view._build_fragment_view(model, self.__inc_view._get_unique_fragment_factory(perspective, subject_context, inherited_state))
+		child_fragment_view = self.__inc_view._build_fragment_view(model, self.__inc_view._get_unique_fragment_factory(perspective, subject, inherited_state))
 
 		# Register the parent <-> child relationship before refreshing the node, so that the relationship is 'available' during (re-computation)
 		self.__register_child(child_fragment_view)
@@ -476,16 +476,16 @@ class _FragmentView (object):
 
 
 class FragmentFactory (object):
-	def __init__(self, inc_view, perspective, subject_context, inherited_state):
+	def __init__(self, inc_view, perspective, subject, inherited_state):
 		self.__perspective = perspective
-		self.__subject_context = subject_context
+		self.__subject = subject
 		self.__inherited_state = inherited_state
-		self.__hash = hash((id(perspective), hash(inherited_state), hash(subject_context)))
+		self.__hash = hash((id(perspective), hash(inherited_state), hash(id(subject))))
 
 
 	@property
-	def _subject_context(self):
-		return self.__subject_context
+	def _subject(self):
+		return self.__subject
 
 
 	def __hash__(self):
@@ -493,13 +493,13 @@ class FragmentFactory (object):
 
 	def __eq__(self, other):
 		if isinstance(other, FragmentFactory):
-			return other.__perspective is self.__perspective  and  other.__subject_context is self.__subject_context  and  other.__inherited_state is self.__inherited_state
+			return other.__perspective is self.__perspective  and  other.__subject is self.__subject  and  other.__inherited_state is self.__inherited_state
 		else:
 			return NotImplemented
 
 	def __ne__(self, other):
 		if isinstance(other, FragmentFactory):
-			return other.__perspective is not self.__perspective  or  other.__subject_context is not self.__subject_context  or  other.__inherited_state is not self.__inherited_state
+			return other.__perspective is not self.__perspective  or  other.__subject is not self.__subject  or  other.__inherited_state is not self.__inherited_state
 		else:
 			return NotImplemented
 
@@ -696,7 +696,7 @@ class RootPres (Pres):
 
 
 	def build(self, pres_ctx):
-		fragment_factory = self.__inc_view._get_unique_fragment_factory(self.__inc_view._root_perspective, self.__inc_view._subject_context, SimpleAttributeTable.instance)
+		fragment_factory = self.__inc_view._get_unique_fragment_factory(self.__inc_view._root_perspective, self.__inc_view.subject, SimpleAttributeTable.instance)
 		self.__inc_view._set_root_fragment_factory(fragment_factory)
 
 		self.__inc_view._refresh()
@@ -715,8 +715,6 @@ class IncrementalView (object):
 		self._root_perspective = subject.perspective
 		self.__root_fragment_view = None
 		self.__root_fragment_factory = None
-
-		self._subject_context = subject.subject_context
 
 
 		self._node_table = IncrementalViewTable()
@@ -752,10 +750,7 @@ class IncrementalView (object):
 	#
 
 	def synchronize(self):
-		self.__web_document.execute_queued_tasks()
-		client_messages = self.__web_document.get_client_message_queue()
-		self.__web_document.clear_client_message_queue()
-		return client_messages
+		return self.__web_document.synchronize()
 
 
 	def handle_event(self, segment_id, event_name, ev_data):
@@ -821,7 +816,7 @@ class IncrementalView (object):
 	def _queue_refresh(self):
 		if not self.__refresh_required:
 			self.__refresh_required = True
-			self.__web_document.queue(self._refresh)
+			self.__web_document.queue_task(self._refresh)
 
 
 
@@ -896,8 +891,8 @@ class IncrementalView (object):
 			self._queue_refresh()
 
 
-	def _get_unique_fragment_factory(self, perspective, subject_context, inherited_state):
-		factory = FragmentFactory(self, perspective, subject_context, inherited_state)
+	def _get_unique_fragment_factory(self, perspective, subject, inherited_state):
+		factory = FragmentFactory(self, perspective, subject, inherited_state)
 		try:
 			return self.__unique_fragment_factories[factory]
 		except KeyError:

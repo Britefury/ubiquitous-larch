@@ -24,8 +24,8 @@ class PresentationContext (object):
 		return self.__inherited_state
 
 	@property
-	def subject_context(self):
-		return self.__fragment_view.subject_context   if self.__fragment_view is not None   else None
+	def subject(self):
+		return self.__fragment_view.subject   if self.__fragment_view is not None   else None
 
 
 

@@ -213,7 +213,6 @@ __larch.__register_segments = function() {
 __larch.__applyChanges = function(changes) {
     //console.log("STARTING UPDATE");
     var removed = changes.removed;
-    var added = changes.added;
     var modified = changes.modified;
     var initialisers = changes.initialisers;
 
@@ -226,14 +225,6 @@ __larch.__applyChanges = function(changes) {
         //console.log("Removed " + removed[i]);
         delete segment_table[removed[i]];
     }
-
-    // Handle additions
-    /*for (var i = 0; i < added.length; i++) {
-        var segment_id = added[i][0];
-        var content = added[i][1];
-
-        id_to_elem[key] = {'nodes': __larch.__createSegmentContentNodesFromSource(content, segment_id, initialisers)};
-    }*/
 
     // Handle modifications
     for (var i = 0; i < modified.length; i++) {

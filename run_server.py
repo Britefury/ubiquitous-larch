@@ -217,7 +217,7 @@ class IndexPage (object):
 index_page = IndexPage()
 
 
-index_subject = Subject(index_page, stylesheet_names=['codemirror/lib/codemirror.css'], script_names=['codemirror/lib/codemirror.js', 'codemirror/mode/python/python.js', 'codemirror_post.js'])
+index_subject = Subject(None, index_page, stylesheet_names=['codemirror/lib/codemirror.css'], script_names=['codemirror/lib/codemirror.js', 'codemirror/mode/python/python.js', 'codemirror_post.js'])
 
 
 
