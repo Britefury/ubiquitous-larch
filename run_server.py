@@ -53,12 +53,27 @@ Html(x,b,y)
 sample_code = """
 from britefury.live.live_value import LiveValue
 from britefury.live.live_function import LiveFunction
-from britefury.pres.controls.button import button
+from britefury.pres.controls import button, action_link
 from britefury.pres.controls.expander import dropdown_expander
 from britefury.pres.html import Html
 
 
-dropdown_expander( Html('Header'), Html('content') )
+aa = dropdown_expander( Html('Header'), Html('content') )
+
+
+x=LiveValue(1)
+
+y=LiveFunction(lambda: x.value*x.value)
+
+
+def on_press():
+    x.value = x.static_value + 1
+
+b=button.button('Press me', on_press)
+
+bb = Html(x,b,y)
+
+aa
 """
 
 class CodeResult (object):
