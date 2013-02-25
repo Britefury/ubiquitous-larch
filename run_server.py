@@ -44,7 +44,7 @@ y=LiveFunction(lambda: x.value*x.value)
 def on_press():
     x.value = x.static_value + 1
 
-b=button('Press me', on_press)
+b=button.button('Press me', on_press)
 
 Html(x,b,y)
 
@@ -144,7 +144,7 @@ class CurrentBlock (object):
 
 
 		code_area = Html('<div>', self.__python_code, '</div>')
-		execute_button = button('Execute', on_execute)
+		execute_button = button.button('Execute', on_execute)
 
 		code_area_with_key_handler = code_area.with_key_handler([Key(Key.KEY_DOWN, 13, ctrl=True)], on_execute_key)
 
