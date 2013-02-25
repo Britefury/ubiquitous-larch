@@ -50,6 +50,17 @@ Html(x,b,y)
 
 """
 
+sample_code = """
+from britefury.live.live_value import LiveValue
+from britefury.live.live_function import LiveFunction
+from britefury.pres.controls.button import button
+from britefury.pres.controls.expander import dropdown_expander
+from britefury.pres.html import Html
+
+
+dropdown_expander( Html('Header'), Html('content') )
+"""
+
 class CodeResult (object):
 	def __init__(self):
 		self.__result = None
@@ -71,7 +82,7 @@ class CodeResult (object):
 		if self.__result is None:
 			return Html('<div></div>')
 		else:
-			return Html('<div>', self.__result[0], '</div>')
+			return Html('<div>', Pres.coerce(self.__result[0]), '</div>')
 
 
 class PythonCode (object):
