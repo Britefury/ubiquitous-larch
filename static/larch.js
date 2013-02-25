@@ -152,9 +152,13 @@ __larch.__executeInitialisers = function(initialisers) {
         var x = initialisers[i];
         var segment_id = x[0];
         var inits = x[1];
+        console.log("Executing initialisers for " + segment_id);
         var state = segment_table[segment_id];
+        if (state == undefined) {
+            throw "Cannot get segment " + segment_id
+        }
         var nodes = __larch.__getNodesInActiveSegment(state);
-        for (var j = 0; j < nodes.length; j++) {
+        for (var j = 1; j < nodes.length - 1; j++) {
             // The 'unused' variable node is referenced by the source code contained in the initialiser; it is needed by eval()
             var node = nodes[j];
             for (var k = 0; k < inits.length; k++) {
@@ -179,7 +183,7 @@ __larch.__register_segments = function() {
 
             // Extract the segment ID
             var segment_id = start.innerHTML;
-            //console.log("Initialised " + segment_id);
+            console.log("Initialised " + segment_id);
 
             // Iterate forwards until we find the matching end node.
             var n = start;
@@ -207,7 +211,7 @@ __larch.__register_segments = function() {
 
 
 __larch.__applyChanges = function(changes) {
-    //console.log("Starting update");
+    console.log("STARTING UPDATE");
     var removed = changes.removed;
     var added = changes.added;
     var modified = changes.modified;
@@ -219,6 +223,7 @@ __larch.__applyChanges = function(changes) {
     for (var i = 0; i < removed.length; i++) {
         // Just remove them from the table
         // The DOM modifications will remove the nodes
+        console.log("Removed " + removed[i]);
         delete segment_table[removed[i]];
     }
 
@@ -238,9 +243,10 @@ __larch.__applyChanges = function(changes) {
 
         var state = segment_table[segment_id];
 
-        //console.log("Replaced " + segment_id);
+        console.log("Replaced " + segment_id);
 
         var newState = __larch.__createSegmentContentNodesFromSource(content);
+        newState.start.__lch_initialised = true;
 
         // Unregister segment IDs
         var oldNodes = __larch.__getNodesInActiveSegment(state);
@@ -251,6 +257,9 @@ __larch.__applyChanges = function(changes) {
         // Register segment IDs
         var newNodes = __larch.__getNodesInActiveSegment(newState);
         newNodes.forEach(function(n) {n.__lch_seg_id = segment_id;});
+
+        // Put in segment table
+        segment_table[segment_id] = newState;
     }
 
     // Replace the placeholders with the segments that they reference
@@ -266,8 +275,6 @@ __larch.__applyChanges = function(changes) {
             // Get the segment that is to take its place
             var segment = segment_table[segment_id];
 
-            //console.log("Replacing placeholder " + segment_id);
-
             // Replace it
             __larch.__replacePlaceholder(p, segment);
         }
@@ -281,7 +288,7 @@ __larch.__applyChanges = function(changes) {
 
     // Execute initialisers
     __larch.__executeInitialisers(initialisers);
-    //console.log("Finishing update");
+    console.log("FINISHED UPDATE");
 }
 
 __larch.__handleMessageFromServer = function(message) {
@@ -359,7 +366,8 @@ __larch.__onkeypress = function(event, keys) {
 }
 
 
-__larch.postEvent = function(src_element, event_name, event_data) {
+
+__larch.buildElementEventMessage = function(src_element, event_name, event_data) {
     var n = src_element;
     var segment_id = null;
     while (n != null) {
@@ -379,34 +387,26 @@ __larch.postEvent = function(src_element, event_name, event_data) {
             ev_data: event_data
         };
 
-        var ev_json = JSON.stringify(ev_msg);
-
-        var ev_data = {
-            session_id: __larch.__session_id,
-            event_data: ev_json
-        };
-
-        $.ajax({
-            type: 'POST',
-            url: 'event',
-            data: ev_data,
-            success: function(msg) {
-                __larch.__handleMessagesFromServer(msg);
-            },
-            dataType: 'json'
-        });
+        return ev_msg;
+    }
+    else {
+        return null;
     }
 }
 
-
-__larch.postDocumentEvent = function(event_name, event_data) {
+__larch.buildDocumentEventMessage = function(event_name, event_data) {
     var ev_msg = {
         msgtype: 'event',
         element_id: null,
         event_name: event_name,
         ev_data: event_data
     };
+    return ev_msg;
+}
 
+
+
+__larch.postEventMessage = function(ev_msg) {
     var ev_json = JSON.stringify(ev_msg);
 
     var ev_data = {
@@ -423,6 +423,27 @@ __larch.postDocumentEvent = function(event_name, event_data) {
         },
         dataType: 'json'
     });
+}
+
+
+__larch.postEvent = function(src_element, event_name, event_data) {
+    var ev_msg = __larch.buildElementEventMessage(src_element, event_name, event_data);
+
+    if (ev_msg != null) {
+        __larch.postEventMessage(ev_msg);
+    }
+}
+
+
+__larch.postDocumentEvent = function(event_name, event_data) {
+    var ev_msg = {
+        msgtype: 'event',
+        element_id: null,
+        event_name: event_name,
+        ev_data: event_data
+    };
+
+    __larch.postEventMessage(ev_msg);
 }
 
 
