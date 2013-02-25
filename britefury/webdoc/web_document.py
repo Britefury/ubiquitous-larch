@@ -187,21 +187,17 @@ class _ChangeSet (object):
 		assert isinstance(self.__added_segs, set)
 		while len(self.__added_segs) > 0:
 			seg = added_segs.pop()
-			print '_ChangeSet(): added {0}'.format(seg.id)
 			initialisers = seg.initialisers
 			if initialisers is not None:
-				print '_ChangeSet(): added: initialisers found for seg {0}'.format(seg.id)
 				self.initialisers.append((seg.id, initialisers))
 			html = seg._inline_html(self.__resolve_reference)
 			self.__added_seg_to_html[seg] = html
 
 		for seg in modified_segs:
-			print '_ChangeSet(): modified {0}'.format(seg.id)
 			html = seg._inline_html(self.__resolve_reference)
 			self.modified.append((seg.id, html))
 			initialisers = seg.initialisers
 			if initialisers is not None:
-				print '_ChangeSet(): modified: initialisers found for seg {0}'.format(seg.id)
 				self.initialisers.append((seg.id, initialisers))
 
 		assert len(self.__added_seg_to_html) == 0
@@ -209,10 +205,6 @@ class _ChangeSet (object):
 			self.added.append((seg.id, html))
 
 		print 'CHANGES TO SEND: {0} added, {1} removed, {2} modified, {3} initialisers'.format(len(self.added), len(self.removed), len(self.modified), len(self.initialisers))
-		#for r in self.removed:
-		#	print 'REMOVED {0}'.format(r)
-		#for i, h in self.modified:
-		#	print 'MODIFIED {0} to \n{1}'.format(i, h)
 
 
 
@@ -224,12 +216,13 @@ class _ChangeSet (object):
 	def __resolve_reference(self, seg):
 		if seg in self.__added_seg_to_html:
 			html = self.__added_seg_to_html[seg]
-			print '_ChangeSet(): inlining {0} from HTML table'.format(seg.id)
 			del self.__added_seg_to_html[seg]
 			return html
 		elif seg in self.__added_segs:
-			print '_ChangeSet(): inlining {0} directly'.format(seg.id)
 			self.__added_segs.remove(seg)
+			initialisers = seg.initialisers
+			if initialisers is not None:
+				self.initialisers.append((seg.id, initialisers))
 			return seg._inline_html(self.__resolve_reference)
 		else:
 			return seg._place_holder()

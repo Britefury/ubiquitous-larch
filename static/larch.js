@@ -152,7 +152,7 @@ __larch.__executeInitialisers = function(initialisers) {
         var x = initialisers[i];
         var segment_id = x[0];
         var inits = x[1];
-        console.log("Executing initialisers for " + segment_id);
+        //console.log("Executing initialisers for " + segment_id);
         var state = segment_table[segment_id];
         if (state == undefined) {
             throw "Cannot get segment " + segment_id
@@ -183,7 +183,7 @@ __larch.__register_segments = function() {
 
             // Extract the segment ID
             var segment_id = start.innerHTML;
-            console.log("Initialised " + segment_id);
+            //console.log("Initialised " + segment_id);
 
             // Iterate forwards until we find the matching end node.
             var n = start;
@@ -211,7 +211,7 @@ __larch.__register_segments = function() {
 
 
 __larch.__applyChanges = function(changes) {
-    console.log("STARTING UPDATE");
+    //console.log("STARTING UPDATE");
     var removed = changes.removed;
     var added = changes.added;
     var modified = changes.modified;
@@ -223,7 +223,7 @@ __larch.__applyChanges = function(changes) {
     for (var i = 0; i < removed.length; i++) {
         // Just remove them from the table
         // The DOM modifications will remove the nodes
-        console.log("Removed " + removed[i]);
+        //console.log("Removed " + removed[i]);
         delete segment_table[removed[i]];
     }
 
@@ -243,7 +243,7 @@ __larch.__applyChanges = function(changes) {
 
         var state = segment_table[segment_id];
 
-        console.log("Replaced " + segment_id);
+        //console.log("Replaced " + segment_id);
 
         var newState = __larch.__createSegmentContentNodesFromSource(content);
         newState.start.__lch_initialised = true;
@@ -288,7 +288,7 @@ __larch.__applyChanges = function(changes) {
 
     // Execute initialisers
     __larch.__executeInitialisers(initialisers);
-    console.log("FINISHED UPDATE");
+    //console.log("FINISHED UPDATE");
 }
 
 __larch.__handleMessageFromServer = function(message) {
