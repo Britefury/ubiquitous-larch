@@ -34,8 +34,8 @@ class Pres (object):
 		return KeyEventSource(keys_and_handlers, self)
 
 
-	def call_js(self, js_fun_name):
-		return JSCall([js_fun_name], self)
+	def js_function_call(self, js_fun_name, *json_args):
+		return JSFunctionCall(self, js_fun_name, json_args)
 
 
 
@@ -136,19 +136,18 @@ class EventSource (SubSegmentPres):
 
 
 
-class JSCall (SubSegmentPres):
-	def __init__(self, js_fn_names, child):
-		super(JSCall, self).__init__(child)
-		self.__js_fn_names = js_fn_names
+class JSFunctionCall (SubSegmentPres):
+	def __init__(self, child, js_fn_name, json_args):
+		super(JSFunctionCall, self).__init__(child)
+		self.__js_fn_name = js_fn_name
 
-
-	def call_js(self, js_fun_name):
-		return JSCall(self.__js_fn_names + [js_fun_name], self.__child)
+		args = ['node'] + [json.dumps(a)   for a in json_args]
+		self.__args_string = ', '.join(args)
 
 
 	def initialise_segment(self, seg, pres_ctx):
-		for fn_name in self.__js_fn_names:
-			seg.add_initialiser('{0}(node);'.format(fn_name))
+		seg.add_initialiser('{0}({1});'.format(self.__js_fn_name, self.__args_string))
+
 
 
 
@@ -162,9 +161,9 @@ class KeyEventSource (EventSource):
 		self.__keyup = [k   for k in keys_and_handlers   if k[0].event_type == Key.KEY_DOWN]
 		self.__keypress = [k   for k in keys_and_handlers   if k[0].event_type == Key.KEY_DOWN]
 
-		self.__keydown_json_str = json.dumps([k[0].__to_json__()   for k in self.__keydown])
-		self.__keyup_json_str = json.dumps([k[0].__to_json__()   for k in self.__keyup])
-		self.__keypress_json_str = json.dumps([k[0].__to_json__()   for k in self.__keypress])
+		self.__keydown_json_str = json.dumps([k[0].__to_json__()   for k in self.__keydown]).replace('"', '\'')
+		self.__keyup_json_str = json.dumps([k[0].__to_json__()   for k in self.__keyup]).replace('"', '\'')
+		self.__keypress_json_str = json.dumps([k[0].__to_json__()   for k in self.__keypress]).replace('"', '\'')
 
 
 
@@ -196,9 +195,9 @@ class KeyEventSource (EventSource):
 
 	def initialise_segment(self, seg, pres_ctx):
 		super(KeyEventSource, self).initialise_segment(seg, pres_ctx)
-		keydown_json = self.__keydown_json_str.replace('"', '\'')
-		keyup_json = self.__keyup_json_str.replace('"', '\'')
-		keypress_json = self.__keypress_json_str.replace('"', '\'')
+		keydown_json = self.__keydown_json_str
+		keyup_json = self.__keyup_json_str
+		keypress_json = self.__keypress_json_str
 		seg.add_initialiser('node.onkeydown = function(event) {{__larch.__onkeydown(event, {0});}}'.format(keydown_json))
 		seg.add_initialiser('node.onkeyup = function(event) {{__larch.__onkeyup(event, {0});}}'.format(keyup_json))
 		seg.add_initialiser('node.onkeypress = function(event) {{__larch.__onkeypress(event, {0});}}'.format(keypress_json))

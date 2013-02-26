@@ -15,7 +15,7 @@ from britefury.incremental_view.incremental_view import IncrementalView
 from britefury.pres.presctx import PresentationContext
 from britefury.pres.html import Html
 from britefury.pres.pres import Pres, Key
-from britefury.pres.controls import action_link, button
+from britefury.pres.controls import action_link, button, code_mirror
 from britefury.default_perspective.default_perspective import DefaultPerspective
 from britefury.message.event_message import EventMessage
 from britefury.inspector.present_exception import present_exception
@@ -128,9 +128,18 @@ class PythonCode (object):
 		def on_change(event_name, ev_data):
 			self.__code = ev_data
 
-		initialiser = '__pythonCodeArea.initPythonCodeArea'   if self.__editable   else '__pythonCodeArea.initPythonCodeAreaNonEditable'
-		code_area = Html('<textarea class="python_code">{code}</textarea>'.format(code=self.__code)).call_js(initialiser)
-		code_area = Html('<div>', code_area, '</div>').with_event_handler('changed', on_change)
+		config = {
+			'mode': {'name': "python",
+			       'version': 2,
+			       'singleLineStringErrors': False},
+			'lineNumbers': True,
+			'indentUnit': 4,
+			'tabMode': "shift",
+			'matchBrackets': True,
+			'editable': self.__editable
+		}
+		code_area = code_mirror.code_mirror(self.__code, config, on_change)
+
 
 		return Html('<div>', code_area, '</div>')
 
