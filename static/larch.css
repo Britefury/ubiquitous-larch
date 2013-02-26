@@ -20,39 +20,48 @@
 }
 
 .pyprim_punctuation {
+    font-family: "Tahoma", "Geneva", sans-serif;
     color : #0000ff;
 }
 
 .pyprim_none {
+    font-family: "Tahoma", "Geneva", sans-serif;
     color : #000000;
 }
 
 .pyprim_bool {
+    font-family: "Tahoma", "Geneva", sans-serif;
     color : #008000;
 }
 
 .pyprim_string {
+    font-family: "Tahoma", "Geneva", sans-serif;
     color : #000000;
 }
 
 .pyprim_int {
+    font-family: "Tahoma", "Geneva", sans-serif;
     color : #800080;
 }
 
 .pyprim_long {
+    font-family: "Tahoma", "Geneva", sans-serif;
     color : #800080;
 }
 
 .pyprim_float {
+    font-family: "Tahoma", "Geneva", sans-serif;
     color : #400080;
 }
 
 .pyprim_complex_j {
+    font-family: "Tahoma", "Geneva", sans-serif;
     color : #004040;
 }
 
 
 .error_box {
+    font-family: "Tahoma", "Geneva", sans-serif;
     border-width: 1px;
     border-style: solid;
     border-color: #ff0000;
@@ -62,42 +71,50 @@
 }
 
 .error_box_caption {
+    font-family: "Tahoma", "Geneva", sans-serif;
     color : #ff0000;
     font-size: 70%;
 }
 
 .error_box_content {
+    font-family: "Tahoma", "Geneva", sans-serif;
     margin-left: 5px;
 }
 
 
 .exception_name {
+    font-family: "Tahoma", "Geneva", sans-serif;
     color : #ff0000;
 }
 
 .exception_message {
+    font-family: "Tahoma", "Geneva", sans-serif;
     color : #800000;
 }
 
 .exception_traceback {
+    font-family: "Tahoma", "Geneva", sans-serif;
     color : #c00000;
 }
 
 
 .dropdown_expander_header {
+    font-family: "Tahoma", "Geneva", sans-serif;
     border-width: 1px;
     border-style: solid;
     border-color: #808080;
-    background: #e0e0e0;
+    background: #f0f0f0;
     border-radius: 5px;
     padding: 3px;
 }
 
 .dropdown_expander_content {
+    font-family: "Tahoma", "Geneva", sans-serif;
     margin-left: 15px;
 }
 
 .pythonobject {
+    font-family: "Tahoma", "Geneva", sans-serif;
     border-width: 1px;
     border-style: solid;
     border-color: #808080;
@@ -106,10 +123,12 @@
 }
 
 .field_name {
+    font-family: "Tahoma", "Geneva", sans-serif;
     color : #000080;
 }
 
 .field_value {
+    font-family: "Tahoma", "Geneva", sans-serif;
     padding-left: 15px;
 }
 

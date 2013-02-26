@@ -8,6 +8,7 @@ import cherrypy
 import json
 import random
 import imp
+import _ast
 
 from britefury.projection.subject import Subject
 from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
@@ -199,18 +200,28 @@ class Console (object):
 
 
 	def _execute_current_block(self, block):
-		lines = block.python_code.code.split('\n')
-		exec_code = block.python_code.code
+		src = block.python_code.code
+		ast_module = compile(src, self._module.__name__, 'exec', flags=_ast.PyCF_ONLY_AST)
+
+		exec_code = None
 		eval_code = None
-		for i in xrange(len(lines)-1, -1, -1):
-			x = lines[i].strip()
-			if x != ''  and  not x.startswith( '#' ):
-				exec_code = '\n'.join(lines[:i])
-				eval_code = lines[i]
-				break
+		if len(ast_module.body) > 0:
+			last_statement = ast_module.body[-1]
+			if isinstance(last_statement, _ast.Expr):
+				# The last statement is an expression
+				expr = last_statement.value
+
+				exec_code = compile(_ast.Module(body=ast_module.body[:-1]), self._module.__name__, 'exec')
+				eval_code = compile(_ast.Expression(body=expr), self._module.__name__, 'eval')
+			else:
+				exec_code = compile(ast_module, self._module.__name__, 'exec')
+
+
 		env = self._module.__dict__
+
 		try:
-			exec exec_code in env
+			if exec_code is not None:
+				exec exec_code in env
 			result = [eval(eval_code, env)]   if eval_code is not None   else None
 		except Exception, e:
 			result = [present_exception(e, sys.exc_info()[2])]
