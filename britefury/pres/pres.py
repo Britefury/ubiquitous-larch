@@ -3,7 +3,7 @@
 ##-*************************
 import json
 
-from britefury.webdoc.web_document import HtmlContent
+from britefury.dynamicsegments.segment import HtmlContent
 from britefury.pres.presctx import PresentationContext
 from britefury.pres.key_event import Key
 

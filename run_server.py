@@ -9,6 +9,7 @@ import json
 import random
 import imp
 import _ast
+from britefury.dynamicsegments.service import DynamicDocumentService
 
 from britefury.projection.subject import Subject
 from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
@@ -87,62 +88,25 @@ index_subject = Subject(None, console, stylesheet_names=['codemirror/lib/codemir
 
 class WebCombinatorServer (object):
 	def __init__(self):
-		self.__sessions = {}
-		self.__session_counter = 1
+		self.service = DynamicDocumentService(self.__init_document)
 
-		self.__rng = random.Random()
+
+	def __init_document(self, dynamic_document):
+		return IncrementalView(index_subject, dynamic_document)
 
 
 	def index(self):
-		session_id = self.__new_session_id()
-		view = IncrementalView(index_subject, session_id)
-		self.__sessions[session_id] = view
-		return view.root_html
+		return self.service.index()
 
 	index.exposed = True
 
 
 
 	def event(self, session_id, event_data):
-		#t1 = datetime.datetime.now()
-		# Get the view for the given session
-		try:
-			view = self.__sessions[session_id]
-		except KeyError:
-			return '[]'
-
-		view.lock()
-
-		# Get the event message
-		event_json = json.loads(event_data)
-		msg = EventMessage.__from_json__(event_json)
-
-		# Handle the event
-		view.handle_event(msg.segment_id, msg.event_name, msg.ev_data)
-
-		# Synchronise the view
-		client_messages = view.synchronize()
-
-		# Send messages to the client
-		result = json.dumps([message.__to_json__()   for message in client_messages])
-		#t2 = datetime.datetime.now()
-		#delta_t = t2 - t1
-		#print 'Event response time {0} for {1} messages, {2} chars'.format(delta_t, len(client_messages), len(str(result)))
-
-		view.unlock()
-
-		return result
+		return self.service.event(session_id, event_data)
 
 	event.exposed = True
 
-
-
-	def __new_session_id(self):
-		index = self.__session_counter
-		self.__session_counter += 1
-		salt = self.__rng.randint(0, 1<<31)
-		session_id = 'session_{0}{1}'.format(index, salt)
-		return session_id
 
 
 root = WebCombinatorServer()

@@ -10,7 +10,8 @@ from britefury.pres.presctx import PresentationContext
 from britefury.pres.pres import Pres
 from britefury.incremental.incremental_monitor import IncrementalMonitor
 from britefury.incremental.incremental_function_monitor import IncrementalFunctionMonitor
-from britefury.webdoc.web_document import WebDocument, HtmlContent
+from britefury.dynamicsegments.document import DynamicDocument
+from britefury.dynamicsegments.segment import  HtmlContent
 
 
 
@@ -49,14 +50,14 @@ class _FragmentView (object):
 		self.__incr.add_listener(self.__on_incremental_monitor_changed)
 
 		# Segments
-		self.__segment = inc_view.web_document.new_segment(desc='{0}'.format(type(self.__model).__name__))
+		self.__segment = inc_view.dynamic_document.new_segment(desc='{0}'.format(type(self.__model).__name__))
 		self.__sub_segments = []
 
 
 	def _dispose(self):
 		self.__incr.remove_listener(self.__on_incremental_monitor_changed)
 		for sub_seg in self.__sub_segments:
-			self.__inc_view.web_document.remove_segment(sub_seg)
+			self.__inc_view.dynamic_document.remove_segment(sub_seg)
 
 
 
@@ -154,7 +155,7 @@ class _FragmentView (object):
 	#
 
 	def create_sub_segment(self, content):
-		sub_seg = self.__inc_view.web_document.new_segment( content, desc='subseg_{0}'.format(type(self.__model).__name__) )
+		sub_seg = self.__inc_view.dynamic_document.new_segment( content, desc='subseg_{0}'.format(type(self.__model).__name__) )
 		self.__sub_segments.append(sub_seg)
 		return sub_seg
 
@@ -303,7 +304,7 @@ class _FragmentView (object):
 
 		# Remove sub segments
 		for sub_seg in self.__sub_segments:
-			self.__inc_view.web_document.remove_segment(sub_seg)
+			self.__inc_view.dynamic_document.remove_segment(sub_seg)
 		del self.__sub_segments[:]
 
 		self.__on_compute_node_result_begin()
@@ -690,25 +691,10 @@ class IncrementalViewTable (object):
 
 
 
-class RootPres (Pres):
-	def __init__(self, inc_view):
-		self.__inc_view = inc_view
-
-
-	def build(self, pres_ctx):
-		fragment_factory = self.__inc_view._get_unique_fragment_factory(self.__inc_view._root_perspective, self.__inc_view.subject, SimpleAttributeTable.instance)
-		self.__inc_view._set_root_fragment_factory(fragment_factory)
-
-		self.__inc_view._refresh()
-
-		root_frag_view = self.__inc_view._get_root_fragment_view()
-		self.__inc_view.web_document.root_segment = root_frag_view.refreshed_segment_reference
-		return
-
 
 
 class IncrementalView (object):
-	def __init__(self, subject, session_id):
+	def __init__(self, subject, dynamic_document):
 		self.__subject = subject
 
 		self.__root_model = subject.focus
@@ -720,60 +706,16 @@ class IncrementalView (object):
 		self._node_table = IncrementalViewTable()
 		self.__refresh_required = False
 
-		root_pres = RootPres(self)
-		self.__view_pres = root_pres
-
 		self.__unique_fragment_factories = {}
 
-		self.__web_document = WebDocument(session_id, subject.stylesheet_names, subject.script_names)
+		self.__dynamic_document = dynamic_document
+		self.__dynamic_document.add_stylesheets(subject.stylesheet_names)
+		self.__dynamic_document.add_js_scripts(subject.script_names)
 
 		self.__lock = None
 
+		self.__initialise()
 
-	#
-	#
-	# Root HTML
-	#
-	#
-
-	@property
-	def root_html(self):
-		self.view_pres.build(None)
-		return self.__web_document.page_html()
-
-
-
-	#
-	#
-	# Events
-	#
-	#
-
-	def synchronize(self):
-		return self.__web_document.synchronize()
-
-
-	def handle_event(self, segment_id, event_name, ev_data):
-		self.__web_document.handle_event(segment_id, event_name, ev_data)
-
-
-
-
-
-	#
-	#
-	# Threads/locking
-	#
-	#
-
-	def lock(self):
-		if self.__lock is None:
-			self.__lock = threading.Lock()
-		self.__lock.acquire()
-
-	def unlock(self):
-		if self.__lock is not None:
-			self.__lock.release()
 
 
 
@@ -784,11 +726,6 @@ class IncrementalView (object):
 	#
 
 	@property
-	def view_pres(self):
-		return self.__view_pres
-
-
-	@property
 	def root_model(self):
 		return self.__root_model
 
@@ -797,8 +734,30 @@ class IncrementalView (object):
 		return self.__subject
 
 	@property
-	def web_document(self):
-		return self.__web_document
+	def dynamic_document(self):
+		return self.__dynamic_document
+
+
+
+
+	#
+	#
+	# Initialisation
+	#
+	#
+
+	def __initialise(self):
+		# Create and set the root fragment fragment factory
+		fragment_factory = self._get_unique_fragment_factory(self._root_perspective, self.__subject, SimpleAttributeTable.instance)
+		self._set_root_fragment_factory(fragment_factory)
+
+		# Refresh
+		self._refresh()
+
+		# Get the root fragment
+		root_frag_view = self._get_root_fragment_view()
+		# Set the content of the dynamic document to the content of the root fragment
+		self.__dynamic_document.root_segment = root_frag_view.refreshed_segment_reference
 
 
 	#
@@ -816,7 +775,7 @@ class IncrementalView (object):
 	def _queue_refresh(self):
 		if not self.__refresh_required:
 			self.__refresh_required = True
-			self.__web_document.queue_task(self._refresh)
+			self.__dynamic_document.queue_task(self._refresh)
 
 
 

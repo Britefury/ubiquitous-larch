@@ -2,7 +2,7 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
 from britefury.pres.pres import Pres
-from britefury.webdoc.web_document import HtmlContent
+from britefury.dynamicsegments.segment import HtmlContent
 
 
 class Html (Pres):
