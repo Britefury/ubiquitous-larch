@@ -15,6 +15,7 @@ _page_content = """
 	<head>
 		<title>The Larch Environment (test)</title>
 		<link rel="stylesheet" type="text/css" href="larch.css"/>
+		<link rel="stylesheet" type="text/css" href="python.css"/>
 		{stylesheet_tags}
 
 		<script type="text/javascript" src="larch_prelude.js"></script>

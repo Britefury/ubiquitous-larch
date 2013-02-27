@@ -1,7 +1,6 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
-from britefury.attribute_table.simple_attribute_table import SimpleAttributeTable
 from britefury.default_perspective.default_perspective import DefaultPerspective
 
 
