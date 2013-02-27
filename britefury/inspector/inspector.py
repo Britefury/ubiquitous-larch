@@ -8,7 +8,7 @@ from britefury.inspector.present_python import present_python
 
 
 class InspectorPerspective (AbstractPerspective):
-	def present_model(self, model, fragment_view, inherited_state):
+	def present_model(self, model, fragment_view):
 
 		p = present_primitive(model)
 		if p is not None:
@@ -18,7 +18,7 @@ class InspectorPerspective (AbstractPerspective):
 		if p is not None:
 			return p
 
-		return llinspect.present_object(model, fragment_view, inherited_state)
+		return llinspect.present_object(model, fragment_view)
 
 
 InspectorPerspective.instance = InspectorPerspective()

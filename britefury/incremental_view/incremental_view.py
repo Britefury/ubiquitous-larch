@@ -507,7 +507,7 @@ class FragmentFactory (object):
 	def __call__(self, inc_view, fragment_view, model):
 		# Create the view fragment
 		try:
-			fragment_pres = self.__perspective.present_object(model, fragment_view, self.__inherited_state)
+			fragment_pres = self.__perspective.present_object(model, fragment_view)
 		except:
 			raise
 

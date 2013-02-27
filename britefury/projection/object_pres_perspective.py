@@ -31,7 +31,7 @@ class ObjectPresPerspective (AbstractPerspective):
 
 
 
-	def present_model(self, model, fragment_view, inherited_state):
+	def present_model(self, model, fragment_view):
 		if self.__present_method_name__ is NotImplemented:
 			raise NotImplementedError, 'object pres perspective {0} appears to be abstract; __present_method_name__ not defined'.format(self)
 
@@ -47,7 +47,7 @@ class ObjectPresPerspective (AbstractPerspective):
 			present_method = None
 
 		if present_method is not None:
-			result = present_method(fragment_view, inherited_state)
+			result = present_method(fragment_view)
 
 		if result is None:
 			# Try object presenters
@@ -56,13 +56,13 @@ class ObjectPresPerspective (AbstractPerspective):
 			except KeyError:
 				pass
 			else:
-				result = presenter(model, fragment_view, inherited_state)
+				result = presenter(model, fragment_view)
 
 		if result is None:
 			if self.__fallback_perspective__ is NotImplemented:
 				raise NotImplementedError, 'object pres perspective {0} appears to be abstract; __fallback_perspective__ not defined'.format(self)
 			elif self.__fallback_perspective__ is not None:
-				result = self.__fallback_perspective__.present_object(model, fragment_view, inherited_state)
+				result = self.__fallback_perspective__.present_object(model, fragment_view)
 			else:
 				raise ValueError, 'Could not present {0}'.format(model)
 

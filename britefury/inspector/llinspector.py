@@ -17,7 +17,7 @@ def _field(name, x):
 	else:
 		return vertical_field(name, value)
 
-def present_python_object(x, fragment_view, inherited_state):
+def present_python_object(x, fragment_view):
 	attr_names = sorted(x.__dict__.keys())
 	attrs = [_field(name, x)   for name in attr_names]
 	attrs = Html(*attrs)
@@ -31,12 +31,12 @@ def present_python_object(x, fragment_view, inherited_state):
 
 
 class LLInspectorPerspective (AbstractPerspective):
-	def present_model(self, model, fragment_view, inherited_state):
+	def present_model(self, model, fragment_view):
 		p = present_primitive_data(model)
 		if p is not None:
 			return p
 		else:
-			return present_python_object(model, fragment_view, inherited_state)
+			return present_python_object(model, fragment_view)
 
 LLInspectorPerspective.instance = LLInspectorPerspective()
 

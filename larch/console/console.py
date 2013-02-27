@@ -31,7 +31,7 @@ class CodeResult (object):
 		self.__incr.on_changed()
 
 
-	def __present__(self, fragment, inherited_state):
+	def __present__(self, fragment):
 		self.__incr.on_access()
 		if self.__result is None:
 			return Html('<div></div>')
@@ -61,7 +61,7 @@ class PythonCode (object):
 		return self.__code
 
 
-	def __present__(self, fragment, inherited_state):
+	def __present__(self, fragment):
 		self.__incr.on_access()
 
 		def on_change(event_name, ev_data):
@@ -93,7 +93,7 @@ class ConsoleBlock (object):
 		self.__result = result
 
 
-	def __present__(self, fragment, inherited_state):
+	def __present__(self, fragment):
 		res = ['<div>', self.__result[0], '</div>']   if self.__result is not None  else []
 		return Html(*(['<div class="python_console_block">', self.__code] + res + ['</div>']))
 
@@ -110,7 +110,7 @@ class CurrentBlock (object):
 		return self.__python_code
 
 
-	def __present__(self, fragment, inherited_state):
+	def __present__(self, fragment):
 		def on_execute():
 			self.__console._execute_current_block(self)
 
@@ -172,7 +172,7 @@ class Console (object):
 		self.__incr.on_changed()
 
 
-	def __present__(self, fragment, inherited_state):
+	def __present__(self, fragment):
 		self.__incr.on_access()
 
 		preamble = sys.version + '\n' + 'Press Control+Enter to execute.'

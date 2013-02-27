@@ -17,5 +17,5 @@ DefaultPerspective.instance = DefaultPerspective()
 
 
 @DefaultPerspective.instance.presenter(Exception)
-def present_exception(model, fragment_view, inherited_state):
+def present_exception(model, fragment_view):
 	return present_exception_no_traceback(model)
