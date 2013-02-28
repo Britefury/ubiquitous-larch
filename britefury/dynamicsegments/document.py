@@ -63,7 +63,7 @@ class DynamicDocument (object):
 
 		self.__client_message_queue = []
 
-		self.__session_id = session_id
+		self._session_id = session_id
 		self.__stylesheet_names = []
 		self.__script_names = []
 
@@ -72,6 +72,12 @@ class DynamicDocument (object):
 		self.__document_modified = False
 
 		self.__root_segment = None
+
+
+		self.__rsc_id_counter = 1
+		self.__rsc_id_to_rsc = {}
+		self.__rsc_content_to_rsc = {}
+
 
 		self.__lock = None
 
@@ -106,6 +112,13 @@ class DynamicDocument (object):
 
 
 
+	#
+	#
+	# Segment creation and destruction
+	#
+	#
+
+
 	def new_segment(self, content=None, desc=None):
 		"""Create a new segment
 
@@ -119,6 +132,46 @@ class DynamicDocument (object):
 		"""
 		self._table.remove_segment(segment)
 
+
+
+
+	#
+	#
+	# Resources
+	#
+	#
+
+	def resource_for(self, data_fn, mime_type):
+		"""Create a new resource
+
+		data_fn - function that returns the resource's content
+		mime_type - the MIME type
+		"""
+		key = data_fn, mime_type
+		rsc = self.__rsc_content_to_rsc.get(key)
+		if rsc is None:
+			rsc_id = 'rsc{0}'.format(self.__rsc_id_counter)
+			self.__rsc_id_counter += 1
+			rsc = DynamicResource(self, rsc_id, data_fn, mime_type)
+			self.__rsc_id_to_rsc[rsc_id] = rsc
+
+		rsc.ref()
+
+		return rsc
+
+
+	def unref_resource(self, rsc):
+		if rsc.unref() == 0:
+			del self.__rsc_id_to_rsc[rsc.id]
+
+
+
+
+	#
+	#
+	# Segment acquisition
+	#
+	#
 
 
 	@property
@@ -135,6 +188,12 @@ class DynamicDocument (object):
 		self.__root_segment = seg
 
 
+
+	#
+	#
+	# Events, tasks and synchronization
+	#
+	#
 
 	def synchronize(self):
 		"""Synchronise
@@ -174,6 +233,12 @@ class DynamicDocument (object):
 					return True
 				segment = segment.parent
 			return False
+
+
+	# Resource retrieval
+	def get_resource_data(self, rsc_id):
+		rsc = self.__rsc_id_to_rsc[rsc_id]
+		return rsc.data, rsc.mime_type
 
 
 
@@ -245,7 +310,7 @@ class DynamicDocument (object):
 
 		self._table.clear_changes()
 
-		return _page_content.format(session_id=self.__session_id, stylesheet_tags=stylesheet_tags, script_tags=script_tags, content=root_content, init_script=js_to_exec, initialisers=initialisers_json_str)
+		return _page_content.format(session_id=self._session_id, stylesheet_tags=stylesheet_tags, script_tags=script_tags, content=root_content, init_script=js_to_exec, initialisers=initialisers_json_str)
 
 
 
@@ -394,5 +459,41 @@ class _SegmentTable (object):
 
 
 
+class DynamicResource (object):
+	def __init__(self, doc, rsc_id, data_fn, mime_type):
+		self.__doc = doc
+		self.__rsc_id = rsc_id
+		self.__data_fn = data_fn
+		self.__mime_type = mime_type
+		self.__ref_count = 0
 
 
+	def ref(self):
+		self.__ref_count += 1
+		return self.__ref_count
+
+	def unref(self):
+		self.__ref_count -= 1
+		return self.__ref_count
+
+
+	@property
+	def document(self):
+		return self.__doc
+
+	@property
+	def id(self):
+		return self.__rsc_id
+
+	@property
+	def data(self):
+		return self.__data_fn()
+
+	@property
+	def mime_type(self):
+		return self.__mime_type
+
+
+	@property
+	def url(self):
+		return 'rsc?session_id={0}&rsc_id={1}'.format(self.__doc._session_id, self.__rsc_id)

@@ -42,8 +42,7 @@ class DynamicDocumentService (object):
 
 
 	def event(self, session_id, event_data):
-		#t1 = datetime.datetime.now()
-		# Get the view for the given session
+		# Get the document for the given session
 		try:
 			session = self.__sessions[session_id]
 		except KeyError:
@@ -65,13 +64,30 @@ class DynamicDocumentService (object):
 
 		# Send messages to the client
 		result = json.dumps([message.__to_json__()   for message in client_messages])
-		#t2 = datetime.datetime.now()
-		#delta_t = t2 - t1
-		#print 'Event response time {0} for {1} messages, {2} chars'.format(delta_t, len(client_messages), len(str(result)))
 
 		dynamic_document.unlock()
 
 		return result
+
+
+	def resource(self, session_id, rsc_id):
+		# Get the document for the given session
+		try:
+			session = self.__sessions[session_id]
+		except KeyError:
+			return '[]'
+
+		dynamic_document = session.dynamic_document
+
+		dynamic_document.lock()
+
+		# Get the resource
+		result = dynamic_document.get_resource_data(rsc_id)
+
+		dynamic_document.unlock()
+
+		return result
+
 
 
 

@@ -1,26 +1,12 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
-import datetime
 import os
-import sys
 import cherrypy
-import json
-import random
-import imp
-import _ast
 from britefury.dynamicsegments.service import DynamicDocumentService
 
 from britefury.projection.subject import Subject
-from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
 from britefury.incremental_view.incremental_view import IncrementalView
-from britefury.pres.presctx import PresentationContext
-from britefury.pres.html import Html
-from britefury.pres.pres import Pres, Key
-from britefury.pres.controls import action_link, button, code_mirror
-from britefury.default_perspective.default_perspective import DefaultPerspective
-from britefury.message.event_message import EventMessage
-from britefury.inspector.present_exception import present_exception
 from larch.console.console import Console
 
 
@@ -33,54 +19,20 @@ config = {'/':
 
 
 sample_code = """
-from britefury.live.live_value import LiveValue
-from britefury.live.live_function import LiveFunction
-from britefury.pres.controls import button
+from britefury.pres.pres import *
 from britefury.pres.html import Html
 
+filename='c:\\\\Users\\\\Geoff\\\\Pictures\\\\trollface.jpg'
+f=open(filename,'rb')
+data=f.read()
+f.close()
 
-x=LiveValue(1)
-
-y=LiveFunction(lambda: x.value*x.value)
-
-
-def on_press():
-    x.value = x.static_value + 1
-
-b=button.button('Press me', on_press)
-
-Html(x,b,y)
-
-"""
-
-sample_code = """
-from britefury.live.live_value import LiveValue
-from britefury.live.live_function import LiveFunction
-from britefury.pres.controls import button, action_link
-from britefury.pres.controls.expander import dropdown_expander
-from britefury.pres.html import Html
-
-
-aa = dropdown_expander( Html('Header'), Html('content') )
-
-
-x=LiveValue(1)
-
-y=LiveFunction(lambda: x.value*x.value)
-
-
-def on_press():
-    x.value = x.static_value + 1
-
-b=button.button('Press me', on_press)
-
-bb = Html(x,b,y)
-
-aa
+r=Resource(lambda: data, 'image/jpeg')
+Html('<img src="', r, '">')
 """
 
 
-console = Console()
+console = Console(sample_code)
 index_subject = Subject(None, console, stylesheet_names=['codemirror/lib/codemirror.css'], script_names=['codemirror/lib/codemirror.js', 'codemirror/mode/python/python.js', 'codemirror_post.js'])
 
 
@@ -106,6 +58,14 @@ class WebCombinatorServer (object):
 		return self.service.event(session_id, event_data)
 
 	event.exposed = True
+
+
+	def rsc(self, session_id, rsc_id):
+		data, mime_type = self.service.resource(session_id, rsc_id)
+		cherrypy.response.headers['Content-Type'] = mime_type
+		return data
+
+	rsc.exposed = True
 
 
 

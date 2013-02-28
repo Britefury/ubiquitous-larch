@@ -53,9 +53,14 @@ class _FragmentView (object):
 		self.__segment = inc_view.dynamic_document.new_segment(desc='{0}'.format(type(self.__model).__name__))
 		self.__sub_segments = []
 
+		# Resources
+		self.__resources = []
+
 
 	def _dispose(self):
 		self.__incr.remove_listener(self.__on_incremental_monitor_changed)
+		for rsc in self.__resources:
+			self.__inc_view.dynamic_document.unref_resource(rsc)
 		for sub_seg in self.__sub_segments:
 			self.__inc_view.dynamic_document.remove_segment(sub_seg)
 
@@ -155,9 +160,22 @@ class _FragmentView (object):
 	#
 
 	def create_sub_segment(self, content):
-		sub_seg = self.__inc_view.dynamic_document.new_segment( content, desc='subseg_{0}'.format(type(self.__model).__name__) )
+		sub_seg = self.__inc_view.dynamic_document.new_segment(content, desc='subseg_{0}'.format(type(self.__model).__name__))
 		self.__sub_segments.append(sub_seg)
 		return sub_seg
+
+
+
+	#
+	#
+	# Sub-segments
+	#
+	#
+
+	def create_resource(self, data_fn, mime_type):
+		rsc = self.__inc_view.dynamic_document.resource_for(data_fn, mime_type)
+		self.__resources.append(rsc)
+		return rsc
 
 
 

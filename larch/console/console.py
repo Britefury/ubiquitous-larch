@@ -36,7 +36,7 @@ class CodeResult (object):
 		if self.__result is None:
 			return Html('<div></div>')
 		else:
-			return Html('<div>', Pres.coerce(self.__result[0]), '</div>')
+			return Html('<div>', Pres.coerce_nullable(self.__result[0]), '</div>')
 
 
 class PythonCode (object):

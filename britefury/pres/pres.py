@@ -55,7 +55,7 @@ class Pres (object):
 
 
 	@staticmethod
-	def coerce_not_none(x):
+	def coerce_nullable(x):
 		if x is None:
 			return InnerFragment(None)
 		elif isinstance(x, Pres):
@@ -69,8 +69,8 @@ class Pres (object):
 		return [Pres.coerce(x)   for x in xs]
 
 	@staticmethod
-	def map_coerce_not_none(xs):
-		return [Pres.coerce_not_none(x)   for x in xs]
+	def map_coerce_nullable(xs):
+		return [Pres.coerce_nullable(x)   for x in xs]
 
 
 
@@ -85,7 +85,7 @@ class CompositePres (Pres):
 class ApplyPerspective (Pres):
 	def __init__(self, perspective, child):
 		self.__perspective = perspective
-		self.__child = Pres.coerce_not_none(child)
+		self.__child = Pres.coerce_nullable(child)
 
 
 	def build(self, pres_ctx):
@@ -108,7 +108,7 @@ class InnerFragment (Pres):
 
 class SubSegmentPres (Pres):
 	def __init__(self, child):
-		self.__child = Pres.coerce_not_none(child)
+		self.__child = Pres.coerce_nullable(child)
 
 
 
@@ -201,6 +201,19 @@ class KeyEventSource (EventSource):
 		seg.add_initialiser('node.onkeydown = function(event) {{__larch.__onkeydown(event, {0});}}'.format(keydown_json))
 		seg.add_initialiser('node.onkeyup = function(event) {{__larch.__onkeyup(event, {0});}}'.format(keyup_json))
 		seg.add_initialiser('node.onkeypress = function(event) {{__larch.__onkeypress(event, {0});}}'.format(keypress_json))
+
+
+
+
+class Resource (Pres):
+	def __init__(self, data_fn, mime_type):
+		self.__data_fn = data_fn
+		self.__mime_type = mime_type
+
+
+	def build(self, pres_ctx):
+		rsc = pres_ctx.fragment_view.create_resource(self.__data_fn, self.__mime_type)
+		return HtmlContent([rsc.url])
 
 
 
