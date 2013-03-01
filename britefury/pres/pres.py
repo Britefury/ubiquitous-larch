@@ -205,19 +205,6 @@ class KeyEventSource (EventSource):
 
 
 
-class Resource (Pres):
-	def __init__(self, data_fn, mime_type):
-		self.__data_fn = data_fn
-		self.__mime_type = mime_type
-
-
-	def build(self, pres_ctx):
-		rsc = pres_ctx.fragment_view.create_resource(self.__data_fn, self.__mime_type)
-		return HtmlContent([rsc.url])
-
-
-
-
 def post_event_js_code(event_name, event_json={}, event_source_js='this'):
 	return '__larch.postEvent({0},\'{1}\', {2});'.format(event_source_js, event_name, json.dumps(event_json))
 
