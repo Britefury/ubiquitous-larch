@@ -1,0 +1,13 @@
+.python_console_header {
+    font-family: "Garamond", "Georgia", serif;
+    border: 1px solid #68805f;
+    border-radius: 5px;
+    color: #344030;
+    background: #daebd3;
+    padding: 0.25em;
+    margin: 0.25em 0;
+}
+
+.python_console_block {
+    margin: 0.5em 0;
+}

@@ -20,8 +20,11 @@ _page_content = """
 <html>
 	<head>
 		<title>The Larch Environment (test)</title>
+		<link rel="stylesheet" type="text/css" href="jquery-ui-1.10.1.custom.min.css"/>
 		<link rel="stylesheet" type="text/css" href="larch.css"/>
 		<link rel="stylesheet" type="text/css" href="python.css"/>
+		<link rel="stylesheet" type="text/css" href="console.css"/>
+		<link rel="stylesheet" type="text/css" href="worksheet.css"/>
 		{stylesheet_tags}
 
 		<script type="text/javascript" src="larch_prelude.js"></script>
@@ -30,7 +33,8 @@ _page_content = """
 			__larch.__session_id="{session_id}";
 			// -->
 		</script>
-		<script type="text/javascript" src="jquery-1.7.2.js"></script>
+		<script type="text/javascript" src="jquery-1.9.1.js"></script>
+		<script type="text/javascript" src="jquery-ui-1.10.1.custom.min.js"></script>
 		<script type="text/javascript" src="json2.js"></script>
 		<script type="text/javascript" src="larch.js"></script>
 		{script_tags}

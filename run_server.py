@@ -20,6 +20,7 @@ config = {'/':
 
 sample_code = """
 from britefury.pres.pres import *
+from britefury.pres.resource import *
 from britefury.pres.html import Html
 
 filename='c:\\\\Users\\\\Geoff\\\\Pictures\\\\trollface.jpg'
@@ -33,7 +34,7 @@ Html('<img src="', r, '">')
 
 
 console = Console(sample_code)
-index_subject = Subject(None, console, stylesheet_names=['codemirror/lib/codemirror.css'], script_names=['codemirror/lib/codemirror.js', 'codemirror/mode/python/python.js', 'codemirror_post.js'])
+index_subject = Subject(None, console, stylesheet_names=['codemirror/lib/codemirror.css'], script_names=['codemirror/lib/codemirror.js', 'codemirror/mode/python/python.js', 'controls.js'])
 
 
 
