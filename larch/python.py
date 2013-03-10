@@ -66,7 +66,9 @@ class ExecutionResultException (object):
 
 
 class PythonCode (object):
-	def __init__(self, code, editable=True):
+	def __init__(self, code=None, editable=True):
+		if code is None:
+			code = ''
 		self.__code = code
 		self.__editable = editable
 		self.__incr = IncrementalValueMonitor()

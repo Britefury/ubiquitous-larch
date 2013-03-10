@@ -7,7 +7,8 @@ from britefury.dynamicsegments.service import DynamicDocumentService
 
 from britefury.projection.subject import Subject
 from britefury.incremental_view.incremental_view import IncrementalView
-from larch.console.console import Console
+from larch.console import console
+from larch.worksheet import worksheet
 
 
 
@@ -33,8 +34,9 @@ Html('<img src="', r, '">')
 """
 
 
-console = Console(sample_code)
-index_subject = Subject(None, console, stylesheet_names=['codemirror/lib/codemirror.css'], script_names=['codemirror/lib/codemirror.js', 'codemirror/mode/python/python.js', 'controls.js'])
+#focus = console.Console(sample_code)
+focus = worksheet.Worksheet()
+index_subject = Subject(None, focus, stylesheet_names=['codemirror/lib/codemirror.css'], script_names=['codemirror/lib/codemirror.js', 'codemirror/mode/python/python.js', 'controls.js'])
 
 
 

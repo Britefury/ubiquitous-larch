@@ -6,6 +6,7 @@ import _ast
 import sys
 from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
 from britefury.pres.html import Html
+from britefury.pres.key_event import Key
 from larch.python import PythonCode
 
 
@@ -13,8 +14,11 @@ __author__ = 'Geoff'
 
 
 class WorksheetBlock (object):
-	def __init__(self, code):
-		assert isinstance(code, PythonCode)
+	def __init__(self, code=None):
+		if code is None:
+			code = PythonCode()
+		else:
+			assert isinstance(code, PythonCode)
 		self.__code = code
 		self.__result = None
 		self.__incr = IncrementalValueMonitor()
@@ -35,18 +39,34 @@ class WorksheetBlock (object):
 
 class Worksheet (object):
 	def __init__(self, code=''):
-		self.__blocks = []
+		self.__blocks = [WorksheetBlock()]
 		self.__incr = IncrementalValueMonitor()
-		self._module = imp.new_module('<Console>')
+		self._module = None
+
+
+	def execute(self):
+		self._module = imp.new_module('<Worksheet>')
+		for block in self.__blocks:
+			block.execute(self._module)
 
 
 
 	def __present__(self, fragment):
+		def on_execute():
+			self.execute()
+
+		def on_execute_key(key):
+			self.execute()
+			return True
+
+
 		self.__incr.on_access()
 
 		contents = []
 		for block in self.__blocks:
 			contents.extend(['<div>', block, '</div>'])
 
-		return Html(*contents)
+		p = Html(*contents)
+		p = p.with_key_handler([Key(Key.KEY_DOWN, 13, ctrl=True)], on_execute_key)
+		return p
 
