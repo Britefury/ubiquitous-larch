@@ -36,8 +36,8 @@ ImageFromFile(filename)
 """
 
 
-focus = console.Console(sample_code)
-#focus = worksheet.Worksheet()
+#focus = console.Console(sample_code)
+focus = worksheet.Worksheet()
 index_subject = Subject(None, focus,
 			stylesheet_names=[
 				'codemirror/lib/codemirror.css',

@@ -7,6 +7,7 @@ import sys
 from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
 from britefury.pres.html import Html
 from britefury.pres.key_event import Key
+from britefury.pres.controls import ckeditor
 from larch.python import PythonCode
 
 
@@ -15,7 +16,8 @@ __author__ = 'Geoff'
 
 
 class WorksheetBlock (object):
-	pass
+	def execute(self, module):
+		pass
 
 
 
@@ -29,7 +31,7 @@ class WorksheetBlockText (WorksheetBlock):
 
 	def __present__(self, fragment):
 		self.__incr.on_access()
-		return Html('<p contenteditable="true">{0}</p>'.format(self.__text))
+		return ckeditor.ckeditor(self.__text)
 
 
 
@@ -59,7 +61,7 @@ class WorksheetBlockCode (WorksheetBlock):
 
 class Worksheet (object):
 	def __init__(self, code=''):
-		self.__blocks = [WorksheetBlockCode(), WorksheetBlockText()]
+		self.__blocks = [WorksheetBlockText(), WorksheetBlockCode()]
 		self.__incr = IncrementalValueMonitor()
 		self._module = None
 

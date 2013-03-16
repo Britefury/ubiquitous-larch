@@ -4,7 +4,7 @@
 from britefury.pres.html import Html
 
 
-def ckeditor(text, on_edit, config=None):
+def ckeditor(text, on_edit=None, config=None):
 	if text == '':
 		text = '<p></p>'
 	if config is None:
