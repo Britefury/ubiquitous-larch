@@ -3,7 +3,6 @@
 ##-*************************
 import json
 from britefury.dynamicsegments.document import DynamicDocument
-from britefury.message.event_message import EventMessage
 
 __author__ = 'Geoff'
 
@@ -52,12 +51,12 @@ class DynamicDocumentService (object):
 
 		dynamic_document.lock()
 
-		# Get the event message
-		event_json = json.loads(event_data)
-		msg = EventMessage.__from_json__(event_json)
+		# Get the event messages
+		events_json = json.loads(event_data)
 
-		# Handle the event
-		dynamic_document.handle_event(msg.segment_id, msg.event_name, msg.ev_data)
+		# Handle the events
+		for ev_json in events_json:
+			dynamic_document.handle_event(ev_json['segment_id'], ev_json['event_name'], ev_json['ev_data'])
 
 		# Synchronise the view
 		client_messages = dynamic_document.synchronize()

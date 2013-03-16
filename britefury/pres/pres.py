@@ -35,6 +35,7 @@ class Pres (object):
 
 
 	def js_function_call(self, js_fun_name, *json_args):
+		print 'js_function_call: {0}({1})'.format(js_fun_name, json_args)
 		return JSFunctionCall(self, js_fun_name, json_args)
 
 

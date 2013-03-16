@@ -149,7 +149,7 @@ class PythonCode (object):
 			'readOnly': 'nocursor'   if not self.__editable   else False,
 			'autofocus': self.__editable
 		}
-		code_area = code_mirror.code_mirror(self.__code, on_change, config)
+		code_area = code_mirror.code_mirror(self.__code, on_edit=on_change, config=config)
 
 
 		return Html('<div>', code_area, '</div>')

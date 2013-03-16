@@ -358,7 +358,7 @@ __larch.__onkeypress = function(event, keys) {
 
 
 
-__larch.buildElementEventMessage = function(src_element, event_name, event_data) {
+__larch.getSegmentIDForEvent = function(src_element) {
     var n = src_element;
     var segment_id = null;
     while (n != null) {
@@ -370,35 +370,22 @@ __larch.buildElementEventMessage = function(src_element, event_name, event_data)
         n = n.parentNode;
     }
 
-    if (segment_id != null) {
-        var ev_msg = {
-            msgtype: 'event',
-            segment_id: segment_id,
-            event_name: event_name,
-            ev_data: event_data
-        };
-
-        return ev_msg;
-    }
-    else {
-        return null;
-    }
+    return segment_id;
 }
 
-__larch.buildDocumentEventMessage = function(event_name, event_data) {
-    var ev_msg = {
+__larch.buildElementEventMessage = function(segment_id, event_name, event_data) {
+    return {
         msgtype: 'event',
-        element_id: null,
+        segment_id: segment_id,
         event_name: event_name,
         ev_data: event_data
     };
-    return ev_msg;
 }
 
 
 
-__larch.postEventMessage = function(ev_msg) {
-    var ev_json = JSON.stringify(ev_msg);
+__larch.sendEventMessagesToServer = function(ev_messages) {
+    var ev_json = JSON.stringify(ev_messages);
 
     var ev_data = {
         session_id: __larch.__session_id,
@@ -416,11 +403,36 @@ __larch.postEventMessage = function(ev_msg) {
     });
 }
 
+__larch.postEventMessage = function(ev_msg) {
+    var messages = [];
+
+    if (__larch.eventFactoryQueue.length > 0) {
+        // Create events from factory queue
+        for (var i = 0; i < __larch.eventFactoryQueue.length; i++) {
+            var key = __larch.eventFactoryQueue[i];
+            var fac = __larch.eventFactoriesBySrcAndName[key];
+            var ev_data = fac.event_factory();
+            var msg = __larch.buildElementEventMessage(fac.segment_id, fac.event_name, ev_data);
+            messages.push(msg);
+        }
+        // Clear factory queue
+        __larch.eventFactoryQueue = [];
+        __larch.eventFactoriesBySrcAndName = {};
+    }
+
+    // Add the message that we are posting
+    messages.push(ev_msg);
+
+    // Send
+    __larch.sendEventMessagesToServer(messages);
+}
+
 
 __larch.postEvent = function(src_element, event_name, event_data) {
-    var ev_msg = __larch.buildElementEventMessage(src_element, event_name, event_data);
+    var segment_id = __larch.getSegmentIDForEvent(src_element);
 
-    if (ev_msg != null) {
+    if (segment_id != null) {
+        var ev_msg = __larch.buildElementEventMessage(segment_id, event_name, event_data);
         __larch.postEventMessage(ev_msg);
     }
 }
@@ -429,12 +441,35 @@ __larch.postEvent = function(src_element, event_name, event_data) {
 __larch.postDocumentEvent = function(event_name, event_data) {
     var ev_msg = {
         msgtype: 'event',
-        element_id: null,
+        segment_id: null,
         event_name: event_name,
         ev_data: event_data
     };
 
     __larch.postEventMessage(ev_msg);
+}
+
+
+__larch.eventFactoryQueue = [];
+__larch.eventFactoriesBySrcAndName = {};
+
+
+__larch.queueEventFactory = function(src_element, event_name, event_factory) {
+    var segment_id = __larch.getSegmentIDForEvent(src_element);
+    var key = segment_id + '__' + event_name;
+
+    var fac = {segment_id: segment_id, event_name: event_name, event_factory: event_factory};
+    if (!__larch.hasQueuedEventFactory(src_element, event_name)) {
+        __larch.eventFactoryQueue.push(key);
+    }
+    __larch.eventFactoriesBySrcAndName[key] = fac;
+}
+
+__larch.hasQueuedEventFactory = function(src_element, event_name) {
+    var segment_id = __larch.getSegmentIDForEvent(src_element);
+    var key = segment_id + '__' + event_name;
+
+    return __larch.eventFactoriesBySrcAndName.hasOwnProperty(key);
 }
 
 
