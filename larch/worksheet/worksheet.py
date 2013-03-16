@@ -13,7 +13,27 @@ from larch.python import PythonCode
 __author__ = 'Geoff'
 
 
+
 class WorksheetBlock (object):
+	pass
+
+
+
+class WorksheetBlockText (WorksheetBlock):
+	def __init__(self, text=None):
+		if text is None:
+			text = ''
+		self.__text = text
+		self.__incr = IncrementalValueMonitor()
+
+
+	def __present__(self, fragment):
+		self.__incr.on_access()
+		return Html('<p contenteditable="true">{0}</p>'.format(self.__text))
+
+
+
+class WorksheetBlockCode (WorksheetBlock):
 	def __init__(self, code=None):
 		if code is None:
 			code = PythonCode()
@@ -39,7 +59,7 @@ class WorksheetBlock (object):
 
 class Worksheet (object):
 	def __init__(self, code=''):
-		self.__blocks = [WorksheetBlock()]
+		self.__blocks = [WorksheetBlockCode(), WorksheetBlockText()]
 		self.__incr = IncrementalValueMonitor()
 		self._module = None
 
@@ -65,6 +85,8 @@ class Worksheet (object):
 		contents = []
 		for block in self.__blocks:
 			contents.extend(['<div>', block, '</div>'])
+
+		contents.append(Html('<div><p>Powered by jQuery, jQuery context menu, etc....</p></div>'))
 
 		p = Html(*contents)
 		p = p.with_key_handler([Key(Key.KEY_DOWN, 13, ctrl=True)], on_execute_key)

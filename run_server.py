@@ -31,12 +31,22 @@ f.close()
 
 r=Resource(lambda: data, 'image/jpeg')
 Html('<img src="', r, '">')
+
+ImageFromFile(filename)
 """
 
 
-#focus = console.Console(sample_code)
-focus = worksheet.Worksheet()
-index_subject = Subject(None, focus, stylesheet_names=['codemirror/lib/codemirror.css'], script_names=['codemirror/lib/codemirror.js', 'codemirror/mode/python/python.js', 'controls.js'])
+focus = console.Console(sample_code)
+#focus = worksheet.Worksheet()
+index_subject = Subject(None, focus,
+			stylesheet_names=[
+				'codemirror/lib/codemirror.css',
+			],
+			script_names=[
+				'codemirror/lib/codemirror.js',
+				'codemirror/mode/python/python.js',
+				'controls.js',
+			])
 
 
 

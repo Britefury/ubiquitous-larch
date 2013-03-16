@@ -134,7 +134,7 @@ class PythonCode (object):
 	def __present__(self, fragment):
 		self.__incr.on_access()
 
-		def on_change(event_name, ev_data):
+		def on_change(ev_data):
 			self.__code = ev_data
 
 		config = {
