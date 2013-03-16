@@ -86,7 +86,7 @@ class Worksheet (object):
 		for block in self.__blocks:
 			contents.extend(['<div>', block, '</div>'])
 
-		contents.append(Html('<div><p>Powered by jQuery, jQuery context menu, etc....</p></div>'))
+		contents.append(Html('<div><p>Powered by jQuery, Code Mirror, ckEditor, etc....</p></div>'))
 
 		p = Html(*contents)
 		p = p.with_key_handler([Key(Key.KEY_DOWN, 13, ctrl=True)], on_execute_key)

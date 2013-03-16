@@ -27,3 +27,12 @@ __larchControls.initMenu = function(node) {
         }
     });
 }
+
+__larchControls.init_ckeditor = function(textArea, config) {
+    CKEDITOR.inline(textArea, config);
+    textArea.addEventListener('input', function(){
+        __larch.postEvent(textArea, "ckeditor_edit", textArea.innerHTML);
+    }, false);
+}
+
+CKEDITOR.disableAutoInline = true;

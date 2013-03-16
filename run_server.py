@@ -43,6 +43,7 @@ index_subject = Subject(None, focus,
 				'codemirror/lib/codemirror.css',
 			],
 			script_names=[
+				'ckeditor/ckeditor.js',
 				'codemirror/lib/codemirror.js',
 				'codemirror/mode/python/python.js',
 				'controls.js',
