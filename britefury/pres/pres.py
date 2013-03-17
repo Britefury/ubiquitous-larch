@@ -199,16 +199,16 @@ class KeyEventSource (EventSource):
 		keydown_json = self.__keydown_json_str
 		keyup_json = self.__keyup_json_str
 		keypress_json = self.__keypress_json_str
-		seg.add_initialiser('node.onkeydown = function(event) {{__larch.__onkeydown(event, {0});}}'.format(keydown_json))
-		seg.add_initialiser('node.onkeyup = function(event) {{__larch.__onkeyup(event, {0});}}'.format(keyup_json))
-		seg.add_initialiser('node.onkeypress = function(event) {{__larch.__onkeypress(event, {0});}}'.format(keypress_json))
+		seg.add_initialiser('node.onkeydown = function(event) {{larch.__onkeydown(event, {0});}}'.format(keydown_json))
+		seg.add_initialiser('node.onkeyup = function(event) {{larch.__onkeyup(event, {0});}}'.format(keyup_json))
+		seg.add_initialiser('node.onkeypress = function(event) {{larch.__onkeypress(event, {0});}}'.format(keypress_json))
 
 
 
 
 def post_event_js_code(event_name, event_json={}, event_source_js='this'):
-	return '__larch.postEvent({0},\'{1}\', {2});'.format(event_source_js, event_name, json.dumps(event_json))
+	return 'larch.postEvent({0},\'{1}\', {2});'.format(event_source_js, event_name, json.dumps(event_json))
 
 def post_event_js_code_for_handler(event_name, event_json={}, event_source_js='this'):
-	return 'javascript:__larch.postEvent({0},\'{1}\', {2});'.format(event_source_js, event_name, json.dumps(event_json))
+	return 'javascript:larch.postEvent({0},\'{1}\', {2});'.format(event_source_js, event_name, json.dumps(event_json))
 

@@ -10,6 +10,6 @@ def slider(action_fn):
 		action_fn(ev_data)
 
 	div = Html('<div></div>')
-	div = div.js_function_call('__larchControls.initSlider')
+	div = div.js_function_call('larchControls.initSlider')
 	div = div.with_event_handler("slider_change", on_slide)
 	return div

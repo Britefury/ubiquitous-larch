@@ -2,14 +2,14 @@
 //-* This source code is (C)copyright Geoffrey French 2011-2012.
 //-*************************
 
-__larch.__executeJS = function(js_code) {
+larch.__executeJS = function(js_code) {
     eval(js_code);
 }
 
 
 
 
-__larch.__buildConnectivity = function(segment) {
+larch.__buildConnectivity = function(segment) {
     // The state consists of the start and end nodes of a segment.
     // We often remove elements from the DOM in order to alter its contents.
     // Sometimes we put these nodes back in again. In such cases, the nextSibling attribute will be null,
@@ -25,7 +25,7 @@ __larch.__buildConnectivity = function(segment) {
     p.__lch_next = segment.end;
 }
 
-__larch.__clearConnectivity = function(nodes) {
+larch.__clearConnectivity = function(nodes) {
     // Clear connectivity built earlier
     var p = null;
     for (var i = 0; i < nodes.length; i++)
@@ -39,12 +39,12 @@ __larch.__clearConnectivity = function(nodes) {
 }
 
 
-__larch.__newSegmentState = function(start, end) {
+larch.__newSegmentState = function(start, end) {
     // This creates a new 'segment state' to go into the segment table.
     return {'start': start, 'end': end}
 }
 
-__larch.__getNodesInActiveSegment = function(segment) {
+larch.__getNodesInActiveSegment = function(segment) {
     var nodeList = [];
     for (var n = segment.start; n != segment.end; n = n.nextSibling) {
         nodeList.push(n);
@@ -53,7 +53,7 @@ __larch.__getNodesInActiveSegment = function(segment) {
     return nodeList;
 }
 
-__larch.__getNodesInInactiveSegment = function(segment) {
+larch.__getNodesInInactiveSegment = function(segment) {
     // Iterate using __lch_next attribute; see __newSegmentState function for explanation
     var nodeList = [];
     var start = segment.start;
@@ -78,31 +78,31 @@ __larch.__getNodesInInactiveSegment = function(segment) {
 
 
 
-__larch.__replaceSegment = function(oldSegmentState, newSegmentState) {
+larch.__replaceSegment = function(oldSegmentState, newSegmentState) {
     var first = oldSegmentState.start;
     var parent = first.parentNode;
 
     // The nodes that we are about to remove from the DOM may be reused later.
     // Build out own connectivity structure so that we can iterate through them
-    __larch.__buildConnectivity(oldSegmentState);
+    larch.__buildConnectivity(oldSegmentState);
 
-    var oldNodes = __larch.__getNodesInActiveSegment(oldSegmentState);
-    var newNodes = __larch.__getNodesInActiveSegment(newSegmentState);
+    var oldNodes = larch.__getNodesInActiveSegment(oldSegmentState);
+    var newNodes = larch.__getNodesInActiveSegment(newSegmentState);
 
     newNodes.forEach(function(n) {parent.insertBefore(n, first);});
     oldNodes.forEach(function(n) {parent.removeChild(n);});
 }
 
 
-__larch.__replacePlaceholder = function(placeHolder, existingInactiveSegmentState) {
+larch.__replacePlaceholder = function(placeHolder, existingInactiveSegmentState) {
     var parent = placeHolder.parentNode;
 
-    var newNodes = __larch.__getNodesInInactiveSegment(existingInactiveSegmentState);
+    var newNodes = larch.__getNodesInInactiveSegment(existingInactiveSegmentState);
 
     newNodes.forEach(function(n) {parent.insertBefore(n, placeHolder);});
 
     // These nodes are active: clear connectivity
-    __larch.__clearConnectivity(newNodes);
+    larch.__clearConnectivity(newNodes);
 
     parent.removeChild(placeHolder);
 }
@@ -111,15 +111,15 @@ __larch.__replacePlaceholder = function(placeHolder, existingInactiveSegmentStat
 
 
 
-__larch.__createSegmentContentNodesFromSource = function(content) {
+larch.__createSegmentContentNodesFromSource = function(content) {
     var elem = document.createElement("div");
     elem.innerHTML = content;
-    return __larch.__newSegmentState(elem.firstChild, elem.lastChild);
+    return larch.__newSegmentState(elem.firstChild, elem.lastChild);
 }
 
 
 
-__larch.__getElementsOfClass = function(className, tagName) {
+larch.__getElementsOfClass = function(className, tagName) {
     if (document.getElementsByClassName) {
         return document.getElementsByClassName(className);
     }
@@ -138,16 +138,16 @@ __larch.__getElementsOfClass = function(className, tagName) {
     }
 }
 
-__larch.__getPlaceHolderNodes = function() {
-    return __larch.__getElementsOfClass("__lch_seg_placeholder", "span");
+larch.__getPlaceHolderNodes = function() {
+    return larch.__getElementsOfClass("__lch_seg_placeholder", "span");
 }
 
-__larch.__getSegmentBeginNodes = function() {
-    return __larch.__getElementsOfClass("__lch_seg_begin", "span");
+larch.__getSegmentBeginNodes = function() {
+    return larch.__getElementsOfClass("__lch_seg_begin", "span");
 }
 
-__larch.__executeInitialisers = function(initialisers) {
-    var segment_table = __larch.__segment_table;
+larch.__executeInitialisers = function(initialisers) {
+    var segment_table = larch.__segment_table;
     for (var i = 0; i < initialisers.length; i++) {
         var x = initialisers[i];
         var segment_id = x[0];
@@ -157,7 +157,7 @@ __larch.__executeInitialisers = function(initialisers) {
         if (state == undefined) {
             throw "Cannot get segment " + segment_id
         }
-        var nodes = __larch.__getNodesInActiveSegment(state);
+        var nodes = larch.__getNodesInActiveSegment(state);
         for (var j = 1; j < nodes.length - 1; j++) {
             // The 'unused' variable node is referenced by the source code contained in the initialiser; it is needed by eval()
             var node = nodes[j];
@@ -168,10 +168,10 @@ __larch.__executeInitialisers = function(initialisers) {
     }
 }
 
-__larch.__register_segments = function() {
-    var segment_table = __larch.__segment_table;
+larch.__register_segments = function() {
+    var segment_table = larch.__segment_table;
 
-    var inlines = __larch.__getSegmentBeginNodes();
+    var inlines = larch.__getSegmentBeginNodes();
 
     for (var i = 0; i < inlines.length; i++) {
         // Get the start node and extract the segment ID
@@ -203,20 +203,20 @@ __larch.__register_segments = function() {
             var end = n;
 
             // Put an entry in our segment table
-            segment_table[segment_id] = __larch.__newSegmentState(start, end);
+            segment_table[segment_id] = larch.__newSegmentState(start, end);
         }
     }
 }
 
 
 
-__larch.__applyChanges = function(changes) {
+larch.__applyChanges = function(changes) {
     //console.log("STARTING UPDATE");
     var removed = changes.removed;
     var modified = changes.modified;
     var initialisers = changes.initialisers;
 
-    var segment_table = __larch.__segment_table;
+    var segment_table = larch.__segment_table;
 
     // Handle removals
     for (var i = 0; i < removed.length; i++) {
@@ -236,17 +236,17 @@ __larch.__applyChanges = function(changes) {
 
         //console.log("Replaced " + segment_id);
 
-        var newState = __larch.__createSegmentContentNodesFromSource(content);
+        var newState = larch.__createSegmentContentNodesFromSource(content);
         newState.start.__lch_initialised = true;
 
         // Unregister segment IDs
-        var oldNodes = __larch.__getNodesInActiveSegment(state);
+        var oldNodes = larch.__getNodesInActiveSegment(state);
         oldNodes.forEach(function(n) {n.__lch_seg_id = null;});
 
-        __larch.__replaceSegment(state, newState);
+        larch.__replaceSegment(state, newState);
 
         // Register segment IDs
-        var newNodes = __larch.__getNodesInActiveSegment(newState);
+        var newNodes = larch.__getNodesInActiveSegment(newState);
         newNodes.forEach(function(n) {n.__lch_seg_id = segment_id;});
 
         // Put in segment table
@@ -254,7 +254,7 @@ __larch.__applyChanges = function(changes) {
     }
 
     // Replace the placeholders with the segments that they reference
-    var placeHolders = __larch.__getPlaceHolderNodes();
+    var placeHolders = larch.__getPlaceHolderNodes();
     // Replacing a placeholder may introduce content that contains yet more placeholders....
     while (placeHolders.length > 0) {
         for (var i = 0; i < placeHolders.length; i++) {
@@ -267,30 +267,30 @@ __larch.__applyChanges = function(changes) {
             var segment = segment_table[segment_id];
 
             // Replace it
-            __larch.__replacePlaceholder(p, segment);
+            larch.__replacePlaceholder(p, segment);
         }
 
-        placeHolders = __larch.__getPlaceHolderNodes();
+        placeHolders = larch.__getPlaceHolderNodes();
     }
 
     // Register any unregistered segments that have been introduced by modifications
-    __larch.__register_segments();
+    larch.__register_segments();
 
 
     // Execute initialisers
-    __larch.__executeInitialisers(initialisers);
+    larch.__executeInitialisers(initialisers);
     //console.log("FINISHED UPDATE");
 }
 
-__larch.__handleMessageFromServer = function(message) {
+larch.__handleMessageFromServer = function(message) {
     var msg_type = message.msgtype;
     if (msg_type == "modify_document") {
         var changes = message.changes;
-        __larch.__applyChanges(changes);
+        larch.__applyChanges(changes);
     }
     else if (msg_type == "execute_js") {
         var js_code = message.js_code;
-        __larch.__executeJS(js_code);
+        larch.__executeJS(js_code);
     }
     else {
         // Unreckognised message
@@ -298,15 +298,15 @@ __larch.__handleMessageFromServer = function(message) {
     }
 }
 
-__larch.__handleMessagesFromServer = function(messages) {
+larch.__handleMessagesFromServer = function(messages) {
     for (var i = 0; i < messages.length; i++) {
-        __larch.__handleMessageFromServer(messages[i]);
+        larch.__handleMessageFromServer(messages[i]);
     }
 }
 
 
 
-__larch.__handleKeyEvent = function(event, keys) {
+larch.__handleKeyEvent = function(event, keys) {
     for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
         if (key.keyCode == undefined  ||  event.keyCode == key.keyCode) {
@@ -335,30 +335,30 @@ __larch.__handleKeyEvent = function(event, keys) {
     return undefined;
 }
 
-__larch.__onkeydown = function(event, keys) {
-    var k = __larch.__handleKeyEvent(event, keys);
+larch.__onkeydown = function(event, keys) {
+    var k = larch.__handleKeyEvent(event, keys);
     if (k != undefined) {
-        __larch.postEvent(event.target, 'keydown', k);
+        larch.postEvent(event.target, 'keydown', k);
     }
 }
 
-__larch.__onkeyup = function(event, keys) {
-    var k = __larch.__handleKeyEvent(event, keys);
+larch.__onkeyup = function(event, keys) {
+    var k = larch.__handleKeyEvent(event, keys);
     if (k != undefined) {
-        __larch.postEvent(event.target, 'keyup', k);
+        larch.postEvent(event.target, 'keyup', k);
     }
 }
 
-__larch.__onkeypress = function(event, keys) {
-    var k = __larch.__handleKeyEvent(event, keys);
+larch.__onkeypress = function(event, keys) {
+    var k = larch.__handleKeyEvent(event, keys);
     if (k != undefined) {
-        __larch.postEvent(event.target, 'keypress', k);
+        larch.postEvent(event.target, 'keypress', k);
     }
 }
 
 
 
-__larch.getSegmentIDForEvent = function(src_element) {
+larch.__getSegmentIDForEvent = function(src_element) {
     var n = src_element;
     var segment_id = null;
     while (n != null) {
@@ -373,7 +373,7 @@ __larch.getSegmentIDForEvent = function(src_element) {
     return segment_id;
 }
 
-__larch.buildElementEventMessage = function(segment_id, event_name, event_data) {
+larch.__buildElementEventMessage = function(segment_id, event_name, event_data) {
     return {
         msgtype: 'event',
         segment_id: segment_id,
@@ -384,11 +384,11 @@ __larch.buildElementEventMessage = function(segment_id, event_name, event_data) 
 
 
 
-__larch.sendEventMessagesToServer = function(ev_messages) {
+larch.__sendEventMessagesToServer = function(ev_messages) {
     var ev_json = JSON.stringify(ev_messages);
 
     var ev_data = {
-        session_id: __larch.__session_id,
+        session_id: larch.__session_id,
         event_data: ev_json
     };
 
@@ -397,48 +397,48 @@ __larch.sendEventMessagesToServer = function(ev_messages) {
         url: 'event',
         data: ev_data,
         success: function(msg) {
-            __larch.__handleMessagesFromServer(msg);
+            larch.__handleMessagesFromServer(msg);
         },
         dataType: 'json'
     });
 }
 
-__larch.postEventMessage = function(ev_msg) {
+larch.__postEventMessage = function(ev_msg) {
     var messages = [];
 
-    if (__larch.eventFactoryQueue.length > 0) {
+    if (larch.__eventFactoryQueue.length > 0) {
         // Create events from factory queue
-        for (var i = 0; i < __larch.eventFactoryQueue.length; i++) {
-            var key = __larch.eventFactoryQueue[i];
-            var fac = __larch.eventFactoriesBySrcAndName[key];
+        for (var i = 0; i < larch.__eventFactoryQueue.length; i++) {
+            var key = larch.__eventFactoryQueue[i];
+            var fac = larch.__eventFactoriesBySrcAndName[key];
             var ev_data = fac.event_factory();
-            var msg = __larch.buildElementEventMessage(fac.segment_id, fac.event_name, ev_data);
+            var msg = larch.__buildElementEventMessage(fac.segment_id, fac.event_name, ev_data);
             messages.push(msg);
         }
         // Clear factory queue
-        __larch.eventFactoryQueue = [];
-        __larch.eventFactoriesBySrcAndName = {};
+        larch.__eventFactoryQueue = [];
+        larch.__eventFactoriesBySrcAndName = {};
     }
 
     // Add the message that we are posting
     messages.push(ev_msg);
 
     // Send
-    __larch.sendEventMessagesToServer(messages);
+    larch.__sendEventMessagesToServer(messages);
 }
 
 
-__larch.postEvent = function(src_element, event_name, event_data) {
-    var segment_id = __larch.getSegmentIDForEvent(src_element);
+larch.postEvent = function(src_element, event_name, event_data) {
+    var segment_id = larch.__getSegmentIDForEvent(src_element);
 
     if (segment_id != null) {
-        var ev_msg = __larch.buildElementEventMessage(segment_id, event_name, event_data);
-        __larch.postEventMessage(ev_msg);
+        var ev_msg = larch.__buildElementEventMessage(segment_id, event_name, event_data);
+        larch.__postEventMessage(ev_msg);
     }
 }
 
 
-__larch.postDocumentEvent = function(event_name, event_data) {
+larch.postDocumentEvent = function(event_name, event_data) {
     var ev_msg = {
         msgtype: 'event',
         segment_id: null,
@@ -446,35 +446,35 @@ __larch.postDocumentEvent = function(event_name, event_data) {
         ev_data: event_data
     };
 
-    __larch.postEventMessage(ev_msg);
+    larch.__postEventMessage(ev_msg);
 }
 
 
-__larch.eventFactoryQueue = [];
-__larch.eventFactoriesBySrcAndName = {};
+larch.__eventFactoryQueue = [];
+larch.__eventFactoriesBySrcAndName = {};
 
 
-__larch.queueEventFactory = function(src_element, event_name, event_factory) {
-    var segment_id = __larch.getSegmentIDForEvent(src_element);
+larch.queueEventFactory = function(src_element, event_name, event_factory) {
+    var segment_id = larch.__getSegmentIDForEvent(src_element);
     var key = segment_id + '__' + event_name;
 
     var fac = {segment_id: segment_id, event_name: event_name, event_factory: event_factory};
-    if (!__larch.hasQueuedEventFactory(src_element, event_name)) {
-        __larch.eventFactoryQueue.push(key);
+    if (!larch.hasQueuedEventFactory(src_element, event_name)) {
+        larch.__eventFactoryQueue.push(key);
     }
-    __larch.eventFactoriesBySrcAndName[key] = fac;
+    larch.__eventFactoriesBySrcAndName[key] = fac;
 }
 
-__larch.hasQueuedEventFactory = function(src_element, event_name) {
-    var segment_id = __larch.getSegmentIDForEvent(src_element);
+larch.hasQueuedEventFactory = function(src_element, event_name) {
+    var segment_id = larch.__getSegmentIDForEvent(src_element);
     var key = segment_id + '__' + event_name;
 
-    return __larch.eventFactoriesBySrcAndName.hasOwnProperty(key);
+    return larch.__eventFactoriesBySrcAndName.hasOwnProperty(key);
 }
 
 
-__larch.__onDocumentReady = function(initialisers) {
-    __larch.__register_segments();
-    __larch.__executeInitialisers(initialisers);
+larch.__onDocumentReady = function(initialisers) {
+    larch.__register_segments();
+    larch.__executeInitialisers(initialisers);
 }
 

@@ -12,4 +12,4 @@ def sub_menu(item_content, *items):
 	return Html(*['<li><a href="#">', item_content, '</a>'] + sub + ['</li>'])
 
 def menu(*items):
-	return Html(*['<ul>'] + list(items) + ['</ul>']).js_function_call('__larchControls.initMenu')
+	return Html(*['<ul>'] + list(items) + ['</ul>']).js_function_call('larchControls.initMenu')

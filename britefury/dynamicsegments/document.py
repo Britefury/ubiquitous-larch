@@ -30,7 +30,7 @@ _page_content = """
 		<script type="text/javascript" src="larch_prelude.js"></script>
 		<script type="text/javascript">
 			<!--
-			__larch.__session_id="{session_id}";
+			larch.__session_id="{session_id}";
 			// -->
 		</script>
 		<script type="text/javascript" src="jquery-1.9.1.js"></script>
@@ -40,7 +40,7 @@ _page_content = """
 		{script_tags}
 		<script type="text/javascript">
 			<!--
-			$(document).ready(function(){{__larch.__onDocumentReady({initialisers});}});
+			$(document).ready(function(){{larch.__onDocumentReady({initialisers});}});
 			{init_script}
 			// -->
 		</script>
