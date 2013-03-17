@@ -30,18 +30,9 @@ ImageFromFile(filename)
 
 
 def create_service():
-	#focus = console.Console(sample_code)
-	focus = worksheet.Worksheet()
-	index_subject = Subject(None, focus,
-				stylesheet_names=[
-					'codemirror/lib/codemirror.css',
-					],
-				script_names=[
-					'ckeditor/ckeditor.js',
-					'codemirror/lib/codemirror.js',
-					'codemirror/mode/python/python.js',
-					'controls.js',
-					])
+	focus = console.Console(sample_code)
+	#focus = worksheet.Worksheet()
+	index_subject = Subject(None, focus)
 
 
 	return DynamicDocumentService(lambda dynamic_document: IncrementalView(index_subject, dynamic_document))

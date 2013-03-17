@@ -10,6 +10,7 @@ def slider(action_fn):
 		action_fn(ev_data)
 
 	div = Html('<div></div>')
-	div = div.js_function_call('larchControls.initSlider')
+	div = div.js_function_call('larch.controls.initSlider')
 	div = div.with_event_handler("slider_change", on_slide)
+	div = div.use_js('bridge_jqueryui.js')
 	return div

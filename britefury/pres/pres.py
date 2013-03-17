@@ -4,8 +4,15 @@
 import json
 
 from britefury.dynamicsegments.segment import HtmlContent
+from britefury.dynamicsegments import dependencies
 from britefury.pres.presctx import PresentationContext
 from britefury.pres.key_event import Key
+
+
+
+_ext_dependencies = {}
+
+
 
 
 
@@ -36,6 +43,27 @@ class Pres (object):
 
 	def js_function_call(self, js_fun_name, *json_args):
 		return JSFunctionCall(self, js_fun_name, json_args)
+
+
+	def use_css(self, url):
+		dep = _ext_dependencies.get(url)
+		if dep is None:
+			dep = dependencies.CSSDependency(url)
+			_ext_dependencies[url] = dep
+		return self.depends_on(dep)
+
+
+	def use_js(self, url):
+		dep = _ext_dependencies.get(url)
+		if dep is None:
+			dep = dependencies.JSDependency(url)
+			_ext_dependencies[url] = dep
+		return self.depends_on(dep)
+
+
+
+	def depends_on(self, dependency):
+		return AddDependency([dependency], self)
 
 
 
@@ -108,7 +136,7 @@ class InnerFragment (Pres):
 
 class SubSegmentPres (Pres):
 	def __init__(self, child):
-		self.__child = Pres.coerce_nullable(child)
+		self._child = Pres.coerce_nullable(child)
 
 
 
@@ -116,7 +144,7 @@ class SubSegmentPres (Pres):
 		pass
 
 	def build(self, pres_ctx):
-		seg = pres_ctx.fragment_view.create_sub_segment(self.__child.build(pres_ctx))
+		seg = pres_ctx.fragment_view.create_sub_segment(self._child.build(pres_ctx))
 		self.initialise_segment(seg, pres_ctx)
 		return HtmlContent([seg.reference()])
 
@@ -147,6 +175,22 @@ class JSFunctionCall (SubSegmentPres):
 
 	def initialise_segment(self, seg, pres_ctx):
 		seg.add_initialiser('{0}({1});'.format(self.__js_fn_name, self.__args_string))
+
+
+
+class AddDependency (SubSegmentPres):
+	def __init__(self, dependencies, child):
+		super(AddDependency, self).__init__(child)
+		self.__dependencies = dependencies
+
+
+	def depends_on(self, dependency):
+		return AddDependency(self.__dependencies + [dependency], self._child)
+
+
+	def initialise_segment(self, seg, pres_ctx):
+		for dep in self.__dependencies:
+			seg.document.add_dependency(dep)
 
 
 

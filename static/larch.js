@@ -1,9 +1,15 @@
 //-*************************
 //-* This source code is (C)copyright Geoffrey French 2011-2012.
 //-*************************
+larch.controls = {};
+
 
 larch.__executeJS = function(js_code) {
     eval(js_code);
+}
+
+larch.__addDependency = function(dep) {
+    $(dep).appendTo("head");
 }
 
 
@@ -291,6 +297,12 @@ larch.__handleMessageFromServer = function(message) {
     else if (msg_type == "execute_js") {
         var js_code = message.js_code;
         larch.__executeJS(js_code);
+    }
+    else if (msg_type == "add_dependencies") {
+        var deps = message.deps;
+        for (var i = 0; i < deps.length; i++) {
+            larch.__addDependency(deps[i]);
+        }
     }
     else {
         // Unreckognised message

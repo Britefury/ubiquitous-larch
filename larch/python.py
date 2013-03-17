@@ -150,6 +150,7 @@ class PythonCode (object):
 			'autofocus': self.__editable
 		}
 		code_area = code_mirror.code_mirror(self.__code, on_edit=on_change, config=config)
+		code_area = code_area.use_js('codemirror/mode/python/python.js')
 
 
 		return Html('<div>', code_area, '</div>')

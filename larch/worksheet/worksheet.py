@@ -92,5 +92,5 @@ class Worksheet (object):
 
 		p = Html(*contents)
 		p = p.with_key_handler([Key(Key.KEY_DOWN, 13, ctrl=True)], on_execute_key)
-		return p
+		return p.use_css('worksheet.css')
 

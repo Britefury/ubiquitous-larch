@@ -62,7 +62,7 @@ class DynamicDocumentService (object):
 		client_messages = dynamic_document.synchronize()
 
 		# Send messages to the client
-		result = json.dumps([message.__to_json__()   for message in client_messages])
+		result = json.dumps(client_messages)
 
 		dynamic_document.unlock()
 

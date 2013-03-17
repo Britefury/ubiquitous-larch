@@ -5,12 +5,10 @@ from britefury.default_perspective.default_perspective import DefaultPerspective
 
 
 class Subject (object):
-	def __init__(self, enclosing_subject, focus, perspective=DefaultPerspective.instance, stylesheet_names=[], script_names=[]):
+	def __init__(self, enclosing_subject, focus, perspective=DefaultPerspective.instance):
 		self.__enclosing_subject = enclosing_subject
 		self.__focus = focus
 		self.__perspective = perspective
-		self.__stylesheet_names = stylesheet_names
-		self.__script_names = script_names
 
 
 	def __getattr__(self, item):
@@ -35,11 +33,3 @@ class Subject (object):
 	@property
 	def perspective(self):
 		return self.__perspective
-
-	@property
-	def stylesheet_names(self):
-		return self.__stylesheet_names
-
-	@property
-	def script_names(self):
-		return self.__script_names

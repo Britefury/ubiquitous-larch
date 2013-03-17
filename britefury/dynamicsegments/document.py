@@ -9,10 +9,8 @@ import json
 
 from copy import copy
 
-from britefury.message.execute_js_message import ExecuteJSMessage
-from britefury.message.modify_document_message import ModifyDocumentMessage
-
 from britefury.dynamicsegments.segment import DynamicSegment, SegmentRef
+from britefury.dynamicsegments import messages, dependencies
 
 
 _page_content = """
@@ -23,9 +21,6 @@ _page_content = """
 		<link rel="stylesheet" type="text/css" href="jquery-ui-1.10.1.custom.min.css"/>
 		<link rel="stylesheet" type="text/css" href="larch.css"/>
 		<link rel="stylesheet" type="text/css" href="python.css"/>
-		<link rel="stylesheet" type="text/css" href="console.css"/>
-		<link rel="stylesheet" type="text/css" href="worksheet.css"/>
-		{stylesheet_tags}
 
 		<script type="text/javascript" src="larch_prelude.js"></script>
 		<script type="text/javascript">
@@ -37,7 +32,9 @@ _page_content = """
 		<script type="text/javascript" src="jquery-ui-1.10.1.custom.min.js"></script>
 		<script type="text/javascript" src="json2.js"></script>
 		<script type="text/javascript" src="larch.js"></script>
-		{script_tags}
+
+		{dependency_tags}
+
 		<script type="text/javascript">
 			<!--
 			$(document).ready(function(){{larch.__onDocumentReady({initialisers});}});
@@ -53,6 +50,8 @@ _page_content = """
 """
 
 
+
+
 class DynamicDocument (object):
 	"""A dynamic web document, composed of segments.
 
@@ -65,35 +64,32 @@ class DynamicDocument (object):
 
 		self.__queued_tasks = deque()
 
-		self.__client_message_queue = []
-
+		# The session ID
 		self._session_id = session_id
-		self.__stylesheet_names = []
-		self.__script_names = []
 
-		self.__js_queue = []
+		# Dependencies
+		self.__dependencies = []
+		self.__all_dependencies = set()
 
+		# Document modification message and flag
+		self.__document_modifications_message = None
 		self.__document_modified = False
 
+		# Queue of JS expressions that must be executed; will be put on the client in one batch later
+		self.__js_queue = []
+		self.__execute_js_message = None
+
+		# The root segment
 		self.__root_segment = None
 
-
+		# Resources
 		self.__rsc_id_counter = 1
 		self.__rsc_id_to_rsc = {}
 		self.__rsc_content_to_rsc = {}
 
-
+		# Threading lock, required for servers such as CherryPy
 		self.__lock = None
 
-
-
-	def add_stylesheets(self, names):
-		self.__stylesheet_names.extend(names)
-
-
-
-	def add_js_scripts(self, names):
-		self.__script_names.extend(names)
 
 
 
@@ -112,6 +108,34 @@ class DynamicDocument (object):
 	def unlock(self):
 		if self.__lock is not None:
 			self.__lock.release()
+
+
+
+
+	#
+	#
+	# Dependencies
+	#
+	#
+
+	def add_dependency(self, dep):
+		"""Register a dependency; such as a JS script or a CSS stylesheet
+
+		dep - the dependency to register
+		"""
+		if not isinstance(dep, dependencies.DocumentDependency):
+			raise TypeError, 'Dependencies must be an instance of DocumentDependency'
+
+		if dep not in self.__all_dependencies:
+			self.__all_dependencies.add(dep)
+
+			for d in dep.dependencies:
+				self.add_dependency(d)
+
+			self.__dependencies.append(dep)
+
+
+
 
 
 
@@ -205,11 +229,29 @@ class DynamicDocument (object):
 		Executes all queued tasks, that were queued using the queue_task method.
 		The resulting list of client messages is returned. These normally consist of modifications to perform to the browser DOM.
 		"""
+		# Execute queued tasks
 		self.__execute_queued_tasks()
-		# Take a copy of the client message queue before clearing it
-		client_messages = self.__client_message_queue
-		self.__client_message_queue = []
-		return client_messages
+
+		# Build message list
+		msg_list = []
+
+		# Dependency message
+		if len(self.__dependencies) > 0:
+			msg = messages.dependency_message([dep.to_html()   for dep in self.__dependencies])
+			msg_list.append(msg)
+			self.__dependencies = []
+
+		# Document modifications message
+		if self.__document_modifications_message is not None:
+			msg_list.append(self.__document_modifications_message)
+			self.__document_modifications_message = None
+
+		# Execute JS message
+		if self.__execute_js_message is not None:
+			msg_list.append(self.__execute_js_message)
+			self.__execute_js_message = None
+
+		return msg_list
 
 
 
@@ -258,21 +300,8 @@ class DynamicDocument (object):
 			f()
 
 
-	def __queue_client_message(self, cmd):
-		# Post a message into the client message queue
-		self.__client_message_queue.append(cmd)
-
-
-
 	def _queue_js_to_execute(self, js):
 		self.__js_queue.append( js )
-
-
-	def __post_execute_js_messages(self):
-		if len(self.__js_queue) > 0:
-			self.__queue_client_message(ExecuteJSMessage('\n'.join(self.__js_queue)))
-			self.__js_queue = []
-
 
 
 	def _notify_document_modified(self):
@@ -290,10 +319,13 @@ class DynamicDocument (object):
 		# Clear changes
 		self._table.clear_changes()
 		# Compose the modify document message
-		client_msg = ModifyDocumentMessage(changes)
-		# Post to the client
-		self.__queue_client_message(client_msg)
-		self.__post_execute_js_messages()
+		self.__document_modifications_message = messages.modify_document_message(changes)
+
+		# Build the execute JS message
+		if len(self.__js_queue) > 0:
+			self.__execute_js_message = messages.execute_js_message('\n'.join(self.__js_queue))
+			self.__js_queue = []
+
 		self.__document_modified = False
 
 
@@ -302,8 +334,9 @@ class DynamicDocument (object):
 			raise RuntimeError, 'Root segment has not been set.'
 		root_content = self.__root_segment.reference()._complete_html()
 
-		stylesheet_tags = '\n'.join(['<link rel="stylesheet" type="text/css" href="{0}"/>'.format(stylesheet_name)   for stylesheet_name in self.__stylesheet_names])
-		script_tags = '\n'.join(['<script type="text/javascript" src="{0}"></script>'.format(script_name)   for script_name in self.__script_names])
+
+		dependency_tags = '\n'.join([dep.to_html()   for dep in self.__dependencies])
+		self.__dependencies = []
 
 		initialisers = self._table.get_all_initialisers()
 		initialisers_json_str = json.dumps(initialisers)
@@ -317,7 +350,7 @@ class DynamicDocument (object):
 
 		self._table.clear_changes()
 
-		return _page_content.format(session_id=self._session_id, stylesheet_tags=stylesheet_tags, script_tags=script_tags, content=root_content, init_script=js_to_exec, initialisers=initialisers_json_str)
+		return _page_content.format(session_id=self._session_id, dependency_tags=dependency_tags, content=root_content, init_script=js_to_exec, initialisers=initialisers_json_str)
 
 
 

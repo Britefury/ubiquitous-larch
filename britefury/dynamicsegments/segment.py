@@ -37,6 +37,11 @@ class DynamicSegment (object):
 
 
 	@property
+	def document(self):
+		return self.__doc
+
+
+	@property
 	def content(self):
 		"""The content. Must be either None or an HtmlContent instance.
 		"""

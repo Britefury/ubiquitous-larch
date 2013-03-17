@@ -86,5 +86,5 @@ class Console (object):
 		for block in self.__blocks + [self.__current_block]:
 			contents.extend(['<div>', block, '</div>'])
 
-		return Html(*contents)
+		return Html(*contents).use_css('console.css')
 

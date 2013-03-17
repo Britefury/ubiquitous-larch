@@ -727,8 +727,6 @@ class IncrementalView (object):
 		self.__unique_fragment_factories = {}
 
 		self.__dynamic_document = dynamic_document
-		self.__dynamic_document.add_stylesheets(subject.stylesheet_names)
-		self.__dynamic_document.add_js_scripts(subject.script_names)
 
 		self.__lock = None
 
