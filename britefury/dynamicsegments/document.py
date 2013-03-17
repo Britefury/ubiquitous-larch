@@ -241,8 +241,11 @@ class DynamicDocument (object):
 
 	# Resource retrieval
 	def get_resource_data(self, rsc_id):
-		rsc = self.__rsc_id_to_rsc[rsc_id]
-		return rsc.data, rsc.mime_type
+		try:
+			rsc = self.__rsc_id_to_rsc[rsc_id]
+			return rsc.data, rsc.mime_type
+		except KeyError:
+			return None
 
 
 

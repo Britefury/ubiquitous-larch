@@ -74,7 +74,7 @@ class DynamicDocumentService (object):
 		try:
 			session = self.__sessions[session_id]
 		except KeyError:
-			return '[]'
+			return None
 
 		dynamic_document = session.dynamic_document
 
