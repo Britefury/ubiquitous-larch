@@ -2,7 +2,9 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
 import os
-import cherrypy
+
+from bottle import Bottle, run, static_file, request, response
+
 from britefury.dynamicsegments.service import DynamicDocumentService
 
 from britefury.projection.subject import Subject
@@ -13,9 +15,9 @@ from larch.worksheet import worksheet
 
 
 config = {'/':
-			  {'tools.staticdir.on': True,
-			   'tools.staticdir.dir': os.path.abspath('static'),
-			   }
+		  {'tools.staticdir.on': True,
+		   'tools.staticdir.dir': os.path.abspath('static'),
+		   }
 }
 
 
@@ -41,48 +43,51 @@ focus = worksheet.Worksheet()
 index_subject = Subject(None, focus,
 			stylesheet_names=[
 				'codemirror/lib/codemirror.css',
-			],
+				],
 			script_names=[
 				'ckeditor/ckeditor.js',
 				'codemirror/lib/codemirror.js',
 				'codemirror/mode/python/python.js',
 				'controls.js',
-			])
+				])
 
 
+app = Bottle()
 
 
-class WebCombinatorServer (object):
-	def __init__(self):
-		self.service = DynamicDocumentService(self.__init_document)
+service = DynamicDocumentService(lambda dynamic_document: IncrementalView(index_subject, dynamic_document))
+
+@app.route('/')
+def index():
+	return service.index()
 
 
-	def __init_document(self, dynamic_document):
-		return IncrementalView(index_subject, dynamic_document)
+@app.route('/event', method='POST')
+def event():
+	session_id = request.forms.get('session_id')
+	event_data = request.forms.get('event_data')
+	data = service.event(session_id, event_data)
+	response.content_type = 'application/json; charset=UTF8'
+	return data
 
 
-	def index(self):
-		return self.service.index()
-
-	index.exposed = True
-
-
-
-	def event(self, session_id, event_data):
-		return self.service.event(session_id, event_data)
-
-	event.exposed = True
-
-
-	def rsc(self, session_id, rsc_id):
-		data, mime_type = self.service.resource(session_id, rsc_id)
-		cherrypy.response.headers['Content-Type'] = mime_type
+@app.route('/rsc', methods=['POST'])
+def rsc():
+	session_id = request.query.get('session_id')
+	rsc_id = request.query.get('rsc_id')
+	data_and_mime_type = service.resource(session_id, rsc_id)
+	if data_and_mime_type is not None:
+		data, mime_type = data_and_mime_type
+		response.content_type = mime_type
 		return data
+	else:
+		response.status=400
+		return 'Unknown resource'
 
-	rsc.exposed = True
+@app.route('/<filename:path>')
+def serve_static(filename):
+	return static_file(filename, root='static')
 
 
-
-root = WebCombinatorServer()
-cherrypy.server.socket_port = 5000
-cherrypy.quickstart(root, config=config)
+if __name__ == '__main__':
+	run(app, host='localhost', port=5000)
