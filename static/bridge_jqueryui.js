@@ -1,6 +1,6 @@
 //
 //
-// jQuery slider
+// jQuery UI controls
 //
 //
 

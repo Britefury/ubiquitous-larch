@@ -41,8 +41,15 @@ class Pres (object):
 		return KeyEventSource(keys_and_handlers, self)
 
 
-	def js_function_call(self, js_fun_name, *json_args):
-		return JSFunctionCall(self, js_fun_name, json_args)
+	def js_eval(self, expr):
+		return JSEval(self, expr)
+
+
+	def js_function_call(self, js_fn_name, *json_args):
+		args = ['node'] + [json.dumps(a)   for a in json_args]
+		args_string = ', '.join(args)
+		expr = '{0}({1});'.format(js_fn_name, args_string)
+		return JSEval(self, expr)
 
 
 	def use_css(self, url):
@@ -164,17 +171,14 @@ class EventSource (SubSegmentPres):
 
 
 
-class JSFunctionCall (SubSegmentPres):
-	def __init__(self, child, js_fn_name, json_args):
-		super(JSFunctionCall, self).__init__(child)
-		self.__js_fn_name = js_fn_name
-
-		args = ['node'] + [json.dumps(a)   for a in json_args]
-		self.__args_string = ', '.join(args)
+class JSEval (SubSegmentPres):
+	def __init__(self, child, expr):
+		super(JSEval, self).__init__(child)
+		self.__expr = expr
 
 
 	def initialise_segment(self, seg, pres_ctx):
-		seg.add_initialiser('{0}({1});'.format(self.__js_fn_name, self.__args_string))
+		seg.add_initialiser(self.__expr)
 
 
 
