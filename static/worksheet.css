@@ -1,5 +1,10 @@
 
+.worksheet_menu_bar {
+    width: 10em;
+    margin: 0 10em;
+}
 
 .worksheet_code_block {
     margin: 0.5em 0;
 }
+

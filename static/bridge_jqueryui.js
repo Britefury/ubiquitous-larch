@@ -13,13 +13,12 @@ larch.controls.initSlider = function(node) {
     });
 }
 
-larch.controls.initMenu = function(node) {
-    $(node).menu( {
-        select: function(event, ui) {
-            var node = ui.item.get(0);
-            larch.postEvent(node, "menu_select", null);
-        }
-    });
+larch.controls.initMenu = function(node, options) {
+    options.select = function(event, ui) {
+        var node = ui.item.get(0);
+        larch.postEvent(node, "menu_select", null);
+    };
+    $(node).menu(options);
 }
 
 

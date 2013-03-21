@@ -7,7 +7,7 @@ import sys
 from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
 from britefury.pres.html import Html
 from britefury.pres.key_event import Key
-from britefury.pres.controls import ckeditor
+from britefury.pres.controls import ckeditor, menu
 from larch.python import PythonCode
 
 
@@ -16,13 +16,22 @@ __author__ = 'Geoff'
 
 
 class WorksheetBlock (object):
+	def __init__(self, worksheet):
+		self._worksheet = worksheet
+
+
+	def _on_focus(self):
+		self._worksheet._notify_focus(self)
+
+
 	def execute(self, module):
 		pass
 
 
 
 class WorksheetBlockText (WorksheetBlock):
-	def __init__(self, text=None):
+	def __init__(self, worksheet, text=None):
+		super(WorksheetBlockText, self).__init__(worksheet)
 		if text is None:
 			text = ''
 		self.__text = text
@@ -31,17 +40,20 @@ class WorksheetBlockText (WorksheetBlock):
 
 	def __present__(self, fragment):
 		self.__incr.on_access()
-		return ckeditor.ckeditor(self.__text)
+
+		return ckeditor.ckeditor(self.__text, on_focus=self._on_focus)
 
 
 
 class WorksheetBlockCode (WorksheetBlock):
-	def __init__(self, code=None):
+	def __init__(self, worksheet, code=None):
+		super(WorksheetBlockCode, self).__init__(worksheet)
 		if code is None:
 			code = PythonCode()
 		else:
 			assert isinstance(code, PythonCode)
 		self.__code = code
+		self.__code.on_focus = self._on_focus
 		self.__result = None
 		self.__incr = IncrementalValueMonitor()
 
@@ -61,9 +73,10 @@ class WorksheetBlockCode (WorksheetBlock):
 
 class Worksheet (object):
 	def __init__(self, code=''):
-		self.__blocks = [WorksheetBlockText(), WorksheetBlockCode()]
+		self.__blocks = [WorksheetBlockText(self), WorksheetBlockCode(self)]
 		self.__incr = IncrementalValueMonitor()
 		self._module = None
+		self.__focus_block = None
 
 
 	def execute(self):
@@ -71,6 +84,20 @@ class Worksheet (object):
 		for block in self.__blocks:
 			block.execute(self._module)
 
+
+
+	def _notify_focus(self, block):
+		self.__focus_block = block
+
+
+	def _insert_block(self, block_to_insert, below):
+		index = len(self.__blocks)
+		if self.__focus_block is not None  and  self.__focus_block in self.__blocks:
+			index = self.__blocks.index(self.__focus_block)
+			if below:
+				index += 1
+		self.__blocks.insert(index, block_to_insert)
+		self.__incr.on_changed()
 
 
 	def __present__(self, fragment):
@@ -85,6 +112,25 @@ class Worksheet (object):
 		self.__incr.on_access()
 
 		contents = []
+
+
+		def _insert_code(below):
+			self._insert_block(WorksheetBlockCode(self), below)
+
+		def _insert_rich_text(below):
+			self._insert_block(WorksheetBlockText(self), below)
+
+
+		insert_code_above = menu.item('Insert code above', lambda: _insert_code(False))
+		insert_rich_text_above = menu.item('Insert rich text above', lambda: _insert_rich_text(False))
+
+		insert_code_below = menu.item('Insert code below', lambda: _insert_code(True))
+		insert_rich_text_below = menu.item('Insert rich text below', lambda: _insert_rich_text(True))
+		blocks_menu = menu.sub_menu('Worksheet', [insert_code_above, insert_rich_text_above, menu.item('--------', None), insert_code_below, insert_rich_text_below])
+
+		page_menu = menu.menu([blocks_menu], drop_down=True)
+		contents.append(Html('<div class="worksheet_menu_bar">', page_menu, '</div>'))
+
 		for block in self.__blocks:
 			contents.extend(['<div>', block, '</div>'])
 

@@ -14,7 +14,15 @@ larch.controls.initCodeMirror = function(textArea, config, immediate_events) {
             larch.queueEventFactory(elem, "code_mirror_edit", fac);
         };
     }
-    CodeMirror.fromTextArea(textArea, config);
+    config.onFocus = function(editor) {
+        var elem = editor.getWrapperElement();
+        larch.postEvent(elem, "code_mirror_focus", null);
+    };
+    config.onBlur = function(editor) {
+        var elem = editor.getWrapperElement();
+        larch.postEvent(elem, "code_mirror_blur", null);
+    };
+    var c = CodeMirror.fromTextArea(textArea, config);
 }
 
 

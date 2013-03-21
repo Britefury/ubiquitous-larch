@@ -4,7 +4,7 @@
 from britefury.pres.html import Html
 
 
-def ckeditor(text, on_edit=None, immediate_events=False, config=None):
+def ckeditor(text, immediate_events=False, config=None, on_edit=None, on_focus=None, on_blur=None):
 	if text == '':
 		text = '<p></p>'
 	if config is None:
@@ -14,4 +14,8 @@ def ckeditor(text, on_edit=None, immediate_events=False, config=None):
 	p = p.use_js('bridge_ckeditor.js')
 	if on_edit is not None:
 		p = p.with_event_handler('ckeditor_edit', lambda event_name, ev_data: on_edit(ev_data))
+	if on_focus is not None:
+		p = p.with_event_handler('ckeditor_focus', lambda event_name, ev_data: on_focus())
+	if on_blur is not None:
+		p = p.with_event_handler('ckeditor_blur', lambda event_name, ev_data: on_blur())
 	return p

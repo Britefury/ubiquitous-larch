@@ -72,6 +72,8 @@ class PythonCode (object):
 		self.__code = code
 		self.__editable = editable
 		self.__incr = IncrementalValueMonitor()
+		self.on_focus = None
+		self.on_blur = None
 
 
 	@property
@@ -149,7 +151,10 @@ class PythonCode (object):
 			'readOnly': 'nocursor'   if not self.__editable   else False,
 			'autofocus': self.__editable
 		}
-		code_area = code_mirror.code_mirror(self.__code, on_edit=on_change, config=config)
+
+
+
+		code_area = code_mirror.code_mirror(self.__code, config=config, on_edit=on_change, on_focus=self.on_focus, on_blur=self.on_blur)
 		code_area = code_area.use_js('codemirror/mode/python/python.js')
 
 
