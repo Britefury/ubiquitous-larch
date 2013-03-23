@@ -4,6 +4,10 @@
 //
 //
 
+larch.controls.initButton = function(node) {
+    $(node).button();
+}
+
 larch.controls.initSlider = function(node) {
     var q = $(node);
     $(node).slider({
@@ -20,5 +24,3 @@ larch.controls.initMenu = function(node, options) {
     };
     $(node).menu(options);
 }
-
-

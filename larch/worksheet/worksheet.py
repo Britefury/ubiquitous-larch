@@ -7,7 +7,7 @@ import sys
 from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
 from britefury.pres.html import Html
 from britefury.pres.key_event import Key
-from britefury.pres.controls import ckeditor, menu
+from britefury.pres.controls import ckeditor, menu, button
 from larch.python import PythonCode
 
 
@@ -41,7 +41,9 @@ class WorksheetBlockText (WorksheetBlock):
 	def __present__(self, fragment):
 		self.__incr.on_access()
 
-		return ckeditor.ckeditor(self.__text, on_focus=self._on_focus)
+		p = ckeditor.ckeditor(self.__text, on_focus=self._on_focus)
+
+		return Html('<div class="worksheet_block">', p, '</div>')
 
 
 
@@ -65,15 +67,16 @@ class WorksheetBlockCode (WorksheetBlock):
 
 	def __present__(self, fragment):
 		self.__incr.on_access()
+		code = Html('<div class="worksheet_code_container">', self.__code, '</div>')
 		res = ['<div>', self.__result, '</div>']   if self.__result is not None  else []
-		return Html(*(['<div class="python_console_block">', self.__code] + res + ['</div>']))
+		return Html(*(['<div class="worksheet_block">', code] + res + ['</div>']))
 
 
 
 
 class Worksheet (object):
 	def __init__(self, code=''):
-		self.__blocks = [WorksheetBlockText(self), WorksheetBlockCode(self)]
+		self.__blocks = [WorksheetBlockCode(self)]
 		self.__incr = IncrementalValueMonitor()
 		self._module = None
 		self.__focus_block = None
@@ -120,6 +123,8 @@ class Worksheet (object):
 		def _insert_rich_text(below):
 			self._insert_block(WorksheetBlockText(self), below)
 
+
+		insert_code_above_button = button.button('Insert code above', lambda: _insert_code(False))
 
 		insert_code_above = menu.item('Insert code above', lambda: _insert_code(False))
 		insert_rich_text_above = menu.item('Insert rich text above', lambda: _insert_rich_text(False))

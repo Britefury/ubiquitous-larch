@@ -11,11 +11,11 @@ def item(item_content, on_select=None):
 	return p
 
 def sub_menu(item_content, items):
-	sub = ['<ul>'] + list(items) + ['</ul>']
-	return Html(*['<li><a href="#">', item_content, '</a>'] + sub + ['</li>'])
+	sub = ['<ul class="popup_box">'] + list(items) + ['</ul>']
+	return Html(*['<li class="popup_box"><a href="#">', item_content, '</a>'] + sub + ['</li>'])
 
 def menu(items, drop_down=False):
 	options = {}
 	if drop_down:
 		options['position'] = {'my': 'left top', 'at': 'left bottom'}
-	return Html(*['<ul>'] + list(items) + ['</ul>']).js_function_call('larch.controls.initMenu', options).use_js('bridge_jqueryui.js')
+	return Html(*['<ul class="popup_box">'] + list(items) + ['</ul>']).js_function_call('larch.controls.initMenu', options).use_js('bridge_jqueryui.js')

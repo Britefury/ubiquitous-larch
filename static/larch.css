@@ -35,3 +35,7 @@
     margin-left: 15px;
 }
 
+.popup_box {
+    z-index: 1000;
+}
+
