@@ -15,7 +15,6 @@ _ext_dependencies = {}
 
 
 
-
 class Pres (object):
 	def build(self, pres_ctx):
 		raise NotImplementedError, 'abstract'
@@ -46,25 +45,36 @@ class Pres (object):
 
 
 	def js_function_call(self, js_fn_name, *json_args):
-		args = ['node'] + [json.dumps(a)   for a in json_args]
-		args_string = ', '.join(args)
-		expr = '{0}({1});'.format(js_fn_name, args_string)
-		return JSEval(self, expr)
+		call = [js_fn_name + '(node']
+		for a in json_args:
+			if isinstance(a, Resource):
+				call.append(', ')
+				call.append(a)
+			else:
+				call.append(', ' + json.dumps(a))
+		call.append(');')
+		return JSEval(self, *call)
 
 
-	def use_css(self, url):
-		dep = _ext_dependencies.get(url)
-		if dep is None:
-			dep = dependencies.CSSDependency(url)
-			_ext_dependencies[url] = dep
+	def use_css(self, url=None, source=None):
+		if url is not None:
+			dep = dependencies.CSSURLDependency.dep_for(url)
+		elif source is not None:
+			dep = dependencies.CSSSourceDependency.dep_for(source)
+		else:
+			raise TypeError, 'either a URL or source text must be provided'
+
 		return self.depends_on(dep)
 
 
-	def use_js(self, url):
-		dep = _ext_dependencies.get(url)
-		if dep is None:
-			dep = dependencies.JSDependency(url)
-			_ext_dependencies[url] = dep
+	def use_js(self, url=None, source=None):
+		if url is not None:
+			dep = dependencies.JSURLDependency.dep_for(url)
+		elif source is not None:
+			dep = dependencies.JSSourceDependency.dep_for(source)
+		else:
+			raise TypeError, 'either a URL or source text must be provided'
+
 		return self.depends_on(dep)
 
 
@@ -106,6 +116,25 @@ class Pres (object):
 	@staticmethod
 	def map_coerce_nullable(xs):
 		return [Pres.coerce_nullable(x)   for x in xs]
+
+
+
+
+class Resource (Pres):
+	def __init__(self, data_fn, mime_type):
+		self.__data_fn = data_fn
+		self.__mime_type = mime_type
+
+
+	def build(self, pres_ctx):
+		return HtmlContent([self._url(pres_ctx)])
+
+	def _json_encoded_url(self, pres_ctx):
+		return json.dumps(self._url(pres_ctx))
+
+	def _url(self, pres_ctx):
+		rsc = pres_ctx.fragment_view.create_resource(self.__data_fn, self.__mime_type)
+		return rsc.url
 
 
 
@@ -172,13 +201,18 @@ class EventSource (SubSegmentPres):
 
 
 class JSEval (SubSegmentPres):
-	def __init__(self, child, expr):
+	def __init__(self, child, *expr):
 		super(JSEval, self).__init__(child)
 		self.__expr = expr
 
 
 	def initialise_segment(self, seg, pres_ctx):
-		seg.add_initialiser(self.__expr)
+		ex = self.__expr
+		if len(ex) == 1  and  not isinstance(ex[0], Resource):
+			# Most common case
+			seg.add_initialiser(ex[0])
+		else:
+			seg.add_initialiser(''.join([(x._json_encoded_url(pres_ctx)   if isinstance(x, Resource)   else x)   for x in ex]))
 
 
 

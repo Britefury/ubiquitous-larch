@@ -7,21 +7,23 @@ import os
 import mimetypes
 
 from britefury.dynamicsegments.segment import HtmlContent
-from britefury.pres.pres import Pres, CompositePres
+from britefury.pres.pres import Resource
 
 __author__ = 'Geoff'
 
 
-class Resource (Pres):
-	def __init__(self, data_fn, mime_type):
-		self.__data_fn = data_fn
-		self.__mime_type = mime_type
 
 
-	def build(self, pres_ctx):
-		rsc = pres_ctx.fragment_view.create_resource(self.__data_fn, self.__mime_type)
-		return HtmlContent([rsc.url])
 
+class JsonResource (Resource):
+	def __init__(self, data_fn):
+		super(JsonResource, self).__init__(lambda: json.dumps(data_fn()), 'application/json')
+
+
+
+class CSVResource (Resource):
+	def __init__(self, data_fn):
+		super(CSVResource, self).__init__(data_fn, 'text/csv')
 
 
 

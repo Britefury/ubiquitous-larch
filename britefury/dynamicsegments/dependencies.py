@@ -4,11 +4,10 @@
 
 
 class DocumentDependency (object):
-	def __init__(self, url, deps=None):
+	def __init__(self, deps=None):
 		if deps is None:
 			deps = []
 
-		self._url = url
 		self.__deps = deps
 
 
@@ -22,19 +21,63 @@ class DocumentDependency (object):
 
 
 
-class CSSDependency (DocumentDependency):
+class _RegisteredDependency (DocumentDependency):
+	_deps = None
+
+	@classmethod
+	def dep_for(cls, x):
+		dep = cls._deps.get(x)
+		if dep is None:
+			dep = cls(x)
+			cls._deps[x] = dep
+		return dep
+
+
+
+class CSSURLDependency (_RegisteredDependency):
+	_deps = {}
+
 	def __init__(self, url, deps=None):
-		super(CSSDependency, self).__init__(url, deps)
+		super(CSSURLDependency, self).__init__(deps)
+		self.__url = url
 
 	def to_html(self):
-		return '<link rel="stylesheet" type="text/css" href="{0}"/>'.format(self._url)
+		return '<link rel="stylesheet" type="text/css" href="{0}"/>'.format(self.__url)
 
 
 
-class JSDependency (DocumentDependency):
+
+class JSURLDependency (_RegisteredDependency):
+	_deps = {}
+
 	def __init__(self, url, deps=None):
-		super(JSDependency, self).__init__(url, deps)
+		super(JSURLDependency, self).__init__(deps)
+		self.__url = url
 
 	def to_html(self):
-		return '<script type="text/javascript" src="{0}"></script>'.format(self._url)
+		return '<script type="text/javascript" src="{0}"></script>'.format(self.__url)
+
+
+
+class CSSSourceDependency (_RegisteredDependency):
+	_deps = {}
+
+	def __init__(self, source, deps=None):
+		super(CSSSourceDependency, self).__init__(deps)
+		self.__source = source
+
+	def to_html(self):
+		return '<style>\n{0}\n</style>'.format(self.__source)
+
+
+
+class JSSourceDependency (_RegisteredDependency):
+	_deps = {}
+
+	def __init__(self, source, deps=None):
+		super(JSSourceDependency, self).__init__(deps)
+		self.__source = source
+
+	def to_html(self):
+		return '<script type="text/javascript">\n{0}\n</script>'.format(self.__source)
 
