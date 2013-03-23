@@ -26,7 +26,7 @@ def event():
 	return data
 
 
-@app.route('/rsc', methods=['POST'])
+@app.route('/rsc', method='GET')
 def rsc():
 	session_id = request.query.get('session_id')
 	rsc_id = request.query.get('rsc_id')

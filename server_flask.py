@@ -26,10 +26,10 @@ def event():
 	return Response(response=data, status=200, mimetype='application/json')
 
 
-@app.route('/rsc', methods=['POST'])
+@app.route('/rsc', methods=['GET'])
 def rsc():
-	session_id = request.form['session_id']
-	rsc_id = request.form['rsc_id']
+	session_id = request.args['session_id']
+	rsc_id = request.args['rsc_id']
 	data_and_mime_type = service.resource(session_id, rsc_id)
 	if data_and_mime_type is not None:
 		data, mime_type = data_and_mime_type
