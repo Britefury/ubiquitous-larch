@@ -2,6 +2,7 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
 import os
+import string
 
 from britefury.dynamicsegments.service import DynamicDocumentService
 
@@ -26,11 +27,39 @@ class AppSubject (Subject):
 
 
 	def __resolve__(self, name):
-		doc = self.focus.docs.doc_for_name(name)
+		doc = self.focus.docs.doc_for_location(name)
 		if doc is not None:
-			return doc.__subject__(self, self.perspective)
+			return doc.content.__subject__(self, self.perspective)
 		else:
 			return None
+
+
+
+
+class Document (object):
+	def __init__(self, name, content):
+		self.__name = name
+		loc = ''.join([x   for x in name   if x in string.ascii_letters + string.digits + '_'])
+		self.__loc = loc
+		self.__content = content
+
+
+	@property
+	def name(self):
+		return self.__name
+
+	@property
+	def location(self):
+		return self.__loc
+
+	@property
+	def content(self):
+		return self.__content
+
+
+
+	def __present__(self, fragment):
+		return Html('<p><a href="/pages/{0}">{1}</p>'.format(self.__loc, self.__name))
 
 
 
@@ -39,26 +68,38 @@ class AppSubject (Subject):
 class DocumentList (object):
 	def __init__(self):
 		self.__documents = []
-		self.__documents_by_name = {}
+		self.__docs_by_location = {}
 		self.__incr = IncrementalValueMonitor()
 
 		w = worksheet.Worksheet()
-		self.__documents.append(w)
-		self.__documents_by_name['w'] = w
+		self.add_document_for_content('w', w)
 
 
 	def __iter__(self):
 		return iter(self.__documents)
 
 
-	def doc_for_name(self, name):
-		return self.__documents_by_name.get(name)
+	def doc_for_location(self, name):
+		return self.__docs_by_location.get(name)
+
+
+
+	def add_document(self, doc):
+		self.__documents.append(doc)
+		self.__docs_by_location[doc.location] = doc
+		self.__incr.on_changed()
+
+	def add_document_for_content(self, name, content):
+		self.add_document(Document(name, content))
+
+
 
 	def __present__(self, fragment):
 		self.__incr.on_access()
-		html1 = '<ul>'
-		html2 = '</ul>'
-		return Html(html1, html2)
+		contents = ['<div>']
+		contents.extend(self.__documents)
+		contents.append('</div>')
+		return Html(*contents)
 
 
 
@@ -102,7 +143,6 @@ def create_service():
 
 	def _initialise_document(dynamic_document, location):
 		subject = index_subject.resolve(location)
-		print 'Got a subject {0} for the location {1}'.format(subject, location)
 		if subject is not None:
 			return IncrementalView(subject, dynamic_document)
 		else:

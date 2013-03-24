@@ -22,8 +22,8 @@ larch.__buildConnectivity = function(segment) {
     // preventing us from using it for iterating across the sequence of nodes.
     // So, we create a __lch_next attribute that points to the next sibling, so we can iterate using this instead.
     var p = null;
-    for (var n = segment.start; n != segment.end; n = n.nextSibling) {
-        if (p != null) {
+    for (var n = segment.start; n !== segment.end; n = n.nextSibling) {
+        if (p !== null) {
             p.__lch_next = n;
         }
         p = n;
@@ -37,7 +37,7 @@ larch.__clearConnectivity = function(nodes) {
     for (var i = 0; i < nodes.length; i++)
     {
         var n = nodes[i];
-        if (p != null) {
+        if (p !== null) {
             p.__lch_next = null;
         }
         p = n;
@@ -52,7 +52,7 @@ larch.__newSegmentState = function(start, end) {
 
 larch.__getNodesInActiveSegment = function(segment) {
     var nodeList = [];
-    for (var n = segment.start; n != segment.end; n = n.nextSibling) {
+    for (var n = segment.start; n !== segment.end; n = n.nextSibling) {
         nodeList.push(n);
     }
     nodeList.push(segment.end);
@@ -66,14 +66,14 @@ larch.__getNodesInInactiveSegment = function(segment) {
     if (start.hasOwnProperty('__lch_next')  &&  start.__lch_next !== null) {
         // This inactive segment was directly removed in a previous replacement operation.
         // We must use the __lch_next property to iterate.
-        for (var n = segment.start; n != segment.end; n = n.__lch_next) {
+        for (var n = segment.start; n !== segment.end; n = n.__lch_next) {
             nodeList.push(n);
         }
     }
     else {
         // This segment was removed as a result of a parent being removed, hence __lch_next has
         // not been initialised. Iterate using nextSibling.
-        for (var n = segment.start; n != segment.end; n = n.nextSibling) {
+        for (var n = segment.start; n !== segment.end; n = n.nextSibling) {
             nodeList.push(n);
         }
     }
@@ -136,7 +136,7 @@ larch.__getElementsOfClass = function(className, tagName) {
         var elem = null;
         var placeHolders = [];
         while (elem = els[i++]) {
-            if (elem.className == className) {
+            if (elem.className === className) {
                 placeHolders.push(elem);
             }
         }
@@ -160,7 +160,7 @@ larch.__executeInitialisers = function(initialisers) {
         var inits = x[1];
         //console.log("Executing initialisers for " + segment_id);
         var state = segment_table[segment_id];
-        if (state == undefined) {
+        if (state === undefined) {
             throw "Cannot get segment " + segment_id
         }
         var nodes = larch.__getNodesInActiveSegment(state);
@@ -197,12 +197,16 @@ larch.__register_segments = function() {
                 // Set the node's segment ID
                 n.__lch_seg_id = segment_id;
 
-                if (n.getAttribute  &&  n.getAttribute("class") == '__lch_seg_end'  && n.innerHTML == segment_id) {
+                if (n.getAttribute  &&  n.getAttribute("class") === '__lch_seg_end'  && n.innerHTML === segment_id) {
                     break;
                 }
 
                 // Next
-                n = n.nextSibling;
+                var nextNode = n.nextSibling;
+                if (nextNode === null) {
+                    throw "Did not find matching segment end node";
+                }
+                n = nextNode;
             }
 
             // @n is now the end node
@@ -290,15 +294,15 @@ larch.__applyChanges = function(changes) {
 
 larch.__handleMessageFromServer = function(message) {
     var msg_type = message.msgtype;
-    if (msg_type == "modify_document") {
+    if (msg_type === "modify_document") {
         var changes = message.changes;
         larch.__applyChanges(changes);
     }
-    else if (msg_type == "execute_js") {
+    else if (msg_type === "execute_js") {
         var js_code = message.js_code;
         larch.__executeJS(js_code);
     }
-    else if (msg_type == "add_dependencies") {
+    else if (msg_type === "add_dependencies") {
         var deps = message.deps;
         for (var i = 0; i < deps.length; i++) {
             larch.__addDependency(deps[i]);
@@ -321,17 +325,17 @@ larch.__handleMessagesFromServer = function(messages) {
 larch.__handleKeyEvent = function(event, keys) {
     for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
-        if (key.keyCode == undefined  ||  event.keyCode == key.keyCode) {
-            if (key.altKey != undefined  &&  event.altKey != key.altKey) {
+        if (key.keyCode === undefined  ||  event.keyCode == key.keyCode) {
+            if (key.altKey !== undefined  &&  event.altKey !== key.altKey) {
                 continue;
             }
-            if (key.ctrlKey != undefined  &&  event.ctrlKey != key.ctrlKey) {
+            if (key.ctrlKey !== undefined  &&  event.ctrlKey !== key.ctrlKey) {
                 continue;
             }
-            if (key.shiftKey != undefined  &&  event.shiftKey != key.shiftKey) {
+            if (key.shiftKey !== undefined  &&  event.shiftKey !== key.shiftKey) {
                 continue;
             }
-            if (key.metaKey != undefined  &&  event.metaKey != key.metaKey) {
+            if (key.metaKey !== undefined  &&  event.metaKey !== key.metaKey) {
                 continue;
             }
             // We have a match
@@ -349,21 +353,21 @@ larch.__handleKeyEvent = function(event, keys) {
 
 larch.__onkeydown = function(event, keys) {
     var k = larch.__handleKeyEvent(event, keys);
-    if (k != undefined) {
+    if (k !== undefined) {
         larch.postEvent(event.target, 'keydown', k);
     }
 }
 
 larch.__onkeyup = function(event, keys) {
     var k = larch.__handleKeyEvent(event, keys);
-    if (k != undefined) {
+    if (k !== undefined) {
         larch.postEvent(event.target, 'keyup', k);
     }
 }
 
 larch.__onkeypress = function(event, keys) {
     var k = larch.__handleKeyEvent(event, keys);
-    if (k != undefined) {
+    if (k !== undefined) {
         larch.postEvent(event.target, 'keypress', k);
     }
 }
@@ -373,7 +377,7 @@ larch.__onkeypress = function(event, keys) {
 larch.__getSegmentIDForEvent = function(src_element) {
     var n = src_element;
     var segment_id = null;
-    while (n != null) {
+    while (n !== null) {
         if (n.__lch_seg_id) {
             // We have a segment ID
             segment_id = n.__lch_seg_id;
@@ -443,7 +447,7 @@ larch.__postEventMessage = function(ev_msg) {
 larch.postEvent = function(src_element, event_name, event_data) {
     var segment_id = larch.__getSegmentIDForEvent(src_element);
 
-    if (segment_id != null) {
+    if (segment_id !== null) {
         var ev_msg = larch.__buildElementEventMessage(segment_id, event_name, event_data);
         larch.__postEventMessage(ev_msg);
     }
