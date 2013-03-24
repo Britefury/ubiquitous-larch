@@ -5,10 +5,11 @@ from britefury.default_perspective.default_perspective import DefaultPerspective
 
 
 class Subject (object):
-	def __init__(self, enclosing_subject, focus, perspective=DefaultPerspective.instance):
+	def __init__(self, enclosing_subject, focus, perspective=DefaultPerspective.instance, title=None):
 		self.__enclosing_subject = enclosing_subject
 		self.__focus = focus
 		self.__perspective = perspective
+		self.__title = title
 
 
 	def __getattr__(self, item):
@@ -33,3 +34,23 @@ class Subject (object):
 	@property
 	def perspective(self):
 		return self.__perspective
+
+	@property
+	def title(self):
+		return self.__title
+
+
+
+	def __resolve__(self, name):
+		return None
+
+	def resolve(self, location):
+		if location is None  or  location == '':
+			return self
+		else:
+			s = self
+			for n in location.split('/'):
+				s = s.__resolve__(n)
+				if s is None:
+					return
+

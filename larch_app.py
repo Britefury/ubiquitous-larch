@@ -51,7 +51,7 @@ lightbox([url1, url2], 'test')
 def create_service():
 	#focus = console.Console(sample_code)
 	focus = worksheet.Worksheet()
-	index_subject = Subject(None, focus)
+	index_subject = Subject(None, focus, title='Test')
 
 
 	return DynamicDocumentService(lambda dynamic_document: IncrementalView(index_subject, dynamic_document))

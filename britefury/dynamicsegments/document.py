@@ -100,6 +100,7 @@ class DynamicDocument (object):
 
 
 
+
 	@property
 	def title(self):
 		return self.__title

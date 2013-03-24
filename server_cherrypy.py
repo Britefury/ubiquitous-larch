@@ -4,7 +4,7 @@
 import os
 import cherrypy
 
-import larch_app
+from larch import larch_app
 
 
 config = {'/':
@@ -21,7 +21,12 @@ class WebCombinatorServer (object):
 
 
 	def index(self):
-		return self.service.index()
+		data = self.service.index()
+		if data is not None:
+			return data
+		else:
+			cherrypy.response.status = 404
+			return 'Document not found'
 
 	index.exposed = True
 

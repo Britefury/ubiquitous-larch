@@ -10,7 +10,6 @@ from britefury.pres.presctx import PresentationContext
 from britefury.pres.pres import Pres
 from britefury.incremental.incremental_monitor import IncrementalMonitor
 from britefury.incremental.incremental_function_monitor import IncrementalFunctionMonitor
-from britefury.dynamicsegments.document import DynamicDocument
 from britefury.dynamicsegments.segment import  HtmlContent
 
 
@@ -135,9 +134,8 @@ class _FragmentView (object):
 	#
 
 	@property
-	def browser_context(self):
-		return self.__inc_view.browser_context
-
+	def dynamic_document(self):
+		return self.__inc_view.dynamic_document
 
 	@property
 	def subject(self):
@@ -727,6 +725,9 @@ class IncrementalView (object):
 		self.__unique_fragment_factories = {}
 
 		self.__dynamic_document = dynamic_document
+		title = subject.title
+		if title is not None:
+			self.__dynamic_document.title = title
 
 		self.__lock = None
 
@@ -737,7 +738,7 @@ class IncrementalView (object):
 
 	#
 	#
-	# View, mode, subject
+	# View, model, subject
 	#
 	#
 

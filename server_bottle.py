@@ -3,7 +3,7 @@
 ##-*************************
 from bottle import Bottle, run, static_file, request, response
 
-import larch_app
+from larch import larch_app
 
 
 service = larch_app.create_service()
@@ -14,7 +14,12 @@ app = Bottle()
 
 @app.route('/')
 def index():
-	return service.index()
+	data = service.index()
+	if data is not None:
+		return None
+	else:
+		response.status = 404
+		return 'Document not found'
 
 
 @app.route('/event', method='POST')
@@ -36,8 +41,8 @@ def rsc():
 		response.content_type = mime_type
 		return data
 	else:
-		response.status=400
-		return 'Unknown resource'
+		response.status=404
+		return 'Resource not found'
 
 @app.route('/<filename:path>')
 def serve_static(filename):

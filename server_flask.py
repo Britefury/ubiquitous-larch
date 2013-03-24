@@ -5,7 +5,7 @@ import os
 
 from flask import Flask, request, Response
 
-import larch_app
+from larch import larch_app
 
 
 service = larch_app.create_service()
@@ -15,7 +15,11 @@ app = Flask(__name__, static_url_path='', static_folder='static')
 
 @app.route('/')
 def index():
-	return service.index()
+	data = service.index()
+	if data is not None:
+		return data
+	else:
+		return Response(response='Document not found', status=404)
 
 
 @app.route('/event', methods=['POST'])

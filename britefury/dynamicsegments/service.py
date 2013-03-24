@@ -25,7 +25,7 @@ class DynamicDocumentService (object):
 		self.__document_initialiser_fn = document_initialiser_fn
 
 
-	def index(self):
+	def index(self, location=None):
 		session_id = self.__new_session_id()
 		session = _Session()
 		self.__sessions[session_id] = session
@@ -33,10 +33,14 @@ class DynamicDocumentService (object):
 		dynamic_document = DynamicDocument(session_id)
 		session.dynamic_document = dynamic_document
 
-		session_data = self.__document_initialiser_fn(dynamic_document)
-		session.session_data = session_data
+		session_data = self.__document_initialiser_fn(dynamic_document, location)
+		if session_data is not None:
+			session.session_data = session_data
+			return dynamic_document.page_html()
+		else:
+			del self.__sessions[session_id]
+			return None
 
-		return dynamic_document.page_html()
 
 
 
