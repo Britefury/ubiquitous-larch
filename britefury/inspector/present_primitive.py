@@ -1,7 +1,13 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
+from britefury.dynamicsegments.global_dependencies import GlobalCSS
+
 from britefury.pres.html import Html
+
+
+
+GlobalCSS('python.css')
 
 
 def _punct_html(x):

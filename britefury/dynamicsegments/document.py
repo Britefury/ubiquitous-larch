@@ -11,16 +11,16 @@ from copy import copy
 
 from britefury.dynamicsegments.segment import DynamicSegment, SegmentRef
 from britefury.dynamicsegments import messages, dependencies
+from britefury.dynamicsegments import global_dependencies
 
 
 _page_content = """
 <!doctype html>
 <html>
 	<head>
-		<title>The Larch Environment (test)</title>
+		<title>{title}</title>
 		<link rel="stylesheet" type="text/css" href="jquery-ui-1.10.1.custom.min.css"/>
 		<link rel="stylesheet" type="text/css" href="larch.css"/>
-		<link rel="stylesheet" type="text/css" href="python.css"/>
 
 		<script type="text/javascript" src="larch_prelude.js"></script>
 		<script type="text/javascript">
@@ -33,8 +33,10 @@ _page_content = """
 		<script type="text/javascript" src="json2.js"></script>
 		<script type="text/javascript" src="larch.js"></script>
 
+		<!--scripts and css introduced by dependencies-->
 		{dependency_tags}
 
+		<!--initialisers; expressions that must be executed to initialise elements or the document-->
 		<script type="text/javascript">
 			<!--
 			$(document).ready(function(){{larch.__onDocumentReady({initialisers});}});
@@ -64,8 +66,14 @@ class DynamicDocument (object):
 
 		self.__queued_tasks = deque()
 
+		self.__title = 'Ubiquitous Larch'
+
 		# The session ID
 		self._session_id = session_id
+
+		# Global dependencies
+		self.__global_deps_version = 0
+		self.__global_deps = set()
 
 		# Dependencies
 		self.__dependencies = []
@@ -91,6 +99,14 @@ class DynamicDocument (object):
 		self.__lock = None
 
 
+
+	@property
+	def title(self):
+		return self.__title
+
+	@title.setter
+	def title(self, value):
+		self.__title = value
 
 
 
@@ -236,10 +252,20 @@ class DynamicDocument (object):
 		msg_list = []
 
 		# Dependency message
-		if len(self.__dependencies) > 0:
-			msg = messages.dependency_message([dep.to_html()   for dep in self.__dependencies])
+		deps_list = []
+		# Get new global dependencies
+		if not global_dependencies.are_global_dependencies_up_to_date(self.__global_deps_version):
+			global_deps = set()
+			global_deps.update(global_dependencies.get_global_dependencies())
+			deps_list.extend(global_deps.difference(self.__global_deps))
+			self.__global_deps = global_deps
+			self.__global_deps_version = global_dependencies.get_global_dependencies_version()
+
+		deps_list.extend(self.__dependencies)
+		self.__dependencies = []
+		if len(deps_list) > 0:
+			msg = messages.dependency_message([dep.to_html()   for dep in deps_list])
 			msg_list.append(msg)
-			self.__dependencies = []
 
 		# Document modifications message
 		if self.__document_modifications_message is not None:
@@ -335,7 +361,11 @@ class DynamicDocument (object):
 		root_content = self.__root_segment.reference()._complete_html()
 
 
-		dependency_tags = '\n'.join([dep.to_html()   for dep in self.__dependencies])
+		self.__global_deps.update(global_dependencies.get_global_dependencies())
+		deps_list = list(self.__global_deps)  +  self.__dependencies
+		self.__global_deps_version = global_dependencies.get_global_dependencies_version()
+
+		dependency_tags = '\n'.join([dep.to_html()   for dep in deps_list])
 		self.__dependencies = []
 
 		initialisers = self._table.get_all_initialisers()
@@ -350,7 +380,7 @@ class DynamicDocument (object):
 
 		self._table.clear_changes()
 
-		return _page_content.format(session_id=self._session_id, dependency_tags=dependency_tags, content=root_content, init_script=js_to_exec, initialisers=initialisers_json_str)
+		return _page_content.format(title=self.__title, session_id=self._session_id, dependency_tags=dependency_tags, content=root_content, init_script=js_to_exec, initialisers=initialisers_json_str)
 
 
 
