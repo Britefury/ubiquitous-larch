@@ -33,8 +33,8 @@ from britefury.pres.pres import *
 from britefury.pres.resource import *
 from britefury.pres.html import Html
 
-js_url = 'lightbox/js/lightbox.js'
-css_url = 'lightbox/css/lightbox.css'
+js_url = '/lightbox/js/lightbox.js'
+css_url = '/lightbox/css/lightbox.css'
 
 def lightbox(urls, groupname):
 	images = ''.join(['<a href="{0}" rel="lightbox[{1}]"><img src="{0}" width="128" height="96"></a>'.format(url, groupname)   for url in urls])

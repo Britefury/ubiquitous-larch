@@ -16,10 +16,20 @@ app = Bottle()
 def index():
 	data = service.index()
 	if data is not None:
-		return None
+		return data
 	else:
 		response.status = 404
 		return 'Document not found'
+
+
+@app.route('/pages/<location:path>')
+def index(location):
+	data = service.index(location)
+	if data is not None:
+		return data
+	else:
+		response.status = 404
+		return 'Page at {0} not found'.format(location)
 
 
 @app.route('/event', method='POST')

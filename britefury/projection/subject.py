@@ -5,7 +5,9 @@ from britefury.default_perspective.default_perspective import DefaultPerspective
 
 
 class Subject (object):
-	def __init__(self, enclosing_subject, focus, perspective=DefaultPerspective.instance, title=None):
+	def __init__(self, enclosing_subject, focus, perspective=None, title=None):
+		if perspective is None:
+			perspective = DefaultPerspective.instance
 		self.__enclosing_subject = enclosing_subject
 		self.__focus = focus
 		self.__perspective = perspective
@@ -53,4 +55,11 @@ class Subject (object):
 				s = s.__resolve__(n)
 				if s is None:
 					return
+			return s
+
+
+
+	@staticmethod
+	def subject_for(enclosing_subject, focus, perspective=None):
+		return focus.__subject__(enclosing_subject, perspective)
 

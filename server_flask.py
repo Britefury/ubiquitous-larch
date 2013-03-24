@@ -3,7 +3,7 @@
 ##-*************************
 import os
 
-from flask import Flask, request, Response
+from flask import Flask, request, Response, abort
 
 from larch import larch_app
 
@@ -19,7 +19,16 @@ def index():
 	if data is not None:
 		return data
 	else:
-		return Response(response='Document not found', status=404)
+		abort(404)
+
+
+@app.route('/pages/<path:location>')
+def page(location):
+	data = service.index(location)
+	if data is not None:
+		return data
+	else:
+		abort(404)
 
 
 @app.route('/event', methods=['POST'])
@@ -39,7 +48,7 @@ def rsc():
 		data, mime_type = data_and_mime_type
 		return Response(response=data, status=200, mimetype=mime_type)
 	else:
-		return Response(response='Resouce not found', status=404)
+		abort(404)
 
 
 

@@ -406,7 +406,7 @@ larch.__sendEventMessagesToServer = function(ev_messages) {
 
     $.ajax({
         type: 'POST',
-        url: 'event',
+        url: '/event',
         data: ev_data,
         success: function(msg) {
             larch.__handleMessagesFromServer(msg);

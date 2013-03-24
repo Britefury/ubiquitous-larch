@@ -8,11 +8,11 @@ from britefury.incremental.incremental_value_monitor import IncrementalValueMoni
 from britefury.pres.html import Html
 from britefury.pres.key_event import Key
 from britefury.pres.controls import ckeditor, menu, button
+from britefury.projection.subject import Subject
 from larch.python import PythonCode
 
 
 __author__ = 'Geoff'
-
 
 
 class WorksheetBlock (object):
@@ -143,5 +143,9 @@ class Worksheet (object):
 
 		p = Html(*contents)
 		p = p.with_key_handler([Key(Key.KEY_DOWN, 13, ctrl=True)], on_execute_key)
-		return p.use_css('worksheet.css')
+		return p.use_css('/worksheet.css')
+
+
+	def __subject__(self, enclosing_subject, perspective):
+		return Subject(enclosing_subject, self, perspective, 'Worksheet')
 

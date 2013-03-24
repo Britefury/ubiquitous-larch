@@ -32,6 +32,18 @@ class WebCombinatorServer (object):
 
 
 
+	def pages(self, *location_components):
+		data = self.service.index('/'.join(location_components))
+		if data is not None:
+			return data
+		else:
+			cherrypy.response.status = 404
+			return 'Document not found'
+
+	pages.exposed = True
+
+
+
 	def event(self, session_id, event_data):
 		return self.service.event(session_id, event_data)
 
