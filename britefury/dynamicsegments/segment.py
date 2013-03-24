@@ -97,7 +97,7 @@ class DynamicSegment (object):
 
 	# HTML generation
 	def _place_holder(self):
-		return '<span class="__lch_seg_placeholder">{0}</span>'.format(self.__id)
+		return '<span class="__lch_seg_placeholder" data-larchsegid="{0}"></span>'.format(self.__id)
 
 	def _inline_html(self, ref_resolver):
 		items = []
@@ -105,10 +105,10 @@ class DynamicSegment (object):
 		return ''.join(items)
 
 	def _build_inline_html(self, items, ref_resolver):
-		items.append('<span class="__lch_seg_begin">{0}</span>'.format(self.__id))
+		items.append('<span class="__lch_seg_begin" data-larchsegid="{0}"></span>'.format(self.__id))
 		if self.__content is not None:
 			self.__content._build_html(items, ref_resolver)
-		items.append('<span class="__lch_seg_end">{0}</span>'.format(self.__id))
+		items.append('<span class="__lch_seg_end" data-larchsegid="{0}"></span>'.format(self.__id))
 
 
 

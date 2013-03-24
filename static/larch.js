@@ -188,7 +188,7 @@ larch.__register_segments = function() {
             start.__lch_initialised = true;
 
             // Extract the segment ID
-            var segment_id = start.innerHTML;
+            var segment_id = start.getAttribute("data-larchsegid");
             //console.log("Initialised " + segment_id);
 
             // Iterate forwards until we find the matching end node.
@@ -197,7 +197,7 @@ larch.__register_segments = function() {
                 // Set the node's segment ID
                 n.__lch_seg_id = segment_id;
 
-                if (n.getAttribute  &&  n.getAttribute("class") === '__lch_seg_end'  && n.innerHTML === segment_id) {
+                if (n.getAttribute  &&  n.getAttribute("class") === '__lch_seg_end'  && n.getAttribute("data-larchsegid") === segment_id) {
                     break;
                 }
 
@@ -271,7 +271,7 @@ larch.__applyChanges = function(changes) {
             // Get the placeholder node
             var p = placeHolders[i];
             // Extract the segment ID that if references
-            var segment_id = p.innerHTML;
+            var segment_id = p.getAttribute("data-larchsegid");
 
             // Get the segment that is to take its place
             var segment = segment_table[segment_id];
@@ -326,16 +326,16 @@ larch.__handleKeyEvent = function(event, keys) {
     for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
         if (key.keyCode === undefined  ||  event.keyCode == key.keyCode) {
-            if (key.altKey !== undefined  &&  event.altKey !== key.altKey) {
+            if (key.altKey !== undefined  &&  event.altKey != key.altKey) {
                 continue;
             }
-            if (key.ctrlKey !== undefined  &&  event.ctrlKey !== key.ctrlKey) {
+            if (key.ctrlKey !== undefined  &&  event.ctrlKey != key.ctrlKey) {
                 continue;
             }
-            if (key.shiftKey !== undefined  &&  event.shiftKey !== key.shiftKey) {
+            if (key.shiftKey !== undefined  &&  event.shiftKey != key.shiftKey) {
                 continue;
             }
-            if (key.metaKey !== undefined  &&  event.metaKey !== key.metaKey) {
+            if (key.metaKey !== undefined  &&  event.metaKey != key.metaKey) {
                 continue;
             }
             // We have a match

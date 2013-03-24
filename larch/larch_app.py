@@ -59,7 +59,7 @@ class Document (object):
 
 
 	def __present__(self, fragment):
-		return Html('<p><a href="/pages/{0}">{1}</p>'.format(self.__loc, self.__name))
+		return Html('<p><a href="/pages/{0}">{1}</a></p>'.format(self.__loc, self.__name))
 
 
 
