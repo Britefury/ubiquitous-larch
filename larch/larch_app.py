@@ -13,6 +13,7 @@ from larch.console import console
 from larch.worksheet import worksheet
 
 from britefury.pres.html import Html
+from britefury.pres.controls import menu
 
 
 
@@ -59,7 +60,7 @@ class Document (object):
 
 
 	def __present__(self, fragment):
-		return Html('<p><a href="/pages/{0}">{1}</a></p>'.format(self.__loc, self.__name))
+		return Html('<p class="larch_app_doc"><a href="/pages/{0}">{1}</a></p>'.format(self.__loc, self.__name))
 
 
 
@@ -70,9 +71,6 @@ class DocumentList (object):
 		self.__documents = []
 		self.__docs_by_location = {}
 		self.__incr = IncrementalValueMonitor()
-
-		w = worksheet.Worksheet()
-		self.add_document_for_content('w', w)
 
 
 	def __iter__(self):
@@ -96,7 +94,7 @@ class DocumentList (object):
 
 	def __present__(self, fragment):
 		self.__incr.on_access()
-		contents = ['<div>']
+		contents = ['<div class="larch_app_doc_list">']
 		contents.extend(self.__documents)
 		contents.append('</div>')
 		return Html(*contents)
@@ -115,16 +113,36 @@ class LarchApplication (object):
 
 
 	def __present__(self, fragment):
-		html1 = """
-		<div class="larch_app_enclosure">
-			<div class="larch_app_title_bar"><h1 class="larch_app_title">The Ubiquitous Larch</h1></div>
+		add_worksheet = menu.item('Worksheet', lambda: self.__docs.add_document_for_content('Worksheet', worksheet.Worksheet()))
+		new_item = menu.sub_menu('New', [add_worksheet])
 
-			<h2>Open documents:</h2>
-		"""
-		html2 = """
-		</div>
-		"""
-		return Html(html1, self.__docs, html2).use_css(url=larch_app_css)
+		new_menu = menu.menu([new_item], drop_down=True)
+		new_menu = Html('<div class="larch_app_menu">', new_menu, '</div>')
+
+
+		contents = ["""
+			<div class="larch_app_enclosure">
+				<div class="larch_app_title_bar"><h1 class="larch_app_title">The Ubiquitous Larch</h1></div>
+
+				<h2>Open documents:</h2>
+			""",
+			self.__docs,
+			new_menu,
+			"""
+			</div>
+			<p class="larch_app_powered_by">Powered by
+			<a class="larch_app_pwr_link" href="http://www.python.org">Python</a>,
+			<a class="larch_app_pwr_link" href="http://flask.pocoo.org">Flask</a>/<a class="larch_app_pwr_link" href="http://bottlepy.org">Bottle</a>/<a class="larch_app_pwr_link" href="http://www.cherrypy.org/">CherryPy</a>,
+			<a class="larch_app_pwr_link" href="http://jquery.com/">jQuery</a>,
+			<a class="larch_app_pwr_link" href="http://www.json.org/js.html">json.js</a>,
+			<a class="larch_app_pwr_link" href="http://codemirror.net/">Code Mirror</a>,
+			<a class="larch_app_pwr_link" href="http://ckeditor.com/">ckEditor</a>,
+			<a class="larch_app_pwr_link" href="http://lokeshdhakar.com/projects/lightbox2/">Lightbox 2</a>,
+			<a class="larch_app_pwr_link" href="http://d3js.org/">d3.js</a>, and
+			<a class="larch_app_pwr_link" href="http://bartaz.github.com/impress.js/#/bored">impress.js</a></p>
+			"""]
+		return Html(*contents).use_css(url=larch_app_css)
+
 
 
 	def __subject__(self, enclosing_subject, perspective):

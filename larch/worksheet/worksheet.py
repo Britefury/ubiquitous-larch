@@ -124,8 +124,6 @@ class Worksheet (object):
 			self._insert_block(WorksheetBlockText(self), below)
 
 
-		insert_code_above_button = button.button('Insert code above', lambda: _insert_code(False))
-
 		insert_code_above = menu.item('Insert code above', lambda: _insert_code(False))
 		insert_rich_text_above = menu.item('Insert rich text above', lambda: _insert_rich_text(False))
 
@@ -138,8 +136,6 @@ class Worksheet (object):
 
 		for block in self.__blocks:
 			contents.extend(['<div>', block, '</div>'])
-
-		contents.append(Html('<div><p>Powered by jQuery, Code Mirror, ckEditor, etc....</p></div>'))
 
 		p = Html(*contents)
 		p = p.with_key_handler([Key(Key.KEY_DOWN, 13, ctrl=True)], on_execute_key)
