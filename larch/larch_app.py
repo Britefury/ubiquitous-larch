@@ -41,14 +41,18 @@ larch_app_css = '/larch_app.css'
 class AppSubject (Subject):
 	def __init__(self, enclosing_subject, app, perspective=None):
 		super(AppSubject, self).__init__(enclosing_subject, app, perspective, title='The Ubiquitous Larch')
+		self.docs = DocListSubject(self, app.docs, perspective)
+		self.consoles = ConsoleListSubject(self, app.consoles, perspective)
 
 
 	def __resolve__(self, name):
-		doc = self.focus.docs.doc_for_location(name)
-		if doc is not None:
-			return doc.content.__subject__(self, self.perspective)
+		if name == 'docs':
+			return self.docs
+		elif name == 'consoles':
+			return self.consoles
 		else:
 			return None
+
 
 
 
@@ -87,9 +91,23 @@ class Document (object):
 			self.save()
 
 		save_button = button.button('Save', on_save)
-		doc_link = '<a href="/pages/{0}">{1}</a>'.format(self.__loc, self.__name)
+		doc_link = '<a href="/pages/docs/{0}">{1}</a>'.format(self.__loc, self.__name)
 		return Html('<p class="larch_app_doc">', doc_link, save_button, '</p>')
 
+
+
+
+class DocListSubject (Subject):
+	def __init__(self, enclosing_subject, docs, perspective=None):
+		super(DocListSubject, self).__init__(enclosing_subject, docs, perspective, title='The Ubiquitous Larch')
+
+
+	def __resolve__(self, name):
+		doc = self.focus.doc_for_location(name)
+		if doc is not None:
+			return doc.content.__subject__(self, self.perspective)
+		else:
+			return None
 
 
 
@@ -151,6 +169,53 @@ class DocumentList (object):
 
 
 
+class ConsoleListSubject (Subject):
+	def __init__(self, enclosing_subject, consoles, perspective=None):
+		super(ConsoleListSubject, self).__init__(enclosing_subject, consoles, perspective, title='The Ubiquitous Larch')
+
+
+	def __resolve__(self, name):
+		try:
+			index = int(name)
+		except ValueError:
+			return None
+		console = self.focus[index]
+		if console is not None:
+			return console.__subject__(self, self.perspective)
+		else:
+			return None
+
+
+
+
+class ConsoleList (object):
+	def __init__(self):
+		self.__consoles = []
+		self.__incr = IncrementalValueMonitor()
+
+
+
+	def __getitem__(self, item):
+		return self.__consoles[item]
+
+	def new_console(self):
+		con = console.Console()
+		self.__consoles.append(con)
+		self.__incr.on_changed()
+
+
+
+	def __present__(self, fragment):
+		self.__incr.on_access()
+		contents = ['<div class="larch_app_console_list">']
+		for i, con in enumerate(self.__consoles):
+			console_link = '<p class="larch_app_console"><a href="/pages/consoles/{0}">Console {0}</a></p>'.format(i)
+			contents.append( console_link)
+		contents.append('</div>')
+		return Html(*contents)
+
+
+
 
 class LarchApplication (object):
 	def __init__(self, documents_path=None):
@@ -158,31 +223,50 @@ class LarchApplication (object):
 			documents_path = os.getcwd()
 
 		self.__docs = DocumentList(documents_path)
+		self.__consoles = ConsoleList()
 
 
 	@property
 	def docs(self):
 		return self.__docs
 
+	@property
+	def consoles(self):
+		return self.__consoles
+
 
 	def __present__(self, fragment):
 		add_worksheet = menu.item('Worksheet', lambda: self.__docs.new_document_for_content('Worksheet', worksheet.Worksheet()))
 		new_item = menu.sub_menu('New', [add_worksheet])
 
-		new_menu = menu.menu([new_item], drop_down=True)
-		new_menu = Html('<div class="larch_app_menu">', new_menu, '</div>')
+		new_document_menu = menu.menu([new_item], drop_down=True)
+		new_document_menu = Html('<div class="larch_app_menu">', new_document_menu, '</div>')
+
+
+		def on_new_console():
+			self.__consoles.new_console()
+
+
+		new_console_button = button.button('New console', on_new_console)
 
 
 		contents = ["""
 			<div class="larch_app_enclosure">
 				<div class="larch_app_title_bar"><h1 class="larch_app_title">The Ubiquitous Larch</h1></div>
 
+				<section class="larch_app_docs_section">
 				<h2>Open documents:</h2>
 			""",
 			self.__docs,
-			new_menu,
+			new_document_menu,
+			"""</section>
+			<section class="larch_app_consoles_section">
+				<h2>Consoles:</h2>
+			""",
+			self.__consoles,
+			new_console_button,
 			"""
-			</div>
+			</section>
 			<p class="larch_app_powered_by">Powered by
 			<a class="larch_app_pwr_link" href="http://www.python.org">Python</a>,
 			<a class="larch_app_pwr_link" href="http://flask.pocoo.org">Flask</a>/<a class="larch_app_pwr_link" href="http://bottlepy.org">Bottle</a>/<a class="larch_app_pwr_link" href="http://www.cherrypy.org/">CherryPy</a>,
@@ -193,6 +277,7 @@ class LarchApplication (object):
 			<a class="larch_app_pwr_link" href="http://lokeshdhakar.com/projects/lightbox2/">Lightbox 2</a>,
 			<a class="larch_app_pwr_link" href="http://d3js.org/">d3.js</a>, and
 			<a class="larch_app_pwr_link" href="http://bartaz.github.com/impress.js/">impress.js</a></p>
+			</div>
 			"""]
 		return Html(*contents).use_css(url=larch_app_css)
 

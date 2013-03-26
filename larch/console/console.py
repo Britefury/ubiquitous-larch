@@ -8,6 +8,7 @@ from britefury.incremental.incremental_value_monitor import IncrementalValueMoni
 from britefury.pres.html import Html
 from britefury.pres.key_event import Key
 from britefury.pres.controls import button
+from britefury.projection.subject import Subject
 from larch.python import PythonCode
 
 
@@ -88,3 +89,6 @@ class Console (object):
 
 		return Html(*contents).use_css('/console.css')
 
+
+	def __subject__(self, enclosing_subject, perspective):
+		return Subject(enclosing_subject, self, perspective, 'Python console')
