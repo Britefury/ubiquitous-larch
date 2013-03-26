@@ -3,6 +3,8 @@
 ##-*************************
 import os
 import string
+import glob
+import pickle
 
 from britefury.dynamicsegments.service import DynamicDocumentService
 
@@ -13,12 +15,26 @@ from larch.console import console
 from larch.worksheet import worksheet
 
 from britefury.pres.html import Html
-from britefury.pres.controls import menu
+from britefury.pres.controls import menu, button
+
+
+
+
+_EXTENSION = '.ularch'
+
+def load_document(path):
+	with open(path, 'rU') as f:
+		return pickle.load(f)
+
+def save_document(path, content):
+	with open(path, 'w') as f:
+		pickle.dump(content, f)
 
 
 
 
 larch_app_css = '/larch_app.css'
+
 
 
 
@@ -38,7 +54,8 @@ class AppSubject (Subject):
 
 
 class Document (object):
-	def __init__(self, name, content):
+	def __init__(self, doc_list, name, content):
+		self.__doc_list = doc_list
 		self.__name = name
 		loc = ''.join([x   for x in name   if x in string.ascii_letters + string.digits + '_'])
 		self.__loc = loc
@@ -59,18 +76,44 @@ class Document (object):
 
 
 
+
+	def save(self):
+		file_path = os.path.join(self.__doc_list.path, self.__name + _EXTENSION)
+		save_document(file_path, self.__content)
+
+
 	def __present__(self, fragment):
-		return Html('<p class="larch_app_doc"><a href="/pages/{0}">{1}</a></p>'.format(self.__loc, self.__name))
+		def on_save():
+			self.save()
+
+		save_button = button.button('Save', on_save)
+		doc_link = '<a href="/pages/{0}">{1}</a>'.format(self.__loc, self.__name)
+		return Html('<p class="larch_app_doc">', doc_link, save_button, '</p>')
 
 
 
 
 
 class DocumentList (object):
-	def __init__(self):
+	def __init__(self, path):
+		self.__path = path
 		self.__documents = []
 		self.__docs_by_location = {}
 		self.__incr = IncrementalValueMonitor()
+
+		file_paths = glob.glob(os.path.join(path, '*' + _EXTENSION))
+		for p in file_paths:
+			directory, filename = os.path.split(p)
+			name, ext = os.path.splitext(filename)
+			content = load_document(p)
+			doc = Document(self, name, content)
+			self.__add_document(doc)
+
+
+
+	@property
+	def path(self):
+		return self.__path
 
 
 	def __iter__(self):
@@ -82,13 +125,20 @@ class DocumentList (object):
 
 
 
-	def add_document(self, doc):
+	def __add_document(self, doc):
 		self.__documents.append(doc)
 		self.__docs_by_location[doc.location] = doc
 		self.__incr.on_changed()
 
-	def add_document_for_content(self, name, content):
-		self.add_document(Document(name, content))
+	def new_document_for_content(self, name, content):
+		doc = Document(self, name, content)
+		doc.save()
+		self.__add_document(doc)
+
+
+	def save_all(self):
+		for doc in self.__documents:
+			doc.save()
 
 
 
@@ -103,8 +153,11 @@ class DocumentList (object):
 
 
 class LarchApplication (object):
-	def __init__(self):
-		self.__docs = DocumentList()
+	def __init__(self, documents_path=None):
+		if documents_path is None:
+			documents_path = os.getcwd()
+
+		self.__docs = DocumentList(documents_path)
 
 
 	@property
@@ -113,7 +166,7 @@ class LarchApplication (object):
 
 
 	def __present__(self, fragment):
-		add_worksheet = menu.item('Worksheet', lambda: self.__docs.add_document_for_content('Worksheet', worksheet.Worksheet()))
+		add_worksheet = menu.item('Worksheet', lambda: self.__docs.new_document_for_content('Worksheet', worksheet.Worksheet()))
 		new_item = menu.sub_menu('New', [add_worksheet])
 
 		new_menu = menu.menu([new_item], drop_down=True)
@@ -139,7 +192,7 @@ class LarchApplication (object):
 			<a class="larch_app_pwr_link" href="http://ckeditor.com/">ckEditor</a>,
 			<a class="larch_app_pwr_link" href="http://lokeshdhakar.com/projects/lightbox2/">Lightbox 2</a>,
 			<a class="larch_app_pwr_link" href="http://d3js.org/">d3.js</a>, and
-			<a class="larch_app_pwr_link" href="http://bartaz.github.com/impress.js/#/bored">impress.js</a></p>
+			<a class="larch_app_pwr_link" href="http://bartaz.github.com/impress.js/">impress.js</a></p>
 			"""]
 		return Html(*contents).use_css(url=larch_app_css)
 
@@ -154,8 +207,8 @@ class LarchApplication (object):
 
 
 
-def create_service():
-	focus = LarchApplication()
+def create_service(documents_path=None):
+	focus = LarchApplication(documents_path)
 	index_subject = Subject.subject_for(None, focus)
 
 

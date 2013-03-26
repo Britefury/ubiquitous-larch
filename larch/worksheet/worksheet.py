@@ -20,6 +20,13 @@ class WorksheetBlock (object):
 		self._worksheet = worksheet
 
 
+	def __getstate__(self):
+		return {'worksheet': self._worksheet}
+
+	def __setstate__(self, state):
+		self._worksheet = state.get('worksheet')
+
+
 	def _on_focus(self):
 		self._worksheet._notify_focus(self)
 
@@ -36,6 +43,18 @@ class WorksheetBlockText (WorksheetBlock):
 			text = ''
 		self.__text = text
 		self.__incr = IncrementalValueMonitor()
+
+
+	def __getstate__(self):
+		state = super(WorksheetBlockText, self).__getstate__()
+		state['text'] = self.__text
+		return state
+
+	def __setstate__(self, state):
+		super(WorksheetBlockText, self).__setstate__(state)
+		self.__text = state.get('text', '')
+		self.__incr = IncrementalValueMonitor()
+
 
 
 	def __present__(self, fragment):
@@ -60,6 +79,22 @@ class WorksheetBlockCode (WorksheetBlock):
 		self.__incr = IncrementalValueMonitor()
 
 
+	def __getstate__(self):
+		state = super(WorksheetBlockCode, self).__getstate__()
+		state['code'] = self.__code
+		return state
+
+	def __setstate__(self, state):
+		super(WorksheetBlockCode, self).__setstate__(state)
+		self.__code = state.get('code')
+		if self.__code is None:
+			self.__code = PythonCode()
+		self.__code.on_focus = self._on_focus
+		self.__result = None
+		self.__incr = IncrementalValueMonitor()
+
+
+
 	def execute(self, module):
 		self.__result = self.__code.execute_in_module(module)
 		self.__incr.on_changed()
@@ -77,6 +112,19 @@ class WorksheetBlockCode (WorksheetBlock):
 class Worksheet (object):
 	def __init__(self, code=''):
 		self.__blocks = [WorksheetBlockCode(self)]
+		self.__incr = IncrementalValueMonitor()
+		self._module = None
+		self.__focus_block = None
+
+
+	def __getstate__(self):
+		return {'blocks': self.__blocks}
+
+
+	def __setstate__(self, state):
+		self.__blocks = state.get('blocks')
+		if self.__blocks is None:
+			self.__blocks = []
 		self.__incr = IncrementalValueMonitor()
 		self._module = None
 		self.__focus_block = None

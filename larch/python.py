@@ -76,6 +76,18 @@ class PythonCode (object):
 		self.on_blur = None
 
 
+	def __getstate__(self):
+		return {'code': self.__code, 'editable': self.__editable}
+
+	def __setstate__(self, state):
+		self.__code = state.get('code', '')
+		self.__editable = state.get('editable', True)
+		self.__incr = IncrementalValueMonitor()
+		self.on_focus = None
+		self.on_blur = None
+
+
+
 	@property
 	def editable(self):
 		return self.__editable
