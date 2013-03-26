@@ -1,0 +1,103 @@
+.larch_app_enclosure {
+    width: 1280px;
+    margin: 0 auto;
+}
+
+.larch_app_title_bar {
+    background : #f8f8f8;
+}
+
+.larch_app_doc_list {
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    padding: 2px;
+}
+
+.larch_app_doc {
+    background: #f8f8f8;
+    border-radius: 5px;
+    padding: 5px;
+    margin: 5px;
+}
+
+.larch_app_console_list {
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    padding: 2px;
+}
+
+.larch_app_console {
+    background: #f8f8f8;
+    border-radius: 5px;
+    padding: 5px;
+    margin: 5px;
+}
+
+.larch_app_docs_section {
+    margin: 3em 0;
+}
+
+.larch_app_consoles_section {
+    margin: 3em 0;
+}
+
+.larch_app_menu {
+    margin: 0.5em 0;
+    width: 10em;
+}
+
+h1.larch_app_title {
+    text-align: center;
+    padding: 0.5em 0;
+    font-family: "Garamond", serif;
+    font-size: 3em;
+    color: #60676e;
+}
+
+p {
+    color: #505050;
+}
+
+h1 {
+    font-family: "Garamond", serif;
+    color: #808080;
+}
+
+h2 {
+    font-family: "Garamond", serif;
+    color: #787878;
+}
+
+h3 {
+    font-family: "Garamond", serif;
+    color: #707070;
+}
+
+h4 {
+    font-family: "Garamond", serif;
+    color: #686868;
+}
+
+h5 {
+    font-family: "Garamond", serif;
+    color: #606060;
+}
+
+h6 {
+    font-family: "Garamond", serif;
+    color: #585858;
+}
+
+.larch_app_powered_by {
+    font-family: "Oxygen", sans-serif;
+    margin-top: 2.5em;
+    text-align: right;
+}
+
+.larch_app_pwr_link {
+    color: #416380;
+}
+
+.larch_app_pwr_link:hover {
+    color: #4f9b3d;
+}
