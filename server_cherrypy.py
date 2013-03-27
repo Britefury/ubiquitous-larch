@@ -4,6 +4,8 @@
 import os
 import cherrypy
 
+from britefury.projection.projection_service import CouldNotResolveLocationError
+
 from larch import larch_app
 
 
@@ -21,10 +23,9 @@ class WebCombinatorServer (object):
 
 
 	def index(self):
-		data = self.service.index()
-		if data is not None:
-			return data
-		else:
+		try:
+			return self.service.page()
+		except CouldNotResolveLocationError:
 			cherrypy.response.status = 404
 			return 'Document not found'
 
@@ -33,10 +34,9 @@ class WebCombinatorServer (object):
 
 
 	def pages(self, *location_components):
-		data = self.service.index('/'.join(location_components))
-		if data is not None:
-			return data
-		else:
+		try:
+			return self.service.page('/'.join(location_components))
+		except CouldNotResolveLocationError:
 			cherrypy.response.status = 404
 			return 'Document not found'
 

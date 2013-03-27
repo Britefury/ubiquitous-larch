@@ -16,30 +16,35 @@ class _Session (object):
 
 
 class DynamicDocumentService (object):
-	def __init__(self, document_initialiser_fn):
+	def __init__(self):
 		self.__sessions = {}
 		self.__session_counter = 1
 
 		self.__rng = random.Random()
 
-		self.__document_initialiser_fn = document_initialiser_fn
+
+	def initialise_session(self, dynamic_document, location):
+		raise NotImplementedError, 'abstract'
 
 
-	def index(self, location=None):
+	def page(self, location=None):
 		session_id = self.__new_session_id()
 		session = _Session()
 		self.__sessions[session_id] = session
 
-		dynamic_document = DynamicDocument(session_id)
+		dynamic_document = DynamicDocument(self, session_id)
 		session.dynamic_document = dynamic_document
 
-		session_data = self.__document_initialiser_fn(dynamic_document, location)
-		if session_data is not None:
+		try:
+			session_data = self.initialise_session(dynamic_document, location)
+		except:
+			# Problem initialising the session; remove it and re-raise
+			del self.__sessions[session_id]
+			raise
+		else:
+			# Session okay, return HTML content
 			session.session_data = session_data
 			return dynamic_document.page_html()
-		else:
-			del self.__sessions[session_id]
-			return None
 
 
 

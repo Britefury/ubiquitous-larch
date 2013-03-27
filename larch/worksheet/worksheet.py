@@ -60,7 +60,11 @@ class WorksheetBlockText (WorksheetBlock):
 	def __present__(self, fragment):
 		self.__incr.on_access()
 
-		p = ckeditor.ckeditor(self.__text, on_focus=self._on_focus)
+		def on_edit(text):
+			self.__text = text
+			self.__incr.on_changed()
+
+		p = ckeditor.ckeditor(self.__text, on_edit=on_edit, on_focus=self._on_focus)
 
 		return Html('<div class="worksheet_block">', p, '</div>')
 

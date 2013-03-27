@@ -61,7 +61,8 @@ class DynamicDocument (object):
 
 	You must create and set the root segment before using the document. Create using new_segment, then set the root_segment attribute.
 	"""
-	def __init__(self, session_id):
+	def __init__(self, service, session_id):
+		self.__service = service
 		self._table = _SegmentTable(self)
 
 		self.__queued_tasks = deque()
@@ -98,6 +99,12 @@ class DynamicDocument (object):
 		# Threading lock, required for servers such as CherryPy
 		self.__lock = None
 
+
+
+
+	@property
+	def service(self):
+		return self.__service
 
 
 

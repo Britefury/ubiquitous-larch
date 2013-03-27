@@ -43,3 +43,40 @@
     font-size: 11px;
 }
 
+
+
+p {
+    color: #404040;
+    font-family: "Oxygen", sans-serif;
+}
+
+h1 {
+    font-family: "Garamond", serif;
+    color: #808080;
+}
+
+h2 {
+    font-family: "Garamond", serif;
+    color: #787878;
+}
+
+h3 {
+    font-family: "Garamond", serif;
+    color: #707070;
+}
+
+h4 {
+    font-family: "Garamond", serif;
+    color: #686868;
+}
+
+h5 {
+    font-family: "Garamond", serif;
+    color: #606060;
+}
+
+h6 {
+    font-family: "Garamond", serif;
+    color: #585858;
+}
+

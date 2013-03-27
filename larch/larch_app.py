@@ -6,10 +6,8 @@ import string
 import glob
 import pickle
 
-from britefury.dynamicsegments.service import DynamicDocumentService
-
 from britefury.projection.subject import Subject
-from britefury.incremental_view.incremental_view import IncrementalView
+from britefury.projection.projection_service import ProjectionService
 from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
 from larch.console import console
 from larch.worksheet import worksheet
@@ -296,13 +294,4 @@ def create_service(documents_path=None):
 	focus = LarchApplication(documents_path)
 	index_subject = Subject.subject_for(None, focus)
 
-
-	def _initialise_document(dynamic_document, location):
-		subject = index_subject.resolve(location)
-		if subject is not None:
-			return IncrementalView(subject, dynamic_document)
-		else:
-			return None
-
-
-	return DynamicDocumentService(_initialise_document)
+	return ProjectionService(index_subject)

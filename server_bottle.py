@@ -3,6 +3,8 @@
 ##-*************************
 from bottle import Bottle, run, static_file, request, response
 
+from britefury.projection.projection_service import CouldNotResolveLocationError
+
 from larch import larch_app
 
 
@@ -14,20 +16,18 @@ app = Bottle()
 
 @app.route('/')
 def index():
-	data = service.index()
-	if data is not None:
-		return data
-	else:
+	try:
+		return service.page()
+	except CouldNotResolveLocationError:
 		response.status = 404
 		return 'Document not found'
 
 
 @app.route('/pages/<location:path>')
-def index(location):
-	data = service.index(location)
-	if data is not None:
-		return data
-	else:
+def page(location):
+	try:
+		return service.page(location)
+	except CouldNotResolveLocationError:
 		response.status = 404
 		return 'Page at {0} not found'.format(location)
 

@@ -138,6 +138,10 @@ class _FragmentView (object):
 		return self.__inc_view.dynamic_document
 
 	@property
+	def service(self):
+		return self.__inc_view.service
+
+	@property
 	def subject(self):
 		return self.fragment_factory.subject
 
@@ -753,6 +757,10 @@ class IncrementalView (object):
 	@property
 	def dynamic_document(self):
 		return self.__dynamic_document
+
+	@property
+	def service(self):
+		return self.__dynamic_document.service
 
 
 

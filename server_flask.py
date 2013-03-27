@@ -1,9 +1,9 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
-import os
-
 from flask import Flask, request, Response, abort
+
+from britefury.projection.projection_service import CouldNotResolveLocationError
 
 from larch import larch_app
 
@@ -15,19 +15,17 @@ app = Flask(__name__, static_url_path='', static_folder='static')
 
 @app.route('/')
 def index():
-	data = service.index()
-	if data is not None:
-		return data
-	else:
+	try:
+		return service.page()
+	except CouldNotResolveLocationError:
 		abort(404)
 
 
 @app.route('/pages/<path:location>')
 def page(location):
-	data = service.index(location)
-	if data is not None:
-		return data
-	else:
+	try:
+		return service.page(location)
+	except CouldNotResolveLocationError:
 		abort(404)
 
 

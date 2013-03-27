@@ -46,16 +46,6 @@ class Subject (object):
 	def __resolve__(self, name):
 		return None
 
-	def resolve(self, location):
-		if location is None  or  location == '':
-			return self
-		else:
-			s = self
-			for n in location.split('/'):
-				s = s.__resolve__(n)
-				if s is None:
-					return
-			return s
 
 
 
