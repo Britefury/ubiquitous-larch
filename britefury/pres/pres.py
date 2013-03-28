@@ -121,9 +121,8 @@ class Pres (object):
 
 
 class Resource (Pres):
-	def __init__(self, data_fn, mime_type):
-		self.__data_fn = data_fn
-		self.__mime_type = mime_type
+	def __init__(self, rsc_data):
+		self.__rsc_data = rsc_data
 
 
 	def build(self, pres_ctx):
@@ -133,7 +132,7 @@ class Resource (Pres):
 		return json.dumps(self._url(pres_ctx))
 
 	def _url(self, pres_ctx):
-		rsc = pres_ctx.fragment_view.create_resource(self.__data_fn, self.__mime_type)
+		rsc = pres_ctx.fragment_view.create_resource(self.__rsc_data, pres_ctx)
 		return rsc.url
 
 

@@ -2,7 +2,8 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
 from britefury.dynamicsegments.service import DynamicDocumentService
-from britefury.incremental_view.incremental_view import IncrementalView
+from britefury.incremental_view.incremental_view import IncrementalView#
+from britefury.projection.subject import Subject
 
 
 
@@ -18,7 +19,10 @@ class ProjectionService (DynamicDocumentService):
 
 
 	def initialise_session(self, dynamic_document, location):
-		subject = self.__resolve_location(location)
+		if isinstance(location, Subject):
+			subject = location
+		else:
+			subject = self.__resolve_location(location)
 
 		# Create the incremental view
 		return IncrementalView(subject, dynamic_document)

@@ -53,7 +53,6 @@ _page_content = """
 
 
 
-
 class DynamicDocument (object):
 	"""A dynamic web document, composed of segments.
 
@@ -193,21 +192,23 @@ class DynamicDocument (object):
 	#
 	#
 
-	def resource_for(self, data_fn, mime_type):
+	def resource_for(self, rsc_data, context):
 		"""Create a new resource
 
-		data_fn - function that returns the resource's content
-		mime_type - the MIME type
+		rsc_data - A resource data object that provides:
+			initialise(context) and dispose(context) methods. These are called before the resource is first used and when it is no longer needed, respectively.
+					The context parameter of these methods receives the value passed to context of this method
+			data and mime_type attributes/properties: the data and its MIME type
+		context - context data, used by the resource data object at initialisation and disposal time
 		"""
-		key = data_fn, mime_type
-		rsc = self.__rsc_content_to_rsc.get(key)
+		rsc = self.__rsc_content_to_rsc.get(rsc_data)
 		if rsc is None:
 			rsc_id = 'rsc{0}'.format(self.__rsc_id_counter)
 			self.__rsc_id_counter += 1
-			rsc = DynamicResource(self, rsc_id, data_fn, mime_type)
+			rsc = DynamicResource(self, rsc_id, rsc_data)
 			self.__rsc_id_to_rsc[rsc_id] = rsc
 
-		rsc.ref()
+		rsc.ref(context)
 
 		return rsc
 
@@ -538,20 +539,25 @@ class _SegmentTable (object):
 
 
 class DynamicResource (object):
-	def __init__(self, doc, rsc_id, data_fn, mime_type):
+	def __init__(self, doc, rsc_id, rsc_data):
 		self.__doc = doc
 		self.__rsc_id = rsc_id
-		self.__data_fn = data_fn
-		self.__mime_type = mime_type
+		self.__rsc_data = rsc_data
+		self.__context = None
 		self.__ref_count = 0
 
 
-	def ref(self):
+	def ref(self, context):
+		if self.__ref_count == 0:
+			self.__context = context
+			self.__rsc_data.initialise(context)
 		self.__ref_count += 1
 		return self.__ref_count
 
 	def unref(self):
 		self.__ref_count -= 1
+		if self.__ref_count == 0:
+			self.__rsc_data.dispose(self.__context)
 		return self.__ref_count
 
 
@@ -565,11 +571,11 @@ class DynamicResource (object):
 
 	@property
 	def data(self):
-		return self.__data_fn()
+		return self.__rsc_data.data
 
 	@property
 	def mime_type(self):
-		return self.__mime_type
+		return self.__rsc_data.mime_type
 
 
 	@property

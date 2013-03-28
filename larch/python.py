@@ -112,25 +112,25 @@ class PythonCode (object):
 
 
 	def execute(self, module_name, env):
-		ast_module = compile(self.code, module_name, 'exec', flags=_ast.PyCF_ONLY_AST)
-
-		exec_code = None
-		eval_code = None
-		if len(ast_module.body) > 0:
-			last_statement = ast_module.body[-1]
-			if isinstance(last_statement, _ast.Expr):
-				# The last statement is an expression
-				expr = last_statement.value
-
-				exec_code = compile(_ast.Module(body=ast_module.body[:-1]), module_name, 'exec')
-				eval_code = compile(_ast.Expression(body=expr), module_name, 'eval')
-			else:
-				exec_code = compile(ast_module, module_name, 'exec')
-
-
-		env = env
-
 		try:
+			ast_module = compile(self.code, module_name, 'exec', flags=_ast.PyCF_ONLY_AST)
+
+			exec_code = None
+			eval_code = None
+			if len(ast_module.body) > 0:
+				last_statement = ast_module.body[-1]
+				if isinstance(last_statement, _ast.Expr):
+					# The last statement is an expression
+					expr = last_statement.value
+
+					exec_code = compile(_ast.Module(body=ast_module.body[:-1]), module_name, 'exec')
+					eval_code = compile(_ast.Expression(body=expr), module_name, 'eval')
+				else:
+					exec_code = compile(ast_module, module_name, 'exec')
+
+
+			env = env
+
 			if exec_code is not None:
 				exec exec_code in env
 			if eval_code is not None:
