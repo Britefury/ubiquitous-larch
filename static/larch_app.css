@@ -13,11 +13,23 @@
     padding: 2px;
 }
 
-.larch_app_doc {
+.larch_app_doc_container {
     background: #f8f8f8;
     border-radius: 5px;
     padding: 5px;
     margin: 5px;
+}
+
+.larch_app_doc {
+    margin-right: 120px;
+    margin-top: 7px;
+    margin-bottom: 7px;
+}
+
+.larch_app_doc_controls {
+    float: right;
+    text-align: right;
+    width: 100px;
 }
 
 .larch_app_console_list {
@@ -67,3 +79,4 @@ h1.larch_app_title {
 .larch_app_pwr_link:hover {
     color: #4f9b3d;
 }
+

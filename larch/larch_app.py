@@ -13,7 +13,7 @@ from larch.console import console
 from larch.worksheet import worksheet
 
 from britefury.pres.html import Html
-from britefury.pres.controls import menu, button
+from britefury.pres.controls import menu, button, dialog, text_entry
 
 
 
@@ -89,8 +89,9 @@ class Document (object):
 			self.save()
 
 		save_button = button.button('Save', on_save)
-		doc_link = '<a href="/pages/docs/{0}">{1}</a>'.format(self.__loc, self.__name)
-		return Html('<p class="larch_app_doc">', doc_link, save_button, '</p>')
+		doc_link = '<p class="larch_app_doc"><a href="/pages/docs/{0}">{1}</a></p>'.format(self.__loc, self.__name)
+		controls = Html('<div class="larch_app_doc_controls">', save_button, '</div>')
+		return Html('<div class="larch_app_doc_container">', controls, doc_link, '</div>')
 
 
 
@@ -160,9 +161,9 @@ class DocumentList (object):
 
 	def __present__(self, fragment):
 		self.__incr.on_access()
-		contents = ['<div class="larch_app_doc_list">']
+		contents = ['<div class="larch_app_doc_list"><table>']
 		contents.extend(self.__documents)
-		contents.append('</div>')
+		contents.append('</table></div>')
 		return Html(*contents)
 
 
@@ -215,6 +216,48 @@ class ConsoleList (object):
 
 
 
+class NewDocumentGUI (object):
+	def __init__(self):
+		self.__incr = IncrementalValueMonitor()
+		self.__doc_list = None
+		self.__document_factory = None
+		self.__name = None
+
+
+	def show(self, doc_list, document_factory, initial_name):
+		self.__doc_list = doc_list
+		self.__document_factory = document_factory
+		self.__name = initial_name
+		self.__incr.on_changed()
+
+
+	def _create(self):
+		if self.__document_factory is not None:
+			document = self.__document_factory()
+			self.__doc_list.new_document_for_content(self.__name, document)
+			self.__doc_list = None
+			self.__document_factory = None
+			self.__name = None
+			self.__incr.on_changed()
+
+
+	def __present__(self, fragment):
+		self.__incr.on_access()
+		if self.__document_factory is None:
+			return Html()
+		else:
+			def on_edit(text):
+				self.__name = text
+
+			name_row = Html('<tr><td>Name:</td><td>', text_entry.text_entry(self.__name, on_edit=on_edit), '</td></tr>')
+			create_row = Html('<tr><td></td><td>', button.button('Create', self._create), '</td></tr>')
+
+			return dialog.dialog(Html('<table>', name_row, create_row, '</table>'))
+
+
+
+
+
 class LarchApplication (object):
 	def __init__(self, documents_path=None):
 		if documents_path is None:
@@ -222,6 +265,8 @@ class LarchApplication (object):
 
 		self.__docs = DocumentList(documents_path)
 		self.__consoles = ConsoleList()
+
+		self.__new_doc = NewDocumentGUI()
 
 
 	@property
@@ -234,7 +279,7 @@ class LarchApplication (object):
 
 
 	def __present__(self, fragment):
-		add_worksheet = menu.item('Worksheet', lambda: self.__docs.new_document_for_content('Worksheet', worksheet.Worksheet()))
+		add_worksheet = menu.item('Worksheet', lambda: self.__new_doc.show(self.__docs, lambda: worksheet.Worksheet(), 'Worksheet'))
 		new_item = menu.sub_menu('New', [add_worksheet])
 
 		new_document_menu = menu.menu([new_item], drop_down=True)
@@ -257,6 +302,7 @@ class LarchApplication (object):
 			""",
 			self.__docs,
 			new_document_menu,
+			self.__new_doc,
 			"""</section>
 			<section class="larch_app_consoles_section">
 				<h2>Consoles:</h2>

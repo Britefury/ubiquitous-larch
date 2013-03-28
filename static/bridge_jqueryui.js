@@ -24,3 +24,13 @@ larch.controls.initMenu = function(node, options) {
     };
     $(node).menu(options);
 }
+
+larch.controls.initDialog = function(node, options) {
+    $(node).dialog(options);
+}
+
+larch.controls.initTextEntry = function(node) {
+    node.oninput = function() {
+        larch.postEvent(node, "text_entry_edit", node.value);
+    };
+}
