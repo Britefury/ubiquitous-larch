@@ -407,9 +407,6 @@ class _FragmentView (object):
 		if subject is None:
 			subject = self.__fragment_factory._subject
 
-		if model is None:
-			raise NotImplementedError, 'presentation of null value not implemented'
-
 		if inherited_state is None:
 			raise ValueError, 'inherited_state is None'
 
@@ -847,20 +844,17 @@ class IncrementalView (object):
 
 
 	def _build_fragment_view(self, model, fragment_factory):
-		if model is None:
-			return None
-		else:
-			# Try asking the table for an unused fragment view for the model
-			fragment_view = self._node_table.get_unrefed_fragment_for_model(model, fragment_factory)
+		# Try asking the table for an unused fragment view for the model
+		fragment_view = self._node_table.get_unrefed_fragment_for_model(model, fragment_factory)
 
-			if fragment_view is None:
-				# No existing incremental tree node could be acquired.
-				# Create a new one and add it to the table
-				fragment_view = _FragmentView(model, self)
+		if fragment_view is None:
+			# No existing incremental tree node could be acquired.
+			# Create a new one and add it to the table
+			fragment_view = _FragmentView(model, self)
 
-			fragment_view.fragment_factory = fragment_factory
+		fragment_view.fragment_factory = fragment_factory
 
-			return fragment_view
+		return fragment_view
 
 
 	#

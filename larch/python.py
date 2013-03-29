@@ -48,7 +48,7 @@ class ExecutionResultValue (object):
 
 
 	def __present__(self, fragment):
-		return Pres.coerce(self.value)
+		return Pres.coerce_nullable(self.value)
 
 
 
