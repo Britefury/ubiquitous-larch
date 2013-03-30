@@ -1,3 +1,8 @@
+/*
+Styles for text written to stdout and stderr
+block style (container), name style (title), and text style (content)
+*/
+
 .python_stdout_block {
     border: 1px solid #00c000;
     border-radius: 5px;
@@ -41,47 +46,60 @@
 
 
 
+/*
+Styles for presenting Python values
+*/
+
+/* Punctuation: quotes, commas, etc */
 .pyprim_punctuation {
     font-family: "Tahoma", "Geneva", sans-serif;
     color : #0000ff;
 }
 
+/* None */
 .pyprim_none {
     font-family: "Tahoma", "Geneva", sans-serif;
     color : #000000;
 }
 
+/* Booleans */
 .pyprim_bool {
     font-family: "Tahoma", "Geneva", sans-serif;
     color : #008000;
 }
 
+/* String content (within quotes) */
 .pyprim_string {
     font-family: "Tahoma", "Geneva", sans-serif;
     color : #000000;
 }
 
+/* ints */
 .pyprim_int {
     font-family: "Tahoma", "Geneva", sans-serif;
     color : #800080;
 }
 
+/* longs */
 .pyprim_long {
     font-family: "Tahoma", "Geneva", sans-serif;
     color : #800080;
 }
 
+/* floats */
 .pyprim_float {
     font-family: "Tahoma", "Geneva", sans-serif;
     color : #400080;
 }
 
+/* imaginary parts of complex numbers */
 .pyprim_complex_j {
     font-family: "Tahoma", "Geneva", sans-serif;
     color : #004040;
 }
 
 
+/* Error box for exceptions */
 .error_box {
     font-family: "Tahoma", "Geneva", sans-serif;
     border-width: 1px;
