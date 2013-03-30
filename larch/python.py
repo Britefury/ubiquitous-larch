@@ -16,53 +16,110 @@ from britefury.pres.controls import code_mirror, button
 __author__ = 'Geoff'
 
 
-class CodeResult (object):
-	def __init__(self):
-		self.__result = None
-		self.__incr = IncrementalValueMonitor()
+TextBlockStyle = namedtuple('TextBlockStyle', ['block_style', 'name_style', 'content_style'])
 
 
-	@property
-	def result(self):
-		return self.__result
+class TextOutBlock (object):
+	def __init__(self, name, style):
+		self.name = name
+		self.content = ''
+		self.style = style
 
-	@result.setter
-	def result(self, r):
-		self.__result = r
-		self.__incr.on_changed()
+
+	def write(self, text):
+		self.content += text
 
 
 	def __present__(self, fragment):
-		self.__incr.on_access()
-		if self.__result is None:
-			return Html('<div></div>')
-		else:
-			return Html('<div>', Pres.coerce_nullable(self.__result[0]), '</div>')
+		return Html('<div class="{0}"><p class="{1}">{2}</p><pre class="{3}">{4}</pre></div>'.format(self.style.block_style, self.style.name_style, self.name, self.style.content_style, self.content))
 
 
 
 
-class ExecutionResultValue (object):
-	def __init__(self, value):
+
+class InterleavedTextOutStream (object):
+	class _NamedStream (object):
+		def __init__(self, interleaved_stream, name):
+			self.interleaved_stream = interleaved_stream
+			self.name = name
+
+
+		def write(self, text):
+			self.interleaved_stream.write(self.name, text)
+
+
+	def __init__(self, style_map):
+		self.blocks = []
+		self.style_map = style_map
+
+
+	def named_stream(self, name):
+		return self._NamedStream(self, name)
+
+
+	def is_empty(self):
+		return len(self.blocks) > 0
+
+
+	@property
+	def current_block(self):
+		return self.blocks[-1]   if len(self.blocks) > 0   else None
+
+
+	def write(self, block_name, text):
+		current = self.current_block
+		change = current is None  or  current.name != block_name
+		if change:
+			self.blocks.append(TextOutBlock(block_name, self.style_map[block_name]))
+		self.current_block.write(text)
+
+
+	def __present__(self, fragment):
+		return Html(*self.blocks)
+
+
+
+
+
+class ExecutionResultEmpty (object):
+	def __init__(self, streams):
+		self.streams = streams
+
+
+	def __present__(self, fragment):
+		return Pres.coerce(self.streams)
+
+
+
+class ExecutionResultValue (ExecutionResultEmpty):
+	def __init__(self, streams, value):
+		super(ExecutionResultValue, self).__init__(streams)
 		self.value = value
 
 
 	def __present__(self, fragment):
-		return Pres.coerce_nullable(self.value)
+		return Html(self.streams, Pres.coerce_nullable(self.value))
 
 
 
-class ExecutionResultException (object):
-	def __init__(self, exc_instance, trace_back):
+class ExecutionResultException (ExecutionResultEmpty):
+	def __init__(self, streams, exc_instance, trace_back):
+		super(ExecutionResultException, self).__init__(streams)
 		self.exc_instance = exc_instance
 		self.trace_back = trace_back
 
 
 	def __present__(self, fragment):
-		return present_exception(self.exc_instance, self.trace_back)
+		return Html(self.streams, present_exception(self.exc_instance, self.trace_back))
 
 
 
+
+
+_stream_style_map = {
+	'stdout': TextBlockStyle('python_stdout_block', 'python_stdout_name', 'python_stdout_text'),
+	'stderr': TextBlockStyle('python_stderr_block', 'python_stderr_name', 'python_stderr_text')
+}
 
 
 class PythonCode (object):
@@ -112,7 +169,13 @@ class PythonCode (object):
 
 
 	def execute(self, module_name, env):
+		streams = InterleavedTextOutStream(_stream_style_map)
+		old_out, old_err = sys.stdout, sys.stderr
+		sys.stdout = streams.named_stream('stdout')
+		sys.stderr = streams.named_stream('stderr')
+
 		try:
+
 			ast_module = compile(self.code, module_name, 'exec', flags=_ast.PyCF_ONLY_AST)
 
 			exec_code = None
@@ -134,11 +197,14 @@ class PythonCode (object):
 			if exec_code is not None:
 				exec exec_code in env
 			if eval_code is not None:
-				return ExecutionResultValue(eval(eval_code, env))
+				val = eval(eval_code, env)
+				return ExecutionResultValue(streams, val)
 			else:
-				return None
+				return ExecutionResultEmpty(streams)
 		except Exception, e:
-			return ExecutionResultException(e, sys.exc_info()[2])
+			return ExecutionResultException(streams, e, sys.exc_info()[2])
+		finally:
+			sys.stdout, sys.stdin = old_out, old_err
 
 
 

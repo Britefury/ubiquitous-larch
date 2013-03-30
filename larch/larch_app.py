@@ -87,6 +87,10 @@ class Document (object):
 		return self.__name
 
 	@property
+	def filename(self):
+		return self.__filename
+
+	@property
 	def location(self):
 		return self.__loc
 
@@ -147,11 +151,11 @@ class DocumentList (object):
 		self.__path = path
 		self.__documents = []
 		self.__docs_by_location = {}
-		self.__docs_by_name = {}
+		self.__docs_by_filename = {}
 		self.__incr = IncrementalValueMonitor()
 
 		file_paths = glob.glob(os.path.join(path, '*' + _EXTENSION))
-		for p in file_paths:
+		for p in sorted(file_paths):
 			directory, filename = os.path.split(p)
 			name, ext = os.path.splitext(filename)
 			content = load_document(p)
@@ -172,19 +176,19 @@ class DocumentList (object):
 	def doc_for_location(self, location):
 		return self.__docs_by_location.get(location)
 
-	def doc_for_name(self, name):
-		return self.__docs_by_name.get(name)
+	def doc_for_filename(self, filename):
+		return self.__docs_by_filename.get(filename)
 
 
 
 	def __add_document(self, doc):
 		self.__documents.append(doc)
 		self.__docs_by_location[doc.location] = doc
-		self.__docs_by_name[doc.name] = doc
+		self.__docs_by_filename[doc.filename] = doc
 		self.__incr.on_changed()
 
 	def new_document_for_content(self, name, content):
-		if name in self.__docs_by_name:
+		if name in self.__docs_by_filename:
 			raise DocumentNameInUseError, name
 		doc = Document(self, name, _sanitise_filename(name), content)
 		doc.save()
@@ -268,12 +272,12 @@ class GUIBox (object):
 
 
 class DocNameInUseGui (GUIBox):
-	def __init__(self, name):
+	def __init__(self, filename):
 		super(DocNameInUseGui, self).__init__()
-		self.name = name
+		self.filename = filename
 
 	def __present__(self, fragment):
-		return Html('<div class="larch_app_doc_name_in_use"><p class="error_text">There is already a document named <span class="emph">{0}</span>.</p>'.format(self.name),
+		return Html('<div class="larch_app_doc_name_in_use"><p class="error_text">There is already a document in a file named \'{0}<span class="emph">.ularch</span>\'.</p>'.format(self.filename),
 			    button.button('Close', self.close), '</div>')
 
 
@@ -290,8 +294,9 @@ class NewDocumentGUI (GUIBox):
 			self.__name = text
 
 		def on_create():
-			if self.__doc_list.doc_for_name(self.__name) is not None:
-				self._gui_list.add(DocNameInUseGui(self.__name))
+			filename = _sanitise_filename(self.__name)
+			if self.__doc_list.doc_for_filename(filename) is not None:
+				self._gui_list.add(DocNameInUseGui(filename))
 			else:
 				document = self.__document_factory()
 				self.__doc_list.new_document_for_content(self.__name, document)
