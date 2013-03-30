@@ -8,28 +8,46 @@
 }
 
 .larch_app_doc_list {
+    border-spacing: 0;
     border: 1px solid #e0e0e0;
-    border-radius: 5px;
-    padding: 2px;
 }
 
-.larch_app_doc_container {
-    background: #f8f8f8;
-    border-radius: 5px;
-    padding: 5px;
-    margin: 5px;
+.larch_app_doc_list_header {
+    font-weight: bold;
+    color: #505050;
+    font-family: "Palatino linotype", "Book Antiqua", serif;
+    background: #e0e0d0;
 }
 
 .larch_app_doc {
-    margin-right: 120px;
-    margin-top: 7px;
-    margin-bottom: 7px;
+    border: 1px solid #c0c0c0;
+}
+
+.larch_app_doc:nth-child(even) {
+    background: #ececec;
+}
+
+.larch_app_doc:nth-child(odd) {
+    background: #ffffff;
+}
+
+.larch_app_doc_title {
+    font-family: "Palatino linotype", "Book Antiqua", serif;
+    margin-right: 2em;
+}
+
+.larch_app_doc_filename {
+    font-family: "Palatino linotype", "Book Antiqua", serif;
+}
+
+.larch_app_doc_extension {
+    font-family: "Palatino linotype", "Book Antiqua", serif;
+    font-style: italic;
+    margin-right: 2em;
 }
 
 .larch_app_doc_controls {
-    float: right;
-    text-align: right;
-    width: 100px;
+    margin-right: 2em;
 }
 
 .larch_app_console_list {

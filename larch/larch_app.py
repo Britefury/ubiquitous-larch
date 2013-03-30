@@ -62,11 +62,21 @@ class AppSubject (Subject):
 
 
 
+_filename_chars = string.ascii_letters + string.digits + ' _-'
+
+def _sanitise_filename_char(x):
+	return x   if x in _filename_chars   else '_'
+
+def _sanitise_filename(name):
+	return ''.join([_sanitise_filename_char(x)  for x in name])
+
+
 
 class Document (object):
-	def __init__(self, doc_list, name, content):
+	def __init__(self, doc_list, name, filename, content):
 		self.__doc_list = doc_list
 		self.__name = name
+		self.__filename = filename
 		loc = ''.join([x   for x in name   if x in string.ascii_letters + string.digits + '_'])
 		self.__loc = loc
 		self.__content = content
@@ -88,7 +98,7 @@ class Document (object):
 
 
 	def save(self):
-		file_path = os.path.join(self.__doc_list.path, self.__name + _EXTENSION)
+		file_path = os.path.join(self.__doc_list.path, self.__filename + _EXTENSION)
 		save_document(file_path, self.__content)
 
 
@@ -97,9 +107,10 @@ class Document (object):
 			self.save()
 
 		save_button = button.button('Save', on_save)
-		doc_link = '<p class="larch_app_doc"><a href="/pages/docs/{0}">{1}</a></p>'.format(self.__loc, self.__name)
+		doc_title = '<a href="/pages/docs/{0}" class="larch_app_doc_title">{1}</a>'.format(self.__loc, self.__name)
+		doc_filename = '<span class="larch_app_doc_filename">{0}</span><span class="larch_app_doc_extension">.ularch</span>'.format(self.__filename)
 		controls = Html('<div class="larch_app_doc_controls">', save_button, '</div>')
-		return Html('<div class="larch_app_doc_container">', controls, doc_link, '</div>')
+		return Html('<tr class="larch_app_doc">	<td>', doc_title, '</td><td>', doc_filename, '</td><td>', controls, '</td></tr>')
 
 
 
@@ -144,7 +155,7 @@ class DocumentList (object):
 			directory, filename = os.path.split(p)
 			name, ext = os.path.splitext(filename)
 			content = load_document(p)
-			doc = Document(self, name, content)
+			doc = Document(self, name, name, content)
 			self.__add_document(doc)
 
 
@@ -175,7 +186,7 @@ class DocumentList (object):
 	def new_document_for_content(self, name, content):
 		if name in self.__docs_by_name:
 			raise DocumentNameInUseError, name
-		doc = Document(self, name, content)
+		doc = Document(self, name, _sanitise_filename(name), content)
 		doc.save()
 		self.__add_document(doc)
 
@@ -188,9 +199,11 @@ class DocumentList (object):
 
 	def __present__(self, fragment):
 		self.__incr.on_access()
-		contents = ['<div class="larch_app_doc_list"><table>']
+		contents = ['<table class="larch_app_doc_list">']
+		contents.append('<thead class="larch_app_doc_list_header"><td>Title</td><td>Filename</td><td>Save</td></thead>')
+		contents.append('<tbody>')
 		contents.extend(self.__documents)
-		contents.append('</table></div>')
+		contents.append('</tbody></table>')
 		return Html(*contents)
 
 
