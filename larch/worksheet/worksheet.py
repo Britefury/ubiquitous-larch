@@ -163,6 +163,17 @@ class Worksheet (object):
 			self.execute()
 			return True
 
+		def on_save_key(key):
+			subject = fragment.subject
+			try:
+				save = subject.save
+			except AttributeError:
+				print 'WARNING: Could not save; method unavailable'
+				raise
+			else:
+				save()
+			return True
+
 
 		self.__incr.on_access()
 
@@ -191,6 +202,7 @@ class Worksheet (object):
 
 		p = Html(*contents)
 		p = p.with_key_handler([Key(Key.KEY_DOWN, 13, ctrl=True)], on_execute_key)
+		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('S'), ctrl=True, prevent_default=True)], on_save_key)
 		return p.use_css('/worksheet.css')
 
 

@@ -20,6 +20,14 @@ from britefury.pres.controls import menu, button, dialog, text_entry
 
 _EXTENSION = '.ularch'
 
+
+
+class DocumentNameInUseError (object):
+	pass
+
+
+
+
 def load_document(path):
 	with open(path, 'rU') as f:
 		return pickle.load(f)
@@ -96,6 +104,17 @@ class Document (object):
 
 
 
+class _DocSubject (Subject):
+	def __init__(self, enclosing_subject, doc, perspective=None):
+		super(_DocSubject, self).__init__(enclosing_subject, doc, perspective, title=doc.name)
+
+
+	def save(self):
+		self.focus.save()
+
+
+
+
 class DocListSubject (Subject):
 	def __init__(self, enclosing_subject, docs, perspective=None):
 		super(DocListSubject, self).__init__(enclosing_subject, docs, perspective, title='The Ubiquitous Larch')
@@ -104,7 +123,8 @@ class DocListSubject (Subject):
 	def __resolve__(self, name):
 		doc = self.focus.doc_for_location(name)
 		if doc is not None:
-			return doc.content.__subject__(self, self.perspective)
+			doc_subj = _DocSubject(self, doc, self.perspective)
+			return doc.content.__subject__(doc_subj, self.perspective)
 		else:
 			return None
 
@@ -116,6 +136,7 @@ class DocumentList (object):
 		self.__path = path
 		self.__documents = []
 		self.__docs_by_location = {}
+		self.__docs_by_name = {}
 		self.__incr = IncrementalValueMonitor()
 
 		file_paths = glob.glob(os.path.join(path, '*' + _EXTENSION))
@@ -137,17 +158,23 @@ class DocumentList (object):
 		return iter(self.__documents)
 
 
-	def doc_for_location(self, name):
-		return self.__docs_by_location.get(name)
+	def doc_for_location(self, location):
+		return self.__docs_by_location.get(location)
+
+	def doc_for_name(self, name):
+		return self.__docs_by_name.get(name)
 
 
 
 	def __add_document(self, doc):
 		self.__documents.append(doc)
 		self.__docs_by_location[doc.location] = doc
+		self.__docs_by_name[doc.name] = doc
 		self.__incr.on_changed()
 
 	def new_document_for_content(self, name, content):
+		if name in self.__docs_by_name:
+			raise DocumentNameInUseError, name
 		doc = Document(self, name, content)
 		doc.save()
 		self.__add_document(doc)
@@ -216,44 +243,80 @@ class ConsoleList (object):
 
 
 
-class NewDocumentGUI (object):
+
+class GUIBox (object):
 	def __init__(self):
-		self.__incr = IncrementalValueMonitor()
-		self.__doc_list = None
-		self.__document_factory = None
-		self.__name = None
+		self._gui_list = None
 
 
-	def show(self, doc_list, document_factory, initial_name):
+	def close(self):
+		self._gui_list.close(self)
+
+
+
+class DocNameInUseGui (GUIBox):
+	def __init__(self, name):
+		super(DocNameInUseGui, self).__init__()
+		self.name = name
+
+	def __present__(self, fragment):
+		return Html('<div class="larch_app_doc_name_in_use"><p class="error_text">There is already a document named <span class="emph">{0}</span>.</p>'.format(self.name),
+			    button.button('Close', self.close), '</div>')
+
+
+class NewDocumentGUI (GUIBox):
+	def __init__(self, doc_list, document_factory, initial_name):
+		super(NewDocumentGUI, self).__init__()
 		self.__doc_list = doc_list
 		self.__document_factory = document_factory
 		self.__name = initial_name
+
+
+	def __present__(self, fragment):
+		def on_edit(text):
+			self.__name = text
+
+		def on_create():
+			if self.__doc_list.doc_for_name(self.__name) is not None:
+				self._gui_list.add(DocNameInUseGui(self.__name))
+			else:
+				document = self.__document_factory()
+				self.__doc_list.new_document_for_content(self.__name, document)
+			self.close()
+
+		def on_cancel():
+			self.close()
+
+		return Html('<div class="larch_app_create_gui">',
+				'<span class="gui_section_1">Create document</span><br>',
+				'<table>',
+				'<tr><td><span class="gui_label">Name:</span></td><td>', text_entry.text_entry(self.__name, on_edit=on_edit), '</td></tr>',
+				'<tr><td>', button.button('Cancel', on_cancel), '</td><td>', button.button('Create', on_create), '</td></tr>',
+				'</table>',
+				'</div>')
+
+
+
+class GUIList (object):
+	def __init__(self):
+		self.contents = []
+		self.__incr = IncrementalValueMonitor()
+
+
+	def add(self, box):
+		box._gui_list = self
+		self.contents.append(box)
 		self.__incr.on_changed()
 
 
-	def _create(self):
-		if self.__document_factory is not None:
-			document = self.__document_factory()
-			self.__doc_list.new_document_for_content(self.__name, document)
-			self.__doc_list = None
-			self.__document_factory = None
-			self.__name = None
-			self.__incr.on_changed()
+	def close(self, box):
+		self.contents.remove(box)
+		self.__incr.on_changed()
 
 
 	def __present__(self, fragment):
 		self.__incr.on_access()
-		if self.__document_factory is None:
-			return Html()
-		else:
-			def on_edit(text):
-				self.__name = text
-
-			name_row = Html('<tr><td>Name:</td><td>', text_entry.text_entry(self.__name, on_edit=on_edit), '</td></tr>')
-			create_row = Html('<tr><td></td><td>', button.button('Create', self._create), '</td></tr>')
-
-			return dialog.dialog(Html('<table>', name_row, create_row, '</table>'))
-
+		return Html(*self.contents)
 
 
 
@@ -266,7 +329,7 @@ class LarchApplication (object):
 		self.__docs = DocumentList(documents_path)
 		self.__consoles = ConsoleList()
 
-		self.__new_doc = NewDocumentGUI()
+		self.__doc_gui = GUIList()
 
 
 	@property
@@ -279,7 +342,7 @@ class LarchApplication (object):
 
 
 	def __present__(self, fragment):
-		add_worksheet = menu.item('Worksheet', lambda: self.__new_doc.show(self.__docs, lambda: worksheet.Worksheet(), 'Worksheet'))
+		add_worksheet = menu.item('Worksheet', lambda: self.__doc_gui.add(NewDocumentGUI(self.__docs, lambda: worksheet.Worksheet(), 'Worksheet')))
 		new_item = menu.sub_menu('New', [add_worksheet])
 
 		new_document_menu = menu.menu([new_item], drop_down=True)
@@ -302,7 +365,7 @@ class LarchApplication (object):
 			""",
 			self.__docs,
 			new_document_menu,
-			self.__new_doc,
+			self.__doc_gui,
 			"""</section>
 			<section class="larch_app_consoles_section">
 				<h2>Consoles:</h2>

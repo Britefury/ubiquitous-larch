@@ -239,8 +239,8 @@ class KeyEventSource (EventSource):
 		self.__keys_and_handlers = keys_and_handlers
 
 		self.__keydown = [k   for k in keys_and_handlers   if k[0].event_type == Key.KEY_DOWN]
-		self.__keyup = [k   for k in keys_and_handlers   if k[0].event_type == Key.KEY_DOWN]
-		self.__keypress = [k   for k in keys_and_handlers   if k[0].event_type == Key.KEY_DOWN]
+		self.__keyup = [k   for k in keys_and_handlers   if k[0].event_type == Key.KEY_UP]
+		self.__keypress = [k   for k in keys_and_handlers   if k[0].event_type == Key.KEY_PRESS]
 
 		self.__keydown_json_str = json.dumps([k[0].__to_json__()   for k in self.__keydown]).replace('"', '\'')
 		self.__keyup_json_str = json.dumps([k[0].__to_json__()   for k in self.__keyup]).replace('"', '\'')
@@ -279,9 +279,9 @@ class KeyEventSource (EventSource):
 		keydown_json = self.__keydown_json_str
 		keyup_json = self.__keyup_json_str
 		keypress_json = self.__keypress_json_str
-		seg.add_initialiser('node.onkeydown = function(event) {{larch.__onkeydown(event, {0});}}'.format(keydown_json))
-		seg.add_initialiser('node.onkeyup = function(event) {{larch.__onkeyup(event, {0});}}'.format(keyup_json))
-		seg.add_initialiser('node.onkeypress = function(event) {{larch.__onkeypress(event, {0});}}'.format(keypress_json))
+		seg.add_initialiser('node.onkeydown = function(event) {{return larch.__onkeydown(event, {0});}}'.format(keydown_json))
+		seg.add_initialiser('node.onkeyup = function(event) {{return larch.__onkeyup(event, {0});}}'.format(keyup_json))
+		seg.add_initialiser('node.onkeypress = function(event) {{return larch.__onkeypress(event, {0});}}'.format(keypress_json))
 
 
 

@@ -47,36 +47,71 @@
 
 p {
     color: #404040;
-    font-family: "Oxygen", sans-serif;
+    font-family: "Oxygen", "Tahoma", "Geneva", sans-serif;
 }
 
 h1 {
-    font-family: "Garamond", serif;
+    font-family: "Garamond", "Georgia", serif;
     color: #808080;
 }
 
 h2 {
-    font-family: "Garamond", serif;
+    font-family: "Garamond", "Georgia", serif;
     color: #787878;
 }
 
 h3 {
-    font-family: "Garamond", serif;
+    font-family: "Garamond", "Georgia", serif;
     color: #707070;
 }
 
 h4 {
-    font-family: "Garamond", serif;
+    font-family: "Garamond", "Georgia", serif;
     color: #686868;
 }
 
 h5 {
-    font-family: "Garamond", serif;
+    font-family: "Garamond", "Georgia", serif;
     color: #606060;
 }
 
 h6 {
-    font-family: "Garamond", serif;
+    font-family: "Garamond", "Georgia", serif;
     color: #585858;
 }
 
+
+.gui_label {
+    font-family: "Palatino linotype", "Book Antiqua", serif;
+    padding: 0 1em;
+}
+
+.gui_section_1 {
+    color: #303030;
+    font-family: "Open Sans", sans-serif;
+    font-weight: lighter;
+    font-size: 1.5em;
+}
+
+.gui_section_2 {
+    color: #303030;
+    font-family: "Open Sans", sans-serif;
+    font-weight: lighter;
+    font-size: 1.25em;
+}
+
+.gui_section_3 {
+    color: #303030;
+    font-family: "Open Sans", sans-serif;
+    font-weight: lighter;
+    font-size: 1em;
+}
+
+.emph {
+    font-style: italic;
+}
+
+.error_text {
+    font-family: "Garamond", "Georgia", serif;
+    color: #800000;
+}

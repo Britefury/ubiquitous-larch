@@ -345,7 +345,7 @@ larch.__handleKeyEvent = function(event, keys) {
             k.ctrlKey = event.ctrlKey;
             k.shiftKey = event.shiftKey;
             k.metaKey = event.metaKey;
-            return k;
+            return [k, key.preventDefault];
         }
     }
     return undefined;
@@ -354,22 +354,37 @@ larch.__handleKeyEvent = function(event, keys) {
 larch.__onkeydown = function(event, keys) {
     var k = larch.__handleKeyEvent(event, keys);
     if (k !== undefined) {
-        larch.postEvent(event.target, 'keydown', k);
+        larch.postEvent(event.target, 'keydown', k[0]);
+        if (k[1] === 1) {
+            event.preventDefault();
+            return false;
+        }
     }
+    return true;
 }
 
 larch.__onkeyup = function(event, keys) {
     var k = larch.__handleKeyEvent(event, keys);
     if (k !== undefined) {
-        larch.postEvent(event.target, 'keyup', k);
+        larch.postEvent(event.target, 'keyup', k[0]);
+        if (k[1] === 1) {
+            event.preventDefault();
+            return false;
+        }
     }
+    return true;
 }
 
 larch.__onkeypress = function(event, keys) {
     var k = larch.__handleKeyEvent(event, keys);
     if (k !== undefined) {
-        larch.postEvent(event.target, 'keypress', k);
+        larch.postEvent(event.target, 'keypress', k[0]);
+        if (k[1] === 1) {
+            event.preventDefault();
+            return false;
+        }
     }
+    return true;
 }
 
 

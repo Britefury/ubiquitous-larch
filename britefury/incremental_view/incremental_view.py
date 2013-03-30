@@ -143,7 +143,7 @@ class _FragmentView (object):
 
 	@property
 	def subject(self):
-		return self.fragment_factory.subject
+		return self.__inc_view.subject
 
 	@property
 	def perspective(self):

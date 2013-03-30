@@ -11,7 +11,7 @@ class Key (object):
 	KEY_PRESS = 'KEY_PRESS'
 
 
-	def __init__(self, event_type, key_code, alt=None, ctrl=None, shift=None, meta=None):
+	def __init__(self, event_type, key_code, alt=None, ctrl=None, shift=None, meta=None, prevent_default=False):
 		if event_type != self.KEY_DOWN  and  event_type != self.KEY_UP  and  event_type != self.KEY_PRESS:
 			raise ValueError, 'invalid event_type; should be KEY_DOWN, KEY_UP, or KEY_PRESS'
 		self.__event_type = event_type
@@ -28,6 +28,7 @@ class Key (object):
 		self.__ctrl = ctrl
 		self.__shift = shift
 		self.__meta = meta
+		self.__prevent_default = prevent_default
 
 
 	@property
@@ -60,6 +61,11 @@ class Key (object):
 		return self.__meta
 
 
+	@property
+	def prevent_default(self):
+		return self.__prevent_default
+
+
 	def matches(self, filter):
 		return (self.__event_type == filter.__event_type)  and\
 		       (self.__key_code == filter.__key_code  or  filter.__key_code is None)  and\
@@ -83,6 +89,7 @@ class Key (object):
 			k['shiftKey'] = 1   if self.__shift   else 0
 		if self.__meta is not None:
 			k['metaKey'] = 1   if self.__meta   else 0
+		k['preventDefault'] = 1   if self.__prevent_default   else 0
 
 		return k
 
@@ -94,7 +101,8 @@ class Key (object):
 		ctrl = json.get('ctrlKey') == 1
 		shift = json.get('shiftKey') == 1
 		meta = json.get('metaKey') == 1
-		return Key(event_type, key_code, alt, ctrl, shift, meta)
+		prevent_default = json.get('preventDefault') == 1
+		return Key(event_type, key_code, alt, ctrl, shift, meta, prevent_default)
 
 
 	@staticmethod

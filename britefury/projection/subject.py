@@ -15,14 +15,10 @@ class Subject (object):
 
 
 	def __getattr__(self, item):
-		s = self.__enclosing_subject
-		while s is not None:
-			try:
-				return s.__dict__[item]
-			except KeyError:
-				pass
-			s = s.enclosing_subject
-		raise AttributeError, 'Subject {0} has no attribute {1}'.format(self, item)
+		try:
+			return getattr(self.__enclosing_subject, item)
+		except AttributeError:
+			raise AttributeError, 'Subject {0} has no attribute {1}'.format(self, item)
 
 
 	@property
