@@ -125,7 +125,7 @@ Rp49
 g12
 g4
 sg13
-V<p>Within U-Larch, the __present__ method provides similar functionaltiy, except that you can use HTML markup to control the layout of your presentation. Back to our point example:</p>
+V<p>Within U-Larch, the <code>__present__</code> method provides similar functionaltiy, except that you can use HTML markup to control the layout of your presentation. Back to our <code>Point</code> example:</p>
 p51
 sbag0
 (g15
@@ -218,6 +218,6 @@ Rp82
 g12
 g4
 sg13
-V<p>The buttons are arranged to surround the value. When they are clicked, the decrement() or increment() methods are invoked. These in turn modify the value and inform the incremental monitor. U-Larch maintains an association between the object (a Counter in this case) and its visual representation. When it is notified of a change to the object's state, it re-invokes&nbsp;__present__() in order to build a new presentation of the counter, which is inserted into the DOM in place of the old one. As a consequence, you can now write interactive browser applications in Python.</p>
+V<p>The buttons are arranged to surround the value. When they are clicked, the <code>decrement</code>&nbsp;or <code>increment</code>&nbsp;methods are invoked. These in turn modify the value and inform the incremental monitor. U-Larch maintains an association between the object (a Counter in this case) and its visual representation. When it is notified of a change to the object's state, it re-invokes&nbsp;<code>__present__</code>&nbsp;in order to build a new presentation of the counter, which is inserted into the DOM in place of the old one. As a consequence, you can now write interactive browser applications in Python.</p>
 p84
 sbasb.

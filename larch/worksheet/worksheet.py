@@ -166,6 +166,11 @@ class Worksheet (object):
 		self.__blocks.insert(index, block_to_insert)
 		self.__incr.on_changed()
 
+	def _delete_block(self):
+		if self.__focus_block is not None  and  self.__focus_block in self.__blocks:
+			self.__blocks.remove(self.__focus_block)
+			self.__incr.on_changed()
+
 
 	def __present__(self, fragment):
 		def on_execute():
@@ -187,12 +192,14 @@ class Worksheet (object):
 			return True
 
 		def on_code_key(key):
-			print 'CODE'
 			self._insert_block(WorksheetBlockCode(self), True)
 
 		def on_text_key(key):
-			print 'TEXT'
 			self._insert_block(WorksheetBlockText(self), True)
+
+		def on_delete_block_key(key):
+			self._delete_block()
+
 
 
 		self.__incr.on_access()
@@ -211,7 +218,9 @@ class Worksheet (object):
 
 		insert_code_below = menu.item('Insert code below (Ctrl-1)', lambda: _insert_code(True))
 		insert_rich_text_below = menu.item('Insert rich text below (Ctrl-2)', lambda: _insert_rich_text(True))
-		blocks_menu = menu.sub_menu('Worksheet', [insert_code_above, insert_rich_text_above, menu.item('--------', None), insert_code_below, insert_rich_text_below])
+
+		remove_block = menu.item('Remove block', lambda: self._delete_block())
+		blocks_menu = menu.sub_menu('Worksheet', [insert_code_above, insert_rich_text_above, menu.item('--------', None), insert_code_below, insert_rich_text_below, menu.item('--------', None), remove_block])
 
 		page_menu = menu.menu([blocks_menu], drop_down=True)
 
@@ -228,8 +237,9 @@ class Worksheet (object):
 		p = Html(*contents)
 		p = p.with_key_handler([Key(Key.KEY_DOWN, 13, ctrl=True)], on_execute_key)
 		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('S'), ctrl=True, prevent_default=True)], on_save_key)
-		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('1'), ctrl=True)], on_code_key)
-		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('2'), ctrl=True)], on_text_key)
+		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('1'), ctrl=True, prevent_default=True)], on_code_key)
+		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('2'), ctrl=True, prevent_default=True)], on_text_key)
+		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('0'), ctrl=True, prevent_default=True)], on_delete_block_key)
 		return p.use_css('/worksheet.css')
 
 

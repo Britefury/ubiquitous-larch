@@ -26,7 +26,7 @@ p12
 g4
 sS'text'
 p13
-V<h1>Basic HTML</h1><p>This worksheet demonstrates how to create and display basic HTML.</p><p>The first step is to import the HTML presentation type. Presentation types will be covered in more detail later.</p>
+V<h1>Basic HTML</h1><p>This worksheet demonstrates how to create and display basic HTML.</p><p>The first step is to import the <code>Html</code>&nbsp;presentation type. Presentation types describe a presentation that is to be built. They&nbsp;will be covered in more detail later.</p>
 p14
 sbag0
 (clarch.worksheet.worksheet
@@ -63,7 +63,7 @@ Rp27
 g12
 g4
 sg13
-V<p>The Html combinator can also take multiple arguments. Arguments do not have to be strings either; primitive objects also work:</p>
+V<p>The <code>Html</code> presentation type&nbsp;can also take multiple arguments. Arguments do not have to be strings either; primitive objects also work:</p>
 p29
 sbag0
 (g15
