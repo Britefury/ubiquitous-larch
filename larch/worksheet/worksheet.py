@@ -124,10 +124,10 @@ class Worksheet (object):
 
 
 	def __exec_state_init(self):
-		self.__execution_state.value = Html('<span class="worksheet_exec_state_init">Worksheet not yet executed; execute with Control-Enter.</span>')
+		self.__execution_state.value = Html('<div class="worksheet_exec_state_init">Worksheet not yet executed; execute with Control-Enter.</div>')
 
 	def __exec_state_executed(self):
-		self.__execution_state.value = Html('<span class="worksheet_exec_state_executed">Re-execute with Control-Enter.</span>')
+		self.__execution_state.value = Html('<div class="worksheet_exec_state_executed">Re-execute with Control-Enter.</div>')
 
 
 	def __getstate__(self):
@@ -225,8 +225,8 @@ class Worksheet (object):
 		page_menu = menu.menu([blocks_menu], drop_down=True)
 
 		header = Html('<div class="worksheet_header">',
-			      '<div class="worksheet_menu_bar worksheet_header_contents">', page_menu, '</div>',
-			      '<div class="worksheet_state worksheet_header_contents">', self.__execution_state, '</div>',
+			      '<div class="worksheet_menu_bar">', page_menu, '</div>',
+			      self.__execution_state,
 			      '</div>')
 
 		contents = [header]

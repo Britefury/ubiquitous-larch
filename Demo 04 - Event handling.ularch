@@ -26,7 +26,7 @@ p12
 g4
 sS'text'
 p13
-V<h1>Event Handling</h1><p>U-Larch can receive events in client-side Javascript code and route them to the server-side Python code.</p><p>On the client-side, we call the <code>larch.postEvent</code> function, passing the source DOM node, the event name&nbsp;and event data (a value representable as JSON)&nbsp;as parameters. This event will be sent to the server.</p><p>The server maintains its own representation of the structure of the document, allowing it to ensure that the event is routed to the correct handler.</p><p>On the server side, we invoke the <code>with_event_handler</code> method, passing the event name and the handler function/callable as parameters.</p><p>In the following example, we will construct a button that sends an event that is handled server-side.</p>
+V<h1>Event Handling</h1><p>U-Larch can receive events in client-side Javascript code and route them to the server-side Python code.</p><p>On the client-side, we call the <code>larch.postEvent</code> function, passing the source DOM node, the event name&nbsp;and event data (a value representable as JSON)&nbsp;as parameters. This event will be sent to the server.</p><p>The server maintains its own representation of the structure of the document, allowing it to ensure that the event is routed to the correct handler.</p><p>On the server side, we invoke the <code>with_event_handler</code> method, passing the event name and the handler function/callable as parameters.</p><h1>tl;dr</h1><p>U-Larch routes events for you so that you can develop web applications as if they were (almost) running in one process, as opposed to two processes communicating over a network.</p><h1>Example</h1><p>In the following example, we will construct a button that sends an event that is handled server-side.</p>
 p14
 sbag0
 (clarch.worksheet.worksheet
@@ -49,9 +49,51 @@ Ntp21
 Rp22
 (dp23
 g19
-V# We need Html pres type\u000afrom britefury.pres.html import Html\u000a\u000a# LiveValue objects simply display their contents, with one difference; if their value is modified, their on-screen representations are automaticall refreshed.\u000afrom britefury.live.live_value import LiveValue\u000a\u000ax = LiveValue(0)\u000a\u000ainc_button_js_src = """\u000afunction on_bt_clicked(node, operation) {\u000a	// Send an event:\u000a	// - from the DOM node referened by @node\u000a	// - the event is named "test_button_clicked"\u000a	// - the event data is the supplied @operation\u000a	larch.postEvent(node, "test_button_clicked", operation);\u000a}\u000a"""\u000a\u000a# The server side response function\u000adef on_client_side_button_clicked(event_name, event_data):\u000a    # event_name will be the name of the event sent by the client, in this case 'test_button_clicked'\u000a    \u000a    # event_data will receive the value of @operation sent from the client side\u000a    \u000a    # Increment the value in @x\u000a    x.value += 1\u000a\u000a\u000a# HTML that constructs a button that calls 'on_bt_clicked' when clicked\u000abutton = Html('<button onclick="javascript:on_bt_clicked(this, \u005c'+\u005c');">Increment</button>')\u000a\u000a# Attach the event handler\u000abutton = button.with_event_handler('test_button_clicked', on_client_side_button_clicked)\u000a\u000a# Reference the JS code\u000abutton = button.use_js(source=inc_button_js_src)\u000a\u000a# Arrange the button above the value:\u000aHtml(button, '<div>', x, '</div>')
+V# We need Html pres type\u000afrom britefury.pres.html import Html\u000a\u000a# LiveValue objects simply display their contents, with one difference; if their value is modified, their on-screen representations are automaticall refreshed.\u000afrom britefury.live.live_value import LiveValue\u000a\u000a# Create a live value containing 0\u000ax = LiveValue(0)\u000a\u000a\u000a# The larch.postEvent Javascript function sends an event to the server side Python code. Its parameters are as follows:\u000a# - the DOM node from which the event originates\u000a# - the name of the event to send\u000a# - the event data; an object representable as JSON\u000ainc_button_js_src = """\u000afunction on_bt_clicked(node, operation) {\u000a	larch.postEvent(node, "test_button_clicked", operation);\u000a}\u000a"""\u000a\u000a# The server side response function\u000a# @event_name will be the name of the event sent by the client, in this case 'test_button_clicked'\u000a# @event_data will receive the value of @operation sent from the client side\u000adef on_client_side_button_clicked(event_name, event_data):\u000a    # Increment the value in @x\u000a    x.value += 1\u000a\u000a\u000a# HTML that constructs a button that calls 'on_bt_clicked' when clicked\u000abutton = Html('<button onclick="javascript:on_bt_clicked(this, \u005c'+\u005c');">Increment</button>')\u000a\u000a# Attach the event handler\u000abutton = button.with_event_handler('test_button_clicked', on_client_side_button_clicked)\u000a\u000a# Reference the JS code\u000abutton = button.use_js(source=inc_button_js_src)\u000a\u000a# Arrange the button above the value:\u000aHtml(button, '<div>', x, '</div>')
 p24
 sS'editable'
 p25
 I01
-sbsbasb.
+sbsbag0
+(g8
+g2
+Ntp26
+Rp27
+(dp28
+g12
+g4
+sg13
+V<p>U-Larch ensures that events are sent to the correct place at the server-side. In the example below, we construct a number of counters, demonstrating the that correct events are sent to the correct handlers, despite sharing the same event name:</p>
+p29
+sbag0
+(g15
+g2
+Ntp30
+Rp31
+(dp32
+g12
+g4
+sg19
+g0
+(g20
+g2
+Ntp33
+Rp34
+(dp35
+g19
+Vcounter_button_js_src = """\u000afunction on_bt_clicked(node, operation) {\u000a	larch.postEvent(node, "test_button_clicked", operation);\u000a}\u000a"""\u000a\u000a\u000adef counter(initial_value=0):\u000a    # Create a live value containing 0\u000a    x = LiveValue(initial_value)\u000a    \u000a    # The server side response function\u000a    def on_client_side_button_clicked(event_name, event_data):\u000a        if event_data == '+':\u000a        	x.value += 1\u000a        elif event_data == '-':\u000a        	x.value -= 1\u000a        else:\u000a            raise ValueError\u000a    \u000a    \u000a    # Build TWO buttons. They both send an event with the same name. The event data determines what the button should do (+ or -)\u000a    dec_button = Html('<button onclick="javascript:on_bt_clicked(this, \u005c'-\u005c');">Decrement</button>')\u000a    inc_button = Html('<button onclick="javascript:on_bt_clicked(this, \u005c'+\u005c');">Increment</button>')\u000a    \u000a    # Arrange the button above the value:\u000a    ui = Html(dec_button, inc_button, '<div>', x, '</div>')\u000a    \u000a	# Attach the event handler. This time, we are attaching the server-side handler to the whole UI rather than the individual buttons; events bubble up.\u000a    ui = ui.with_event_handler('test_button_clicked', on_client_side_button_clicked)\u000a    \u000a    # Reference the JS code\u000a    ui = ui.use_js(source=counter_button_js_src)\u000a    \u000a    return ui;\u000a    \u000a\u000a# Make 3 counters\u000aHtml(counter(0), counter(1), counter(2))
+p36
+sg25
+I01
+sbsbag0
+(g8
+g2
+Ntp37
+Rp38
+(dp39
+g12
+g4
+sg13
+V<p>The counters above are independent from one another, desipite sharing the same code and the same events. U-Larch ensures that the events arrive at the correct place on the server side.</p>
+p40
+sbasb.

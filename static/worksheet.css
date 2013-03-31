@@ -1,7 +1,6 @@
 
 .worksheet_header {
-    margin: 2em 0;
-    height: 35px;
+    margin: 1em 0;
 }
 
 .worksheet_menu_bar {
@@ -9,21 +8,26 @@
     margin: 0 10em;
 }
 
-.worksheet_state {
-    margin: 0 30em;
-}
-
 .worksheet_exec_state_init {
     font-weight: bold;
-    color: #c00000;
+    color: #c03000;
+    border: 1px solid #c03000;
+    border-radius: 7px;
+    background: #fff4f0;
+    margin: 0.5em 5em;
+    width: 30em;
+    padding: 3px 10px;
 }
 
 .worksheet_exec_state_executed {
-    color: #505050;
-}
-
-.worksheet_header_contents {
-    position: absolute;
+    color: #507050;
+    margin: 0.5em 5em;
+    border: 1px solid #509050;
+    border-radius: 7px;
+    background: #f6fff6;
+    margin: 0.5em 5em;
+    width: 30em;
+    padding: 3px 10px;
 }
 
 .worksheet_block {
