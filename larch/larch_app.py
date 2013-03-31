@@ -222,6 +222,8 @@ class ConsoleListSubject (Subject):
 			index = int(name)
 		except ValueError:
 			return None
+		if index < 0  or  index > len(self.focus):
+			return None
 		console = self.focus[index]
 		if console is not None:
 			return console.__subject__(self, self.perspective)
@@ -240,6 +242,9 @@ class ConsoleList (object):
 
 	def __getitem__(self, item):
 		return self.__consoles[item]
+
+	def __len__(self):
+		return len(self.__consoles)
 
 	def new_console(self):
 		con = console.Console()

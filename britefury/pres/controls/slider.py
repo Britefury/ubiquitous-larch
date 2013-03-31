@@ -1,16 +1,26 @@
 ##-*************************
-##-* This source code is (C)copyright Geoffrey French 2011-2012.
+##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-from britefury.pres.pres import post_event_js_code_for_handler
 from britefury.pres.html import Html
 
 
-def slider(action_fn):
-	def on_slide(event_name, ev_data):
+def slider(action_fn, slide_fn=None, width=None, options=None):
+	def on_change(event_name, ev_data):
 		action_fn(ev_data)
 
-	div = Html('<div></div>')
-	div = div.js_function_call('larch.controls.initSlider')
-	div = div.with_event_handler("slider_change", on_slide)
+	def on_slide(event_name, ev_data):
+		slide_fn(ev_data)
+
+	if options is None:
+		options = {}
+
+	if width is None:
+		div = Html('<div></div>')
+	else:
+		div = Html('<div style="width: {0};"></div>'.format(width))
+	div = div.js_function_call('larch.controls.initSlider', slide_fn is not None, options)
+	div = div.with_event_handler("slider_change", on_change)
+	if slide_fn is not None:
+		div = div.with_event_handler("slider_slide", on_slide)
 	div = div.use_js('/bridge_jqueryui.js')
 	return div
