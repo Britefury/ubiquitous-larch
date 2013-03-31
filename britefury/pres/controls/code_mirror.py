@@ -7,7 +7,7 @@ from britefury.pres.html import Html
 def code_mirror(text, immediate_events=False, config=None, on_edit=None, on_focus=None, on_blur=None):
 	if config is None:
 		config = {}
-	textarea = Html('<textarea>{text}</textarea>'.format(text=text))
+	textarea = Html(u'<textarea>{text}</textarea>'.format(text=text))
 	textarea = textarea.js_function_call('larch.controls.initCodeMirror', config, immediate_events)
 	p = Html('<div>', textarea, '</div>')
 	p = p.use_css('/codemirror/lib/codemirror.css')

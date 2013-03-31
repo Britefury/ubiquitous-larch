@@ -14,7 +14,7 @@ from britefury.dynamicsegments import messages, dependencies
 from britefury.dynamicsegments import global_dependencies
 
 
-_page_content = """
+_page_content = u"""
 <!doctype html>
 <html>
 	<head>
