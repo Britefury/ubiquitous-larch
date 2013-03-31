@@ -1,6 +1,8 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
+import webbrowser
+
 from bottle import Bottle, run, static_file, request, response
 
 from britefury.projection.projection_service import CouldNotResolveLocationError

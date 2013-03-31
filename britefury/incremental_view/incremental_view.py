@@ -1,17 +1,23 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
+import sys
 from collections import deque
-
-import threading
 
 from britefury.attribute_table.simple_attribute_table import SimpleAttributeTable
 from britefury.pres.presctx import PresentationContext
 from britefury.pres.pres import Pres
+from britefury.pres.html import Html
 from britefury.incremental.incremental_monitor import IncrementalMonitor
 from britefury.incremental.incremental_function_monitor import IncrementalFunctionMonitor
+from britefury.inspector.present_exception import present_exception
 from britefury.dynamicsegments.segment import  HtmlContent
 
+
+
+
+def _exception_during_presentation(exc_pres):
+	return Html('<div class="exception_during_presentation"><span class="exception_during_pres_title">Exception during presentation</span>', exc_pres, '</div>')
 
 
 
@@ -526,13 +532,14 @@ class FragmentFactory (object):
 		# Create the view fragment
 		try:
 			fragment_pres = self.__perspective.present_object(model, fragment_view)
-		except:
-			raise
+		except Exception, e:
+			fragment_pres = _exception_during_presentation(present_exception(e, sys.exc_info()[2]))
 
 		try:
 			html_content = self.__pres_to_html_content(fragment_pres, fragment_view)
-		except:
-			raise
+		except Exception, e:
+			fragment_pres = _exception_during_presentation(present_exception(e, sys.exc_info()[2]))
+			html_content = self.__pres_to_html_content(fragment_pres, fragment_view)
 
 		return html_content
 

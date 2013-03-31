@@ -115,3 +115,16 @@ h6 {
     font-family: "Garamond", "Georgia", serif;
     color: #800000;
 }
+
+.exception_during_presentation {
+    margin: 2px 0;
+    border: 1px solid #a00000;
+    border-radius: 5px;
+    background: #ffefef;
+    padding: 5px;
+}
+
+.exception_during_pres_title {
+    font-size: 0.75em;
+    color: #a00000;
+}

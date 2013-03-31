@@ -1,6 +1,8 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
+import webbrowser
+
 from flask import Flask, request, Response, abort
 
 from britefury.projection.projection_service import CouldNotResolveLocationError

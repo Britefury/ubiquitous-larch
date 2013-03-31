@@ -1,7 +1,29 @@
 
+.worksheet_header {
+    margin: 2em 0;
+    height: 35px;
+}
+
 .worksheet_menu_bar {
-    width: 10em;
-    margin: 2em 10em;
+    width: 15em;
+    margin: 0 10em;
+}
+
+.worksheet_state {
+    margin: 0 30em;
+}
+
+.worksheet_exec_state_init {
+    font-weight: bold;
+    color: #c00000;
+}
+
+.worksheet_exec_state_executed {
+    color: #505050;
+}
+
+.worksheet_header_contents {
+    position: absolute;
 }
 
 .worksheet_block {

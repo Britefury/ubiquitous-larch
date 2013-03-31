@@ -106,7 +106,7 @@ class Document (object):
 		save_document(file_path, self.__content)
 
 
-	def __present__(self, fragment):
+	def presentation_table_row(self):
 		def on_save():
 			self.save()
 
@@ -206,7 +206,7 @@ class DocumentList (object):
 		contents = ['<table class="larch_app_doc_list">']
 		contents.append('<thead class="larch_app_doc_list_header"><td>Title</td><td>Filename</td><td>Save</td></thead>')
 		contents.append('<tbody>')
-		contents.extend(self.__documents)
+		contents.extend([doc.presentation_table_row()   for doc in self.__documents])
 		contents.append('</tbody></table>')
 		return Html(*contents)
 

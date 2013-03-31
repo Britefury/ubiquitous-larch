@@ -2,6 +2,8 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2012.
 ##-*************************
 import os
+import webbrowser
+
 import cherrypy
 
 from britefury.projection.projection_service import CouldNotResolveLocationError
@@ -64,6 +66,7 @@ class WebCombinatorServer (object):
 
 
 
-root = WebCombinatorServer()
-cherrypy.server.socket_port = 5000
-cherrypy.quickstart(root, config=config)
+if __name__ == '__main__':
+	root = WebCombinatorServer()
+	cherrypy.server.socket_port = 5000
+	cherrypy.quickstart(root, config=config)

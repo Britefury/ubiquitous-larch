@@ -2,13 +2,13 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 import imp
-import _ast
-import sys
+
 from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
 from britefury.pres.html import Html
 from britefury.pres.key_event import Key
 from britefury.pres.controls import ckeditor, menu, button
 from britefury.projection.subject import Subject
+from britefury.live.live_value import LiveValue
 from larch.python import PythonCode
 
 
@@ -119,6 +119,15 @@ class Worksheet (object):
 		self.__incr = IncrementalValueMonitor()
 		self._module = None
 		self.__focus_block = None
+		self.__execution_state = LiveValue()
+		self.__exec_state_init()
+
+
+	def __exec_state_init(self):
+		self.__execution_state.value = Html('<span class="worksheet_exec_state_init">Worksheet not yet executed; execute with Control-Enter.</span>')
+
+	def __exec_state_executed(self):
+		self.__execution_state.value = Html('<span class="worksheet_exec_state_executed">Re-execute with Control-Enter.</span>')
 
 
 	def __getstate__(self):
@@ -132,12 +141,15 @@ class Worksheet (object):
 		self.__incr = IncrementalValueMonitor()
 		self._module = None
 		self.__focus_block = None
+		self.__execution_state = LiveValue()
+		self.__exec_state_init()
 
 
 	def execute(self):
 		self._module = imp.new_module('<Worksheet>')
 		for block in self.__blocks:
 			block.execute(self._module)
+		self.__exec_state_executed()
 
 
 
@@ -174,10 +186,17 @@ class Worksheet (object):
 				save()
 			return True
 
+		def on_code_key(key):
+			print 'CODE'
+			self._insert_block(WorksheetBlockCode(self), True)
+
+		def on_text_key(key):
+			print 'TEXT'
+			self._insert_block(WorksheetBlockText(self), True)
+
 
 		self.__incr.on_access()
 
-		contents = []
 
 
 		def _insert_code(below):
@@ -190,12 +209,18 @@ class Worksheet (object):
 		insert_code_above = menu.item('Insert code above', lambda: _insert_code(False))
 		insert_rich_text_above = menu.item('Insert rich text above', lambda: _insert_rich_text(False))
 
-		insert_code_below = menu.item('Insert code below', lambda: _insert_code(True))
-		insert_rich_text_below = menu.item('Insert rich text below', lambda: _insert_rich_text(True))
+		insert_code_below = menu.item('Insert code below (Ctrl-1)', lambda: _insert_code(True))
+		insert_rich_text_below = menu.item('Insert rich text below (Ctrl-2)', lambda: _insert_rich_text(True))
 		blocks_menu = menu.sub_menu('Worksheet', [insert_code_above, insert_rich_text_above, menu.item('--------', None), insert_code_below, insert_rich_text_below])
 
 		page_menu = menu.menu([blocks_menu], drop_down=True)
-		contents.append(Html('<div class="worksheet_menu_bar">', page_menu, '</div>'))
+
+		header = Html('<div class="worksheet_header">',
+			      '<div class="worksheet_menu_bar worksheet_header_contents">', page_menu, '</div>',
+			      '<div class="worksheet_state worksheet_header_contents">', self.__execution_state, '</div>',
+			      '</div>')
+
+		contents = [header]
 
 		for block in self.__blocks:
 			contents.extend(['<div>', block, '</div>'])
@@ -203,6 +228,8 @@ class Worksheet (object):
 		p = Html(*contents)
 		p = p.with_key_handler([Key(Key.KEY_DOWN, 13, ctrl=True)], on_execute_key)
 		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('S'), ctrl=True, prevent_default=True)], on_save_key)
+		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('1'), ctrl=True)], on_code_key)
+		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('2'), ctrl=True)], on_text_key)
 		return p.use_css('/worksheet.css')
 
 
