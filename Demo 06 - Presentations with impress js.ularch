@@ -49,7 +49,7 @@ Ntp21
 Rp22
 (dp23
 g19
-Vslides_css = '''\u000a.step {\u000a    position: relative;\u000a    width: 900px;\u000a	height: 600px;\u000a    padding: auto;\u000a    margin: 20px auto;\u000a\u000a	background: white;\u000a	border: 1px solid rgba(0, 0, 0, 0.3);\u000a	border-radius: 15px;\u000a	box-shadow: 0 10px 5px rgba(0, 0, 0, 0.3);\u000a}\u000a\u000a.slide_contents {\u000a	padding: 40px;\u000a}\u000a\u000ap {\u000a	font-family: 'PT Serif', georgia, serif;\u000a	font-size: 60px;\u000a	line-height: 90px;\u000a	text-align: center;\u000a	color: #606060;\u000a}\u000a\u000abody {\u000a	background: #e0e0e0;\u000a	vertical-align: baseline;\u000a}\u000a'''\u000a
+V# We need this later\u000afrom britefury.pres.html import Html\u000a\u000aslides_css = '''\u000a.step {\u000a    position: relative;\u000a    width: 900px;\u000a	height: 600px;\u000a    padding: auto;\u000a    margin: 20px auto;\u000a\u000a	background: white;\u000a	border: 1px solid rgba(0, 0, 0, 0.3);\u000a	border-radius: 15px;\u000a	box-shadow: 0 10px 5px rgba(0, 0, 0, 0.3);\u000a}\u000a\u000a.slide_contents {\u000a	padding: 40px;\u000a}\u000a\u000ap {\u000a	font-family: 'PT Serif', georgia, serif;\u000a	font-size: 60px;\u000a	line-height: 90px;\u000a	text-align: center;\u000a	color: #606060;\u000a}\u000a\u000abody {\u000a	background: #e0e0e0;\u000a	vertical-align: baseline;\u000a}\u000a'''\u000a
 p24
 sS'editable'
 p25
@@ -63,7 +63,7 @@ Rp27
 g12
 g4
 sg13
-V<p>Now we will provide the content of the slides:</p>
+V<p>The HTML for a typical impress.js slide could be built like this:</p>
 p29
 sbag0
 (g15
@@ -81,7 +81,7 @@ Ntp33
 Rp34
 (dp35
 g19
-Vfrom britefury.pres.html import Html\u000a\u000as0 = Html('''\u000a<div class="step" data-x="0" data-y="0"><div class="slide_contents">\u000a	<p>The Ubiquitous Larch presents Python objects in visual form through a browser</p>        \u000a</div></div>\u000a''')\u000a\u000as1 = Html('''\u000a<div class="step" data-x="1200" data-y="0"><div class="slide_contents">\u000a	<p>It can combine regular HTML with content SVG, and dynamic content created by JS.</p>        \u000a</div></div>\u000a''')\u000a\u000as2 = Html('''\u000a<div class="step" data-x="1200" data-y="1000" data-rotate="90" data-rotate-y="-60"><div class="slide_contents">\u000a	<p>You can utilise Javascript libraries such as <span class="emph">d3.js</span>\u000aand <span class="emph">impress.js</span></p>        \u000a</div></div>\u000a''')\u000a\u000as3 = Html('''\u000a<div class="step" data-x="1200" data-y="2800" data-rotate="70" data-rotate-x="50" data-scale="2.0"><div class="slide_contents">\u000a	<p>Combining these systems allows you to produce rich, interactive applications.</p>        \u000a</div></div>\u000a''')\u000a\u000as4 = Html('''\u000a<div class="step" data-x="1200" data-y="4400" data-rotate="90" data-scale="0.25"><div class="slide_contents">\u000a	<p>Most of your code is written in Python. The Larch APIs bridge the gap between the\u000aclient-side and the server-side.</p>        \u000a</div></div>\u000a''')\u000a\u000aslides = Html('<div>', s0, s1, s2, s3, s4, '</div>')
+Vs0 = Html('''<div class="step" data-x="0" data-y="0"><div class="slide_contents"><p>Slide 0</p></div></div>''')\u000as1 = Html('''<div class="step" data-x="1200" data-y="0"><div class="slide_contents"><p>Slide 1</p></div></div>''')\u000as2 = Html('''<div class="step" data-x="1200" data-y="1000"><div class="slide_contents"><p>Slide 2</p></div></div>''')\u000as3 = Html('''<div class="step" data-x="1200" data-y="2000"><div class="slide_contents"><p>Slide 3</p></div></div>''')\u000as4 = Html('''<div class="step" data-x="0" data-y="2000"><div class="slide_contents"><p>Slide 4</p></div></div>''')
 p36
 sg25
 I01
@@ -94,7 +94,7 @@ Rp38
 g12
 g4
 sg13
-V<p>We must now apply impress.js and&nbsp;our CSS:</p>
+V<p>The div.side tag specifies the transformation&nbsp;(<code>data-x</code>, <code>data-y</code>, <code>data-z</code>, <code>data-rotate</code>, <code>data-rotate-x</code>, <code>data-rotate-y</code> and <code>data-scale</code>), while its content is displayed.</p><p>We would combine the slides to build a presentation like this:</p>
 p40
 sbag0
 (g15
@@ -112,7 +112,7 @@ Ntp44
 Rp45
 (dp46
 g19
-Vslides = slides.js_eval('setup_impress(node).init()').use_css(source=slides_css)\u000aslides = slides.use_js('/impress.js')
+V# Place in a div element, to which impress.js will be applied\u000aslides = Html('<div>', s0, s1, s2, s3, s4, '</div>')\u000a\u000a# Now we apply impress.js and our CSS\u000aslides = slides.js_eval('setup_impress(node).init()').use_css(source=slides_css)\u000aslides = slides.use_js('/impress.js')
 p47
 sg25
 I01
@@ -125,7 +125,7 @@ Rp49
 g12
 g4
 sg13
-V<p>Unfortunately, we cannot just display our presentation as is. The CSS modifies the style of the document body while impress.js grabs quite a few events, making the rest of the worksheet unusable. To get around this we put in its own page and embed it below within&nbsp;an <code>iframe</code> element.</p><p>In the last worksheet, we saw how subclasses of the <code>Resource</code> presentation type generate a URL which can be used to access the data represented by the resource. PresIFrame is a resource class that takes its content (first argument to its constructor) and creates a page that displays it. This page is then embedded within an iframe. This is used to display our presentation:</p>
+V<p><span style="color: rgb(64, 64, 64); font-family: Oxygen, Tahoma, Geneva, sans-serif;">We can make this slightly more Pythonic with an API:</span></p>
 p51
 sbag0
 (g15
@@ -143,8 +143,101 @@ Ntp55
 Rp56
 (dp57
 g19
-Vfrom britefury.pres.resource import PresIFrame\u000a\u000apresentation = PresIFrame(slides, 1280, 800)\u000apresentation
+Vclass Slide (object):\u000a    def __init__(self, content):\u000a        # Constructor\u000a        # Store content and initialise transformation\u000a        self.content = content\u000a        self.x = self.y = self.z = self.rot = self.rot_x = self.rot_y = self.scale = None\u000a        \u000a    def transform(self, x=None, y=None, z=None, rot=None, rot_x=None, rot_y=None, scale=None):\u000a        # Set transform attributes\u000a        self.x = x\u000a        self.y = y\u000a        self.z = z\u000a        self.rot = rot\u000a        self.rot_x = rot_x\u000a        self.rot_y = rot_y\u000a        self.scale = scale\u000a        # Return self so transform can be used as a chain method\u000a        return self\u000a    \u000a    def __present__(self, fragment):\u000a        outer_div_list = ['div', 'class="step"']\u000a        if self.x is not None:\u000a            outer_div_list.append('data-x="{0}"'.format(self.x))\u000a        if self.y is not None:\u000a            outer_div_list.append('data-y="{0}"'.format(self.y))\u000a        if self.z is not None:\u000a            outer_div_list.append('data-z="{0}"'.format(self.z))\u000a        if self.rot is not None:\u000a            outer_div_list.append('data-rotate="{0}"'.format(self.rot))\u000a        if self.rot_x is not None:\u000a            outer_div_list.append('data-rotate-x="{0}"'.format(self.rot_x))\u000a        if self.rot_y is not None:\u000a            outer_div_list.append('data-rotate-y="{0}"'.format(self.rot_y))\u000a        if self.scale is not None:\u000a            outer_div_list.append('data-scale="{0}"'.format(self.scale))\u000a        \u000a        return Html('<{0}><div class="slide_contents">'.format(' '.join(outer_div_list)), self.content, '</div></div>')\u000a\u000a    \u000aclass ImpressPresentation (object):\u000a    def __init__(self, *slides):\u000a        self.slides = list(slides)\u000a        \u000a        \u000a    def __present__(self, fragment):\u000a        # Place in a presentation DIV\u000a        presentation = Html(*(['<div>'] + self.slides + ['</div>']))\u000a        # Invoke impress.js and our CSS\u000a        presentation = presentation.js_eval('setup_impress(node).init()').use_css(source=slides_css)\u000a        # Make sure impress.js is available\u000a        presentation = presentation.use_js('/impress.js')\u000a        \u000a        return presentation
 p58
+sg25
+I01
+sbsbag0
+(g8
+g2
+Ntp59
+Rp60
+(dp61
+g12
+g4
+sg13
+V<p><span style="color: rgb(64, 64, 64); font-family: Oxygen, Tahoma, Geneva, sans-serif;">Lets build a presentation. Slides first:</span></p>
+p62
+sbag0
+(g15
+g2
+Ntp63
+Rp64
+(dp65
+g12
+g4
+sg19
+g0
+(g20
+g2
+Ntp66
+Rp67
+(dp68
+g19
+Vs0 = Slide(Html('<p>The Ubiquitous Larch presents Python objects in visual, interactive form within a browser</p>')).transform(x=0, y=0)\u000as1 = Slide(Html('<p>It can combine regular HTML, SVG, and dynamic content created by JS.</p>')).transform(x=1200, y=0)\u000as2 = Slide(Html('<p>You can utilise Javascript libraries such as <span class="emph">d3.js</span> and <span class="emph">impress.js</span> to provide exciting visuals</p>')).transform(x=1200, y=1000, rot=90, rot_y=-60)\u000as3 = Slide(Html('<p>Combining these systems allows you to produce rich, interactive documents and presentations.</p>')).transform(x=1200, y=2800, rot=70, rot_x=50, scale=2.0)\u000as4 = Slide(Html('<p>Much of your code can be written in Python. The Larch APIs bridge the gap between the client-side and the server-side.</p>')).transform(x=1200, y=4400, rot=90, scale=0.25)\u000as5 = Slide(Html('<p>Have fun with Ubiquitous Larch!</p>')).transform(x=600, y=4400, rot=-70, scale=0.35)
+p69
+sg25
+I01
+sbsbag0
+(g8
+g2
+Ntp70
+Rp71
+(dp72
+g12
+g4
+sg13
+V<p>Thats better.<br></p><p>All together now:</p>
+p73
+sbag0
+(g15
+g2
+Ntp74
+Rp75
+(dp76
+g12
+g4
+sg19
+g0
+(g20
+g2
+Ntp77
+Rp78
+(dp79
+g19
+Vslides = ImpressPresentation(s0, s1, s2, s3, s4, s5)
+p80
+sg25
+I01
+sbsbag0
+(g8
+g2
+Ntp81
+Rp82
+(dp83
+g12
+g4
+sg13
+V<p>Unfortunately, we cannot just display our presentation as is. The CSS modifies the style of the document body while impress.js grabs quite a few events, making the rest of the worksheet unusable. To get around this we put in its own page and embed it below within&nbsp;an <code>iframe</code> element.</p><p>In the last worksheet, we saw how subclasses of the <code>Resource</code> presentation type generate a URL which can be used to access the data represented by the resource. PresIFrame is a resource class that takes its content (first argument to its constructor) and creates a page that displays it. This page is then embedded within an iframe. This is used to display our presentation:</p>
+p84
+sbag0
+(g15
+g2
+Ntp85
+Rp86
+(dp87
+g12
+g4
+sg19
+g0
+(g20
+g2
+Ntp88
+Rp89
+(dp90
+g19
+Vfrom britefury.pres.resource import PresIFrame\u000a\u000apresentation = PresIFrame(slides, 1280, 800)\u000apresentation
+p91
 sg25
 I01
 sbsbasb.
