@@ -37,7 +37,40 @@ class JsonResource (ConstResource):
 
 class CSVResource (ConstResource):
 	def __init__(self, data):
-		super(CSVResource, self).__init__(self._ConstResourceData(data, 'application/json'))
+		super(CSVResource, self).__init__(self._ConstResourceData(data, 'text/csv'))
+
+
+
+class FnResource (Resource):
+	class _FnResourceData (object):
+		def __init__(self, data_fn, mime_type):
+			self.data_fn = data_fn
+			self.mime_type = mime_type
+
+		def initialise(self, pres_ctx):
+			pass
+
+		def dispose(self, pres_ctx):
+			self.data_fn = None
+			self.mime_type = None
+
+		@property
+		def data(self):
+			return self.data_fn()
+
+
+class JsonFnResource (FnResource):
+	def __init__(self, data_fn):
+		super(JsonFnResource, self).__init__(self._FnResourceData(lambda: json.dumps(data_fn()), 'application/json'))
+
+
+
+class CSVFnResource (FnResource):
+	def __init__(self, data_fn):
+		super(CSVFnResource, self).__init__(self._FnResourceData(data_fn(), 'text/csv'))
+
+
+
 
 
 
