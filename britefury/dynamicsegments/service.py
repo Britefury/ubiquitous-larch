@@ -2,6 +2,7 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 import json
+import traceback
 from britefury.dynamicsegments.document import DynamicDocument
 
 __author__ = 'Geoff'
@@ -90,9 +91,14 @@ class DynamicDocumentService (object):
 		dynamic_document.lock()
 
 		# Get the resource
-		result = dynamic_document.get_resource_data(rsc_id)
-
-		dynamic_document.unlock()
+		try:
+			result = dynamic_document.get_resource_data(rsc_id)
+		except Exception:
+			print 'Error while retrieving resource:'
+			traceback.print_exc()
+			return None
+		finally:
+			dynamic_document.unlock()
 
 		return result
 

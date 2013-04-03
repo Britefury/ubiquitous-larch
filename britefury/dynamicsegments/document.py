@@ -320,9 +320,10 @@ class DynamicDocument (object):
 	def get_resource_data(self, rsc_id):
 		try:
 			rsc = self.__rsc_id_to_rsc[rsc_id]
-			return rsc.data, rsc.mime_type
 		except KeyError:
 			return None
+		else:
+			return rsc.data, rsc.mime_type
 
 
 
