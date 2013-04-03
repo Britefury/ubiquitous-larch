@@ -54,6 +54,6 @@ def rsc():
 
 
 if __name__ == '__main__':
-	print 'Point your browser at 127.0.0.1:5000 to try The Ubiquitous Larch'
+	print 'Point your browser at http://127.0.0.1:5000/ to try The Ubiquitous Larch'
 	#app.run(debug=True)
 	app.run()

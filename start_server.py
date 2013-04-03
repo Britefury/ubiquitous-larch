@@ -62,5 +62,5 @@ def serve_static(filename):
 
 
 if __name__ == '__main__':
-	print 'Point your browser at 127.0.0.1:5000 to try The Ubiquitous Larch'
+	print 'Point your browser at http://127.0.0.1:5000/ to try The Ubiquitous Larch'
 	run(app, host='localhost', port=5000)
