@@ -13,3 +13,12 @@ def spinner(action_fn, name='spinner', initial_value=0):
 	spin = spin.with_event_handler("spinner_change", on_slide)
 	spin = spin.use_js('/bridge_jqueryui.js')
 	return spin
+
+
+
+
+def live_spinner(live, name='spinner'):
+	def on_change(value):
+		live.value = value
+
+	return spinner(on_change, name, live.static_value)
