@@ -124,10 +124,10 @@ class Worksheet (object):
 
 
 	def __exec_state_init(self):
-		self.__execution_state.value = Html('<div class="worksheet_exec_state_init">Worksheet not yet executed; execute with Control-Enter.</div>')
+		self.__execution_state.value = Html('<div class="worksheet_exec_state_init">Worksheet not yet executed; place the caret within a code block and press Control-Enter to execute.</div>')
 
 	def __exec_state_executed(self):
-		self.__execution_state.value = Html('<div class="worksheet_exec_state_executed">Re-execute with Control-Enter.</div>')
+		self.__execution_state.value = Html('<div class="worksheet_exec_state_executed">Re-execute code with Control-Enter.</div>')
 
 
 	def __getstate__(self):
@@ -180,7 +180,7 @@ class Worksheet (object):
 			self.execute()
 			return True
 
-		def on_save_key(key):
+		def save():
 			subject = fragment.subject
 			try:
 				save = subject.save
@@ -190,6 +190,9 @@ class Worksheet (object):
 			else:
 				save()
 			return True
+
+		def on_save_key(key):
+			save()
 
 		def on_code_key(key):
 			self._insert_block(WorksheetBlockCode(self), True)
@@ -213,26 +216,40 @@ class Worksheet (object):
 			self._insert_block(WorksheetBlockText(self), below)
 
 
+		save_button = button.button('Save (Ctrl-S)', save)
+
+
 		insert_code_above = menu.item('Insert code above', lambda: _insert_code(False))
 		insert_rich_text_above = menu.item('Insert rich text above', lambda: _insert_rich_text(False))
 
 		insert_code_below = menu.item('Insert code below (Ctrl-1)', lambda: _insert_code(True))
 		insert_rich_text_below = menu.item('Insert rich text below (Ctrl-2)', lambda: _insert_rich_text(True))
 
-		remove_block = menu.item('Remove block', lambda: self._delete_block())
-		blocks_menu = menu.sub_menu('Worksheet', [insert_code_above, insert_rich_text_above, menu.item('--------', None), insert_code_below, insert_rich_text_below, menu.item('--------', None), remove_block])
+		remove_block = menu.item('Remove block (Ctrl-0)', lambda: self._delete_block())
+		edit_menu = menu.sub_menu('Edit', [insert_code_above, insert_rich_text_above, menu.item('--------', None), insert_code_below, insert_rich_text_below, menu.item('--------', None), remove_block])
 
-		page_menu = menu.menu([blocks_menu], drop_down=True)
+		page_menu = menu.menu([edit_menu], drop_down=True)
+
+		exec_button = button.button('Execute (Ctrl-Enter)', self.execute)
+
+		doc = Html('<div class="worksheet_documentation">The blocks within a worksheet are editable; place the cursor within them to edit them. Save with Ctrl-S, execute code with Ctrl-Enter.' + \
+			'The Edit menu contains options for adding and removing blocks.</div>')
 
 		header = Html('<div class="worksheet_header">',
-			      '<div class="worksheet_menu_bar">', page_menu, '</div>',
+			      '<div class="worksheet_menu_bar">',
+			      '<div class="worksheet_menu">', page_menu, '</div>',
+			      '<div class="worksheet_buttons">', save_button, exec_button,'</div>',
+			      '</div>',
+			      '</div>',
 			      self.__execution_state,
+			      doc,
 			      '</div>')
 
 		contents = [header]
 
 		for block in self.__blocks:
 			contents.extend(['<div>', block, '</div>'])
+
 
 		p = Html(*contents)
 		p = p.with_key_handler([Key(Key.KEY_DOWN, 13, ctrl=True)], on_execute_key)

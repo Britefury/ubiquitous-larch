@@ -3,9 +3,17 @@
     margin: 1em 0;
 }
 
-.worksheet_menu_bar {
+.worksheet_buttons {
+    margin: 0 5em;
+}
+
+.worksheet_menu {
+    position: absolute;
     width: 15em;
-    margin: 0 10em;
+    margin: 0 25em;
+}
+
+.worksheet_menu_bar {
 }
 
 .worksheet_exec_state_init {
@@ -41,3 +49,13 @@
     padding: 0.1em 0;
 }
 
+.worksheet_documentation {
+    border: 1px solid #84bc77;
+    background: #f1ffed;
+    border-radius: 3px;
+    padding: 5px 15px;
+    margin: 0.5em 2em;
+    font-family: sans-serif;
+    font-size: 0.8em;
+    color: #46663d;
+}
