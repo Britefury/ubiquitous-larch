@@ -148,19 +148,15 @@ class DocListSubject (Subject):
 
 class DocumentList (object):
 	def __init__(self, path):
+		self.__incr = IncrementalValueMonitor()
+
 		self.__path = path
+
 		self.__documents = []
 		self.__docs_by_location = {}
 		self.__docs_by_filename = {}
-		self.__incr = IncrementalValueMonitor()
 
-		file_paths = glob.glob(os.path.join(path, '*' + _EXTENSION))
-		for p in sorted(file_paths):
-			directory, filename = os.path.split(p)
-			name, ext = os.path.splitext(filename)
-			content = load_document(p)
-			doc = Document(self, name, name, content)
-			self.__add_document(doc)
+		self.__load_documents()
 
 
 
@@ -198,6 +194,29 @@ class DocumentList (object):
 	def save_all(self):
 		for doc in self.__documents:
 			doc.save()
+
+
+	def reload(self):
+		self.__documents = []
+		self.__docs_by_location = {}
+		self.__docs_by_filename = {}
+
+		self.__load_documents()
+
+		self.__incr.on_changed()
+
+
+
+	def __load_documents(self):
+		file_paths = glob.glob(os.path.join(self.__path, '*' + _EXTENSION))
+		for p in sorted(file_paths):
+			directory, filename = os.path.split(p)
+			name, ext = os.path.splitext(filename)
+			content = load_document(p)
+			doc = Document(self, name, name, content)
+			self.__add_document(doc)
+
+
 
 
 
@@ -349,6 +368,8 @@ class LarchApplication (object):
 		if documents_path is None:
 			documents_path = os.getcwd()
 
+		self.__documents_path = documents_path
+
 		self.__docs = DocumentList(documents_path)
 		self.__consoles = ConsoleList()
 
@@ -365,12 +386,18 @@ class LarchApplication (object):
 
 
 	def __present__(self, fragment):
+		def _on_reload():
+			self.__docs.reload()
+
+
+		reset_button = button.button('Reload', _on_reload)
+		reset_section = Html('<div class="larch_app_menu">', reset_button, '</div>')
+
 		add_worksheet = menu.item('Worksheet', lambda: self.__doc_gui.add(NewDocumentGUI(self.__docs, lambda: worksheet.Worksheet(), 'Worksheet')))
 		new_item = menu.sub_menu('New', [add_worksheet])
 
 		new_document_menu = menu.menu([new_item], drop_down=True)
 		new_document_menu = Html('<div class="larch_app_menu">', new_document_menu, '</div>')
-
 
 		def on_new_console():
 			self.__consoles.new_console()
@@ -386,6 +413,7 @@ class LarchApplication (object):
 				<section class="larch_app_docs_section">
 				<h2>Open documents:</h2>
 			""",
+			reset_section,
 			self.__docs,
 			new_document_menu,
 			self.__doc_gui,
