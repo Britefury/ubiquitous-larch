@@ -1,0 +1,669 @@
+from copy import deepcopy
+
+from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
+
+
+
+def _on_tracked_list_set_contents(changeHistory, ls, oldContents, newContents, description):
+	if changeHistory is not None:
+		for x in oldContents:
+			changeHistory.stopTracking( x )
+		changeHistory.addChange( lambda: ls._setContents( newContents ), lambda: ls._setContents( oldContents ), description )
+		for x in newContents:
+			changeHistory.track( x )
+
+def _on_tracked_list_set_item(changeHistory, ls, i, oldX, x, description):
+	if changeHistory is not None:
+		changeHistory.stopTracking( oldX )
+		changeHistory.addChange( lambda: ls.__setitem__( i, x ), lambda: ls.__setitem__( i, oldX ), description )
+		changeHistory.track( x )
+
+
+def _on_tracked_list_append(changeHistory, ls, x, description):
+	if changeHistory is not None:
+		changeHistory.addChange( lambda: ls.append( x ), lambda: ls.__delitem__( -1 ), description )
+		changeHistory.track( x )
+
+def _on_tracked_list_extend(changeHistory, ls, xs, description):
+	if changeHistory is not None:
+		n = len( xs )
+		def _del():
+			del ls[-n:]
+		changeHistory.addChange( lambda: ls.extend( xs ), _del, description )
+		for x in xs:
+			changeHistory.track( x )
+
+def _on_tracked_list_insert(changeHistory, ls, i, x, description):
+	if changeHistory is not None:
+		changeHistory.addChange( lambda: ls.insert( i, x ), lambda: ls.__delitem__( i ), description )
+		changeHistory.track( x )
+
+def _on_tracked_list_pop(changeHistory, ls, x, description):
+	if changeHistory is not None:
+		changeHistory.addChange( lambda: ls.pop(), lambda: ls.append( x ), description )
+		changeHistory.stopTracking( x )
+
+def _on_tracked_list_remove(changeHistory, ls, i, x, description):
+	if changeHistory is not None:
+		changeHistory.addChange( lambda: ls.__delitem__( i ), lambda: ls.insert( i, x ), description )
+		changeHistory.stopTracking( x )
+
+def _on_tracked_list_reverse(changeHistory, ls, description):
+	if changeHistory is not None:
+		changeHistory.addChange( lambda: ls.reverse(), lambda: ls.reverse(), description )
+
+
+
+class _LiveListIter (object):
+	__slots__ = [ '_it', '_incr' ]
+	
+	def __init__(self, it, incr):
+		self._it = it
+		self._incr = incr
+	
+	
+	def __iter__(self):
+		return self
+
+	def next(self):
+		self._incr.on_access()
+		return self._it.next()
+
+
+class LiveList (object):
+	__slots__ = [ '__change_history__', '_items', '_incr', '__change_listener']
+	
+	def __init__(self, xs=None):
+		self._items = []
+		if xs is not None:
+			self._items[:] = xs[:]
+		self.__change_history__ = None
+		self._incr = IncrementalValueMonitor()
+		self.__change_listener = None
+
+
+	@property
+	def change_listener(self):
+		return self.__change_listener
+
+	@change_listener.setter
+	def change_listener(self, x):
+		self.__change_listener = x
+	
+		
+	def __getstate__(self):
+		self._incr.on_access()
+		return { 'items' : self._items }
+
+	def __setstate__(self, state):
+		self._items = state['items']
+		self.__change_history__ = None
+		self._incr = IncrementalValueMonitor()
+		self.__change_listener = None
+
+	def __copy__(self):
+		self._incr.on_access()
+		t = type( self )
+		return t( self._items )
+	
+	def __deepcopy__(self, memo):
+		self._incr.on_access()
+		t = type( self )
+		return t( deepcopy( self._items, memo ) )
+
+
+	def __eq__(self, other):
+		if isinstance( other, LiveList ):
+			other = other._items
+		return self._items == other
+	
+	def __ne__(self, other):
+		if isinstance( other, LiveList ):
+			other = other._items
+		return self._items != other
+
+
+	def __str__(self):
+		return str( self._items )
+
+	def __repr__(self):
+		return 'LiveList( {0} )'.format( repr( self._items ) )
+
+
+	def __trackable_contents__(self):
+		return self._items
+
+
+	def __clipboard_copy__(self, memo):
+		self._incr.on_access()
+		t = type( self )
+		return t( [ memo.copy( x )   for x in self ] )
+
+	
+	
+	def __iter__(self):
+		self._incr.on_access()
+		return _LiveListIter( iter( self._items ), self._incr )
+	
+	def __contains__(self, x):
+		self._incr.on_access()
+		return x in self._items
+	
+	def __add__(self, xs):
+		self._incr.on_access()
+		return self._items + xs
+	
+	def __mul__(self, x):
+		self._incr.on_access()
+		return self._items * x
+	
+	def __rmul__(self, x):
+		self._incr.on_access()
+		return x * self._items
+	
+	def __getitem__(self, index):
+		self._incr.on_access()
+		return self._items[index]
+	
+	def __len__(self):
+		self._incr.on_access()
+		return len( self._items )
+	
+	def index(self, x, i=None, j=None):
+		self._incr.on_access()
+		if i is None:
+			return self._items.index( x )
+		elif j is None:
+			return self._items.index( x, i )
+		else:
+			return self._items.index( x, i, j )
+
+	def count(self, x):
+		self._incr.on_access()
+		return self._items.count( x )
+	
+	def __setitem__(self, index, x):
+		if isinstance( index, int )  or  isinstance( index, long ):
+			oldX = self._items[index]
+			if self.__change_listener is not None:
+				oldContents = self._items[:]
+			self._items[index] = x
+			_on_tracked_list_set_item( self.__change_history__, self, index, oldX, x, 'Live list set item' )
+			if self.__change_listener is not None:
+				self.__change_listener( oldContents, self._items[:] )
+		else:
+			oldContents = self._items[:]
+			self._items[index] = x
+			newContents = self._items[:]
+			_on_tracked_list_set_contents( self.__change_history__, self, oldContents, newContents, 'Live list set item' )
+			if self.__change_listener is not None:
+				self.__change_listener( oldContents, newContents )
+		self._incr.on_changed()
+	
+	def __delitem__(self, index):
+		oldContents = self._items[:]
+		del self._items[index]
+		newContents = self._items[:]
+		_on_tracked_list_set_contents( self.__change_history__, self, oldContents, newContents, 'Live list del item' )
+		if self.__change_listener is not None:
+			self.__change_listener( oldContents, newContents )
+		self._incr.on_changed()
+		
+	def append(self, x):
+		if self.__change_listener is not None:
+			oldContents = self._items[:]
+		self._items.append( x )
+		_on_tracked_list_append( self.__change_history__, self, x, 'Live list append' )
+		if self.__change_listener is not None:
+			self.__change_listener( oldContents, self._items[:] )
+		self._incr.on_changed()
+
+	def extend(self, xs):
+		if self.__change_listener is not None:
+			oldContents = self._items[:]
+		self._items.extend( xs )
+		_on_tracked_list_extend( self.__change_history__, self, xs, 'Live list extend' )
+		if self.__change_listener is not None:
+			self.__change_listener( oldContents, self._items[:] )
+		self._incr.on_changed()
+	
+	def insert(self, i, x):
+		if self.__change_listener is not None:
+			oldContents = self._items[:]
+		self._items.insert( i, x )
+		_on_tracked_list_insert( self.__change_history__, self, i, x, 'Live list insert' )
+		if self.__change_listener is not None:
+			self.__change_listener( oldContents, self._items[:] )
+		self._incr.on_changed()
+
+	def pop(self):
+		if self.__change_listener is not None:
+			oldContents = self._items[:]
+		x = self._items.pop()
+		_on_tracked_list_pop( self.__change_history__, self, x, 'Live list pop' )
+		if self.__change_listener is not None:
+			self.__change_listener( oldContents, self._items[:] )
+		self._incr.on_changed()
+		return x
+		
+	def remove(self, x):
+		if self.__change_listener is not None:
+			oldContents = self._items[:]
+		i = self._items.index( x )
+		xFromList = self._items[i]
+		del self._items[i]
+		_on_tracked_list_remove( self.__change_history__, self, i, xFromList, 'Live list remove' )
+		if self.__change_listener is not None:
+			self.__change_listener( oldContents, self._items[:] )
+		self._incr.on_changed()
+		
+	def reverse(self):
+		if self.__change_listener is not None:
+			oldContents = self._items[:]
+		self._items.reverse()
+		_on_tracked_list_reverse( self.__change_history__, self, 'Live list reverse' )
+		if self.__change_listener is not None:
+			self.__change_listener( oldContents, self._items[:] )
+		self._incr.on_changed()
+	
+	def sort(self, cmp=None, key=None, reverse=None):
+		oldContents = self._items[:]
+		self._items.sort( cmp, key, reverse )
+		newContents = self._items[:]
+		_on_tracked_list_set_contents( self.__change_history__, self, oldContents, newContents, 'Live list sort' )
+		if self.__change_listener is not None:
+			self.__change_listener( oldContents, newContents )
+		self._incr.on_changed()
+	
+	def _setContents(self, xs):
+		oldContents = self._items[:]
+		self._items[:] = xs
+		_on_tracked_list_set_contents( self.__change_history__, self, oldContents, xs, 'Live list set contents' )
+		if self.__change_listener is not None:
+			self.__change_listener( oldContents, self._items[:] )
+		self._incr.on_changed()
+
+
+
+
+
+class _Value (object):
+	def __init__(self, x):
+		self.__change_history__ = None
+		self.x = x
+
+
+	def __get_trackable_contents__(self):
+		return [ self.x ]
+
+
+	def is_tracked(self):
+		return self.__change_history__ is not None
+
+
+	def __eq__(self, x):
+		return isinstance( x, _Value )  and  self.x == x.x
+
+	def __str__(self):
+		return 'Value( %s )'  %  str( self.x )
+
+	def __repr__(self):
+		return 'Value( %s )'  %  str( self.x )
+
+	def __cmp__(self, x):
+		return cmp( self.x, x.x )
+
+
+
+
+import unittest
+import random
+
+from britefury.change_history import ChangeHistory
+
+
+class Test_LiveList (unittest.TestCase):
+	def setUp(self):
+		self.history = ChangeHistory()
+		self.ls = LiveList()
+		self.history.track( self.ls )
+		self.prevxs = None
+		self.newxs = None
+		self.ls.change_listener = self._onChanged
+
+	def tearDown(self):
+		self.ls.change_listener = None
+		self.history.stopTracking( self.ls )
+		self.ls = None
+		self.history = None
+		self.prevxs = None
+		self.newxs = None
+
+
+	def _onChanged(self, oldContents, newContents):
+		self.prevxs = oldContents
+		self.newxs = newContents
+
+
+	def _test_changes(self, expectedOldContents, expectedNewContents):
+		self.assertEqual(self.prevxs, expectedOldContents)
+		self.assertEqual(self.newxs, expectedNewContents)
+		self.prevxs = None
+		self.newxs = None
+
+
+	def test_setitem(self):
+		self.assertEqual( self.ls[:], [] )
+
+		_two = _Value( -2 )
+		self.ls.append( _two )
+		self.assertEqual( self.ls[:], [ _two ] )
+		self.assertTrue( _two.is_tracked() )
+		self._test_changes( [], [ _two ] )
+
+		_one = _Value( -1 )
+		self.ls[0] = _one
+		self.assertEqual( self.ls[:], [ _one ] )
+		self.assertFalse( _two.is_tracked() )
+		self.assertTrue( _one.is_tracked() )
+		self._test_changes( [ _two ], [ _one ] )
+
+		_rng = [ _Value( x )   for x in xrange( 0, 5 ) ]
+		self.ls[1:] = _rng
+		self.assertEqual( self.ls[:], [ _one ] + _rng )
+		self.assertFalse( _two.is_tracked() )
+		self.assertTrue( _one.is_tracked() )
+		for x in _rng:
+			self.assertTrue( x.is_tracked() )
+		self._test_changes( [ _one ], [ _one ] + _rng )
+
+
+		self.history.undo()
+		self.assertEqual( self.ls[:], [ _one ] )
+		self.assertFalse( _two.is_tracked() )
+		self.assertTrue( _one.is_tracked() )
+		for x in _rng:
+			self.assertFalse( x.is_tracked() )
+		self._test_changes( [ _one ] + _rng, [ _one ] )
+
+
+		self.history.undo()
+		self.assertEqual( self.ls[:], [ _two ] )
+		self.assertFalse( _one.is_tracked() )
+		self.assertTrue( _two.is_tracked() )
+		self._test_changes( [ _one ], [ _two ] )
+
+
+		self.history.redo()
+		self.assertEqual( self.ls[:], [ _one ] )
+		self.assertFalse( _two.is_tracked() )
+		self.assertTrue( _one.is_tracked() )
+		for x in _rng:
+			self.assertFalse( x.is_tracked() )
+		self._test_changes( [ _two ], [ _one ] )
+
+
+		self.history.redo()
+		self.assertEqual( self.ls[:], [ _one ] + _rng )
+		self.assertFalse( _two.is_tracked() )
+		self.assertTrue( _one.is_tracked() )
+		for x in _rng:
+			self.assertTrue( x.is_tracked() )
+		self._test_changes( [ _one ], [ _one ] + _rng )
+
+
+
+
+	def test_delitem(self):
+		self.assertEqual( self.ls[:], [] )
+
+		_rng = [ _Value( x )   for x in xrange( 0, 5 ) ]
+		self.ls[:] = _rng
+		self.assertEqual( self.ls[:], _rng )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
+		self._test_changes( [], _rng )
+
+
+		del self.ls[0]
+		self.assertEqual( self.ls[:], _rng[1:] )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ False, True, True, True, True ] )
+		self._test_changes( _rng, _rng[1:] )
+
+
+		del self.ls[1:3]
+		self.assertEqual( self.ls[:], [ _rng[1], _rng[4] ] )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ False, True, False, False, True ] )
+		self._test_changes( _rng[1:], [ _rng[1], _rng[4] ] )
+
+
+		self.history.undo()
+		self.assertEqual( self.ls[:], _rng[1:] )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ False, True, True, True, True ] )
+		self._test_changes( [ _rng[1], _rng[4] ], _rng[1:] )
+
+
+		self.history.undo()
+		self.assertEqual( self.ls[:], _rng )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
+		self._test_changes( _rng[1:], _rng )
+
+
+		self.history.redo()
+		self.assertEqual( self.ls[:], _rng[1:] )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ False, True, True, True, True ] )
+		self._test_changes( _rng, _rng[1:] )
+
+
+		self.history.redo()
+		self.assertEqual( self.ls[:], [ _rng[1], _rng[4] ] )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ False, True, False, False, True ] )
+		self._test_changes( _rng[1:], [ _rng[1], _rng[4] ] )
+
+
+
+	def test_append(self):
+		self.assertEqual( self.ls[:], [] )
+
+		v = _Value( 2 )
+		self.ls.append( v )
+		self.assertTrue( v.is_tracked() )
+
+		self.assertEqual( self.ls[:], [ _Value( 2 ) ] )
+		self._test_changes( [], [ v ] )
+
+		self.history.undo()
+		self.assertEqual( self.ls[:], [] )
+		self.assertFalse( v.is_tracked() )
+		self._test_changes( [ v ], [] )
+
+		self.history.redo()
+		self.assertEqual( self.ls[:], [ _Value( 2 ) ] )
+		self.assertTrue( v.is_tracked() )
+		self._test_changes( [], [ v ] )
+
+
+
+	def test_extend(self):
+		_rng = [ _Value( x )   for x in xrange( 0, 5 ) ]
+		self.assertEqual( self.ls[:], [] )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ False, False, False, False, False ] )
+
+		self.ls.extend( _rng )
+		self.assertEqual( self.ls[:], _rng )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
+		self._test_changes( [], _rng )
+
+		self.history.undo()
+		self.assertEqual( self.ls[:], [] )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ False, False, False, False, False ] )
+		self._test_changes( _rng, [] )
+
+		self.history.redo()
+		self.assertEqual( self.ls[:], _rng )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
+		self._test_changes( [], _rng )
+
+
+
+	def test_insert(self):
+		v = _Value( 20 )
+		_rng = [ _Value( x )   for x in xrange( 0, 5 ) ]
+
+		self.ls[:] = _rng
+		self.assertEqual( self.ls[:], _rng )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
+		self.assertFalse( v.is_tracked() )
+		self._test_changes( [], _rng )
+
+		self.ls.insert( 2, v )
+		self.assertEqual( self.ls[:], _rng[:2] + [ v ] + _rng[2:] )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
+		self.assertTrue( v.is_tracked() )
+		self._test_changes( _rng, _rng[:2] + [ v ] + _rng[2:] )
+
+		self.history.undo()
+		self.assertEqual( self.ls[:], _rng )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
+		self.assertFalse( v.is_tracked() )
+		self._test_changes( _rng[:2] + [ v ] + _rng[2:], _rng )
+
+		self.history.redo()
+		self.assertEqual( self.ls[:], _rng[:2] + [ v ] + _rng[2:] )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
+		self.assertTrue( v.is_tracked() )
+		self._test_changes( _rng, _rng[:2] + [ v ] + _rng[2:] )
+
+
+
+	def test_pop(self):
+		_rng = [ _Value( x )   for x in xrange( 0, 5 ) ]
+
+		self.ls[:] = _rng
+		self.assertEqual( self.ls[:], _rng )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
+		self._test_changes( [], _rng )
+
+		v = self.ls.pop()
+		self.assertTrue( v is _rng[-1] )
+		self.assertEqual( self.ls[:], _rng[:-1] )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, False ] )
+		self._test_changes( _rng, _rng[:-1] )
+
+		self.history.undo()
+		self.assertEqual( self.ls[:], _rng )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
+		self._test_changes( _rng[:-1], _rng )
+
+		self.history.redo()
+		self.assertEqual( self.ls[:], _rng[:-1] )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, False ] )
+		self._test_changes( _rng, _rng[:-1] )
+
+
+
+	def test_remove(self):
+		_rng = [ _Value( x )   for x in xrange( 0, 5 ) ]
+
+		self.ls[:] = _rng
+		self.assertEqual( self.ls[:], _rng )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
+		self._test_changes( [], _rng )
+
+		self.ls.remove( _Value( 2 ) )
+		self.assertEqual( self.ls[:], _rng[:2] + _rng[3:] )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, False, True, True ] )
+		self._test_changes( _rng, _rng[:2] + _rng[3:] )
+
+		self.history.undo()
+		self.assertEqual( self.ls[:], _rng )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
+		self._test_changes( _rng[:2] + _rng[3:], _rng )
+
+		self.history.redo()
+		self.assertEqual( self.ls[:], _rng[:2] + _rng[3:] )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, False, True, True ] )
+		self._test_changes( _rng, _rng[:2] + _rng[3:] )
+
+
+
+	def test_reverse(self):
+		_rng = [ _Value( x )   for x in xrange( 0, 5 ) ]
+		_rev = _rng[:]
+		_rev.reverse()
+
+		self.ls[:] = _rng
+		self.assertEqual( self.ls[:], _rng )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
+		self._test_changes( [], _rng )
+
+		self.ls.reverse()
+		self.assertEqual( self.ls[:], _rev )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
+		self._test_changes( _rng, _rev )
+
+		self.history.undo()
+		self.assertEqual( self.ls[:], _rng )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
+		self._test_changes( _rev, _rng )
+
+		self.history.redo()
+		self.assertEqual( self.ls[:], _rev )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
+		self._test_changes( _rng, _rev )
+
+
+
+	def test_sort(self):
+		_rng = [ _Value( x )   for x in xrange( 0, 5 ) ]
+
+		_shuf = _rng[:]
+		r = random.Random( 12345 )
+		r.shuffle( _shuf )
+
+		self.ls[:] = _shuf
+		self.assertEqual( self.ls[:], _shuf )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
+		self._test_changes( [], _shuf )
+
+		self.ls.sort()
+		self.assertEqual( self.ls[:], _rng )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
+		self._test_changes( _shuf, _rng )
+
+		self.history.undo()
+		self.assertEqual( self.ls[:], _shuf )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
+		self._test_changes( _rng, _shuf )
+
+		self.history.redo()
+		self.assertEqual( self.ls[:], _rng )
+		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
+		self._test_changes( _shuf, _rng )
+
+
+
+	def test_eq(self):
+		self.ls[:] = range( 0, 5 )
+
+		self.assertTrue( self.ls == range( 0, 5 ) )
+		self.assertTrue( self.ls == LiveList( range( 0, 5 ) ) )
+		self.assertFalse( self.ls == range( 0, 6 ) )
+		self.assertFalse( self.ls == LiveList( range( 0, 6 ) ) )
+
+		self.assertTrue( self.ls != range( 0, 6 ) )
+		self.assertTrue( self.ls != LiveList( range( 0, 6 ) ) )
+		self.assertFalse( self.ls != range( 0, 5 ) )
+		self.assertFalse( self.ls != LiveList( range( 0, 5 ) ) )
+
+
+
+	def test_str(self):
+		self.ls[:] = range( 0, 5 )
+
+		self.assertEqual( str( self.ls ), str( range( 0, 5 ) ) )
+
+
+	def test_repr(self):
+		self.ls[:] = range( 0, 5 )
+
+		self.assertEqual( repr( self.ls ), 'LiveList( ' + repr( range( 0, 5 ) ) + ' )' )
