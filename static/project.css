@@ -1,0 +1,30 @@
+.project_index {
+}
+
+.project_package {
+}
+
+.project_page {
+}
+
+.project_container_contents {
+    margin-left: 1.5em;
+}
+
+.project_index_text {
+    font-family: "Palatino linotype", "Book Antiqua", serif;
+    font-weight: lighter;
+    color: #205e20;
+    font-size: 1.75em;
+}
+
+.project_package_text {
+    font-family: "Palatino linotype", "Book Antiqua", serif;
+    color: #5e2020;
+    font-size: 1.25em;
+}
+
+.project_page_text:link {
+    font-family: "Palatino linotype", "Book Antiqua", serif;
+    color: #20475c;
+}

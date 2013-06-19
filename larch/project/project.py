@@ -1,55 +1,32 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-import imp
-
-from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
 from britefury.pres.html import Html
-from britefury.pres.key_event import Key
-from britefury.pres.controls import ckeditor, menu, button
 from britefury.projection.subject import Subject
-from britefury.live.live_value import LiveValue
-from larch.python import PythonCode
 
 
-
-class ProjectNode (object):
-	def __init__(self, name):
-		self._name = name
-		self._parent = None
-
-
-	@property
-	def name(self):
-		return self._name
-
-	@name.setter
-	def name(self, n):
-		self._name = n
-
-
-
-class ProjectPage (ProjectNode):
-	pass
-
-
-
-class ProjectPackage (ProjectNode):
-	pass
-
+from larch.project.project_root import ProjectRoot
+from larch.project.project_package import ProjectPackage
+from larch.project.project_page import ProjectPage
 
 
 
 
 class Project (object):
 	def __init__(self):
-		pass
+		self.__root = ProjectRoot()
+
+		self.__root.append(ProjectPackage('TestPackage', [ProjectPage('PageInPackage', None)]))
+		self.__root.append(ProjectPage('PageInIndex', None))
+
 
 
 	def __present__(self, fragment):
-		return Html("""
-		<div class="larch_app_title_bar"><h1 class="page_title">Project</h1></div>
-		""")
+		contents = [
+			'<div class="larch_app_title_bar"><h1 class="page_title">Project</h1></div>',
+			self.__root
+		]
+		return Html(*contents).use_css(url="/project.css")
 
 
 
