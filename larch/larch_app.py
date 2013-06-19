@@ -11,6 +11,7 @@ from britefury.projection.projection_service import ProjectionService
 from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
 from larch.console import console
 from larch.worksheet import worksheet
+from larch.project import project
 
 from britefury.pres.html import Html
 from britefury.pres.controls import menu, button, dialog, text_entry
@@ -394,7 +395,8 @@ class LarchApplication (object):
 		reset_section = Html('<div class="larch_app_menu">', reset_button, '</div>')
 
 		add_worksheet = menu.item('Worksheet', lambda: self.__doc_gui.add(NewDocumentGUI(self.__docs, lambda: worksheet.Worksheet(), 'Worksheet')))
-		new_item = menu.sub_menu('New', [add_worksheet])
+		add_project = menu.item('Project', lambda: self.__doc_gui.add(NewDocumentGUI(self.__docs, lambda: project.Project(), 'Project')))
+		new_item = menu.sub_menu('New', [add_worksheet, add_project])
 
 		new_document_menu = menu.menu([new_item], drop_down=True)
 		new_document_menu = Html('<div class="larch_app_menu">', new_document_menu, '</div>')

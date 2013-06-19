@@ -45,6 +45,14 @@
 
 
 
+.page_title {
+    text-align: center;
+    padding: 0.5em 0;
+    font-family: "Garamond", serif;
+    font-size: 3em;
+    color: #60676e;
+}
+
 p {
     color: #404040;
     font-family: "Oxygen", "Tahoma", "Geneva", sans-serif;
