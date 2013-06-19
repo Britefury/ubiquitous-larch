@@ -190,7 +190,7 @@ class ChangeHistory (object):
 			self._on_modified()
 
 
-	def add_action(self, apply_fn, revert_fn, description):
+	def add_fn_change(self, apply_fn, revert_fn, description):
 		self.add_change(FnChange(apply_fn, revert_fn, description))
 
 
@@ -258,27 +258,25 @@ class ChangeHistory (object):
 
 
 	def track(self, x):
-		if not is_trackable(x):
-			raise TypeError, 'x is not trackable'
-		history = x.__change_history__
-		if history is None:
-			x.__change_history__ = self
-			trackable_contents_fn = x.__trackable_contents__
-			if trackable_contents_fn is not None:
-				for c in trackable_contents_fn():
-					self.track(c)
-		elif history != self:
-			raise AlreadyTrackedError, 'Object \'{0}\' is already being tracked by a different change history'.format(x)
+		if is_trackable(x):
+			history = x.__change_history__
+			if history is None:
+				x.__change_history__ = self
+				trackable_contents_fn = x.__trackable_contents__
+				if trackable_contents_fn is not None:
+					for c in trackable_contents_fn():
+						self.track(c)
+			elif history != self:
+				raise AlreadyTrackedError, 'Object \'{0}\' is already being tracked by a different change history'.format(x)
 
 
 	def stop_tracking(self, x):
-		if not is_trackable(x):
-			raise TypeError, 'x is not trackable'
-		trackable_contents_fn = x.__trackable_contents__
-		if trackable_contents_fn is not None:
-			for c in trackable_contents_fn():
-				self.stop_tracking(c)
-		x.__change_history__ = None
+		if is_trackable(x):
+			trackable_contents_fn = x.__trackable_contents__
+			if trackable_contents_fn is not None:
+				for c in trackable_contents_fn():
+					self.stop_tracking(c)
+			x.__change_history__ = None
 
 
 
@@ -413,7 +411,7 @@ class Test_change_history (unittest.TestCase):
 			old_x = self._x
 			self._x = x
 			if self.__change_history__ is not None:
-				self.__change_history__.add_action(lambda: self._setX(x), lambda: self._setX(old_x), 'Test: Data.x')
+				self.__change_history__.add_fn_change(lambda: self._setX(x), lambda: self._setX(old_x), 'Test: Data.x')
 
 
 		def _setY(self, y):
@@ -444,7 +442,7 @@ class Test_change_history (unittest.TestCase):
 			self._x = x
 			if self.__change_history__ is not None:
 				self.__change_history__.stop_tracking(old_x)
-				self.__change_history__.add_action(lambda: self._setX(x), lambda: self._setX(old_x), 'Test: DataZ.x')
+				self.__change_history__.add_fn_change(lambda: self._setX(x), lambda: self._setX(old_x), 'Test: DataZ.x')
 				self.__change_history__.track(x)
 
 
@@ -453,7 +451,7 @@ class Test_change_history (unittest.TestCase):
 			self._y = y
 			if self.__change_history__ is not None:
 				self.__change_history__.stop_tracking(old_y)
-				self.__change_history__.add_action(lambda: self._setY(y), lambda: self._setY(old_y), 'Test: DataZ.y')
+				self.__change_history__.add_fn_change(lambda: self._setY(y), lambda: self._setY(old_y), 'Test: DataZ.y')
 				self.__change_history__.track(y)
 
 
