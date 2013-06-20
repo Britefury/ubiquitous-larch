@@ -330,7 +330,7 @@ class NewDocumentGUI (GUIBox):
 		def on_cancel():
 			self.close()
 
-		return Html('<div class="larch_app_create_gui">',
+		return Html('<div class="gui_box">',
 				'<span class="gui_section_1">Create document</span><br>',
 				'<table>',
 				'<tr><td><span class="gui_label">Name:</span></td><td>', text_entry.text_entry(self.__name, on_edit=on_edit), '</td></tr>',

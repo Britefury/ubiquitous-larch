@@ -200,12 +200,5 @@ class ProjectRoot (ProjectContainer):
 
 
 
-
-	def __present__(self, fragment):
-		contents = [
-			'<div class="project_index">',
-			'<span class="project_index_text">Index</span>',
-			self.__present_container_contents__(fragment),
-			'</div>'
-		]
-		return Html(*contents)
+	def _present_header(self, fragment):
+		return Html('<span class="project_index_text">Index</span>')

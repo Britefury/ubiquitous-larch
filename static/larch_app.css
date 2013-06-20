@@ -76,15 +76,6 @@
     width: 10em;
 }
 
-.larch_app_create_gui {
-    width: 100%;
-    margin: 5px 25px;
-    padding: 10px 10px;
-    border: 1px solid #6095ff;
-    border-radius: 5px;
-    background: #eff8ff;
-}
-
 .larch_app_doc_name_in_use {
     margin: 5px 25px;
     padding: 10px 10px;

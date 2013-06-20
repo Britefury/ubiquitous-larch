@@ -7,6 +7,10 @@ from larch.project.project_container import ProjectContainer
 
 
 
+
+
+
+
 class ProjectPackage (ProjectContainer):
 	def __init__(self, name='', contents=None):
 		super( ProjectPackage, self ).__init__( contents )
@@ -67,13 +71,7 @@ class ProjectPackage (ProjectContainer):
 
 
 
-	def __present__(self, fragment):
-		contents = [
-			'<div class="project_package">',
-			'<span class="project_package_text">{0}</span>'.format(self.name),
-			self.__present_container_contents__(fragment),
-			'</div>'
-		]
-		return Html(*contents)
+	def _present_header(self, fragment):
+		return Html('<span class="project_package_text">{0}</span>'.format(self.name))
 
 

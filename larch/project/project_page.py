@@ -108,7 +108,7 @@ class ProjectPage (ProjectNode):
 	def __present__(self, fragment):
 		contents = [
 			'<div class="project_page">',
-			'<a class="project_page_text" href="#">{0}</span>'.format(self.name),
+			'<a class="project_page_text" href="#">{0}</a>'.format(self.name),
 			'</div>'
 		]
 		return Html(*contents)
