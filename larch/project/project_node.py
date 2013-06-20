@@ -40,25 +40,35 @@ class ProjectNode (object):
 		return None
 
 
-	def _setParent(self, parent, takePriority):
+	def _set_parent(self, parent, takePriority):
 		self._parent = parent
-		newRoot = parent.rootNode
+		newRoot = parent.root_node
 		if newRoot is not None:
-			self._registerRoot( newRoot, takePriority )
+			self._register_root( newRoot, takePriority )
 
 
-	def _clearParent(self):
-		oldRoot = self.rootNode
+	def _clear_parent(self):
+		oldRoot = self.root_node
 		if oldRoot is not None:
-			self._unregisterRoot( oldRoot )
+			self._unregister_root( oldRoot )
 		self._parent = None
 
 
-	def _registerRoot(self, root, takePriority):
+	def _register_root(self, root, takePriority):
 		pass
 
-	def _unregisterRoot(self, root):
+	def _unregister_root(self, root):
 		pass
+
+
+	@property
+	def path_to_root(self):
+		path = []
+		node = self
+		while node is not None:
+			path.append(node)
+			node = node._parent
+		return path
 
 
 	@property
@@ -67,8 +77,8 @@ class ProjectNode (object):
 
 
 	@property
-	def rootNode(self):
-		return self._parent.rootNode   if self._parent is not None   else None
+	def root_node(self):
+		return self._parent.root_node   if self._parent is not None   else None
 
 
 

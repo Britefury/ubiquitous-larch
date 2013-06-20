@@ -46,10 +46,10 @@ larch_app_css = '/larch_app.css'
 
 
 class AppSubject (Subject):
-	def __init__(self, enclosing_subject, app, perspective=None):
-		super(AppSubject, self).__init__(enclosing_subject, app, perspective, title='The Ubiquitous Larch')
-		self.docs = DocListSubject(self, app.docs, perspective)
-		self.consoles = ConsoleListSubject(self, app.consoles, perspective)
+	def __init__(self, enclosing_subject, location_trail, app, perspective=None):
+		super(AppSubject, self).__init__(enclosing_subject, location_trail, app, perspective, title='The Ubiquitous Larch')
+		self.docs = DocListSubject(self, ['docs'], app.docs, perspective)
+		self.consoles = ConsoleListSubject(self, ['consoles'], app.consoles, perspective)
 
 
 	def __resolve__(self, name):
@@ -121,8 +121,8 @@ class Document (object):
 
 
 class _DocSubject (Subject):
-	def __init__(self, enclosing_subject, doc, perspective=None):
-		super(_DocSubject, self).__init__(enclosing_subject, doc, perspective, title=doc.name)
+	def __init__(self, enclosing_subject, location_trail, doc, perspective=None):
+		super(_DocSubject, self).__init__(enclosing_subject, location_trail, doc, perspective, title=doc.name)
 
 
 	def save(self):
@@ -132,15 +132,15 @@ class _DocSubject (Subject):
 
 
 class DocListSubject (Subject):
-	def __init__(self, enclosing_subject, docs, perspective=None):
-		super(DocListSubject, self).__init__(enclosing_subject, docs, perspective, title='The Ubiquitous Larch')
+	def __init__(self, enclosing_subject, location_trail, docs, perspective=None):
+		super(DocListSubject, self).__init__(enclosing_subject, location_trail, docs, perspective, title='The Ubiquitous Larch')
 
 
 	def __resolve__(self, name):
 		doc = self.focus.doc_for_location(name)
 		if doc is not None:
-			doc_subj = _DocSubject(self, doc, self.perspective)
-			return doc.content.__subject__(doc_subj, self.perspective)
+			doc_subj = _DocSubject(self, [name], doc, self.perspective)
+			return doc.content.__subject__(doc_subj, [], self.perspective)
 		else:
 			return None
 
@@ -233,8 +233,8 @@ class DocumentList (object):
 
 
 class ConsoleListSubject (Subject):
-	def __init__(self, enclosing_subject, consoles, perspective=None):
-		super(ConsoleListSubject, self).__init__(enclosing_subject, consoles, perspective, title='The Ubiquitous Larch')
+	def __init__(self, enclosing_subject, location_trail, consoles, perspective=None):
+		super(ConsoleListSubject, self).__init__(enclosing_subject, location_trail, consoles, perspective, title='The Ubiquitous Larch')
 
 
 	def __resolve__(self, name):
@@ -246,7 +246,7 @@ class ConsoleListSubject (Subject):
 			return None
 		console = self.focus[index]
 		if console is not None:
-			return console.__subject__(self, self.perspective)
+			return console.__subject__(self, [name], self.perspective)
 		else:
 			return None
 
@@ -443,8 +443,8 @@ class LarchApplication (object):
 
 
 
-	def __subject__(self, enclosing_subject, perspective):
-		return AppSubject(enclosing_subject, self, perspective)
+	def __subject__(self, enclosing_subject, location_trail, perspective):
+		return AppSubject(enclosing_subject, location_trail, self, perspective)
 
 
 
@@ -454,6 +454,6 @@ class LarchApplication (object):
 
 def create_service(documents_path=None):
 	focus = LarchApplication(documents_path)
-	index_subject = Subject.subject_for(None, focus)
+	index_subject = Subject.subject_for(None, ['pages'], focus)
 
 	return ProjectionService(index_subject)

@@ -9,6 +9,7 @@ from britefury.pres.html import Html
 from britefury.pres.controls import menu, text_entry, button
 
 from larch.project.project_node import ProjectNode
+from larch.worksheet.worksheet import Worksheet
 from larch import project
 
 
@@ -59,10 +60,10 @@ class ProjectContainer (ProjectNode):
 	def __init__(self, contents=None):
 		super( ProjectContainer, self ).__init__()
 		self._contents = TrackedLiveList()
+		self._contents.change_listener = self.__contents_changed
 		self._contentsMapLive = LiveFunction( self._computeContentsMap )
 		if contents is not None:
 			self[:] = contents
-		self._contents.change_listener = self.__contents_changed
 
 
 	@property
@@ -75,16 +76,17 @@ class ProjectContainer (ProjectNode):
 
 	def __getstate__(self):
 		state = super( ProjectContainer, self ).__getstate__()
-		state['contents'] = self._contents
+		state['contents'] = self._contents[:]
 		return state
 
 	def __setstate__(self, state):
 		super( ProjectContainer, self ).__setstate__( state )
-		self._contents = state['contents']
+		self._contents = TrackedLiveList(state.get('contents'))
+		self._contents.change_listener = self.__contents_changed
 		self._contentsMapLive = LiveFunction( self._computeContentsMap )
 
 		for x in self._contents:
-			x._setParent( self, True )
+			x._set_parent( self, True )
 
 
 	def _computeContentsMap(self):
@@ -154,15 +156,15 @@ class ProjectContainer (ProjectNode):
 
 
 
-	def _registerRoot(self, root, takePriority):
-		super( ProjectContainer, self )._registerRoot( root, takePriority )
+	def _register_root(self, root, takePriority):
+		super( ProjectContainer, self )._register_root( root, takePriority )
 		for x in self._contents:
-			x._registerRoot( root, takePriority )
+			x._register_root( root, takePriority )
 
-	def _unregisterRoot(self, root):
-		super( ProjectContainer, self )._unregisterRoot( root )
+	def _unregister_root(self, root):
+		super( ProjectContainer, self )._unregister_root( root )
 		for x in self._contents:
-			x._unregisterRoot( root )
+			x._unregister_root( root )
 
 
 
@@ -173,9 +175,9 @@ class ProjectContainer (ProjectNode):
 		added = cur - prev
 		removed = prev - cur
 		for x in removed:
-			x._clearParent()
+			x._clear_parent()
 		for x in added:
-			x._setParent( self, False )
+			x._set_parent( self, False )
 		self._incr.on_changed()
 
 
@@ -193,7 +195,7 @@ class ProjectContainer (ProjectNode):
 			create_gui.value = NewNodeGUI(create_gui, self, 'package', 'Package', lambda name: project.project_package.ProjectPackage(name))
 
 		def on_new_worksheet():
-			create_gui.value = NewNodeGUI(create_gui, self, 'worksheet', 'Worksheet', lambda name: project.project_page.ProjectPage(name))
+			create_gui.value = NewNodeGUI(create_gui, self, 'worksheet', 'Worksheet', lambda name: project.project_page.ProjectPage(name, Worksheet()))
 
 
 		new_package_item = menu.item('New package', on_new_package)
@@ -217,7 +219,10 @@ class ProjectContainer (ProjectNode):
 			'<div class="project_container_contents">',
 		]
 
-		for x in self._contents:
+		xs = self._contents[:]
+		xs.sort(key=lambda x: (not isinstance(x, ProjectContainer), x.name))
+
+		for x in xs:
 			contents.extend(['<div>', x, '</div>'])
 
 		contents.extend([
@@ -225,6 +230,3 @@ class ProjectContainer (ProjectNode):
 			'</div>'
 		])
 		return Html(*contents)
-
-
-

@@ -90,5 +90,5 @@ class Console (object):
 		return Html(*contents).use_css('/console.css')
 
 
-	def __subject__(self, enclosing_subject, perspective):
-		return Subject(enclosing_subject, self, perspective, 'Python console')
+	def __subject__(self, enclosing_subject, location_trail, perspective):
+		return Subject(enclosing_subject, location_trail, self, perspective, 'Python console')

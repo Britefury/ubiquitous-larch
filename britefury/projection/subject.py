@@ -5,10 +5,11 @@ from britefury.default_perspective.default_perspective import DefaultPerspective
 
 
 class Subject (object):
-	def __init__(self, enclosing_subject, focus, perspective=None, title=None):
+	def __init__(self, enclosing_subject, location_trail, focus, perspective=None, title=None):
 		if perspective is None:
 			perspective = DefaultPerspective.instance
 		self.__enclosing_subject = enclosing_subject
+		self.__location_trail = location_trail
 		self.__focus = focus
 		self.__perspective = perspective
 		self.__title = title
@@ -38,14 +39,26 @@ class Subject (object):
 		return self.__title
 
 
+	@property
+	def location(self):
+		subj = self
+		trail = []
+		while subj is not None:
+			trail = list(subj.__location_trail[:]) + trail
+			subj = subj.__enclosing_subject
+		return '/' + '/'.join(trail)
+
+	def _location_trail_entries(self):
+		return None
+
+
 
 	def __resolve__(self, name):
 		return None
 
 
 
-
 	@staticmethod
-	def subject_for(enclosing_subject, focus, perspective=None):
-		return focus.__subject__(enclosing_subject, perspective)
+	def subject_for(enclosing_subject, location_trail, focus, perspective=None):
+		return focus.__subject__(enclosing_subject, location_trail, perspective)
 

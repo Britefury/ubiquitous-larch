@@ -260,6 +260,6 @@ class Worksheet (object):
 		return p.use_css('/worksheet.css')
 
 
-	def __subject__(self, enclosing_subject, perspective):
-		return Subject(enclosing_subject, self, perspective, 'Worksheet')
+	def __subject__(self, enclosing_subject, location_trail, perspective):
+		return Subject(enclosing_subject, location_trail, self, perspective, 'Worksheet')
 

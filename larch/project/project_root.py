@@ -7,17 +7,18 @@ from copy import deepcopy
 from britefury.pres.html import Html
 
 from larch.project.project_container import ProjectContainer
+from larch.project.subject import RootSubject
 
 
 class ProjectRoot (ProjectContainer):
 	def __init__(self, packageName=None, contents=None):
 		super( ProjectRoot, self ).__init__( contents )
 		self._pythonPackageName = packageName
-		self.__frontPageId = None
-		self.__startupPageId = None
+		self.__front_page_id = None
+		self.__startup_page_id = None
 
-		self.__idToPage = {}
-		self.__pageIdCounter = 0
+		self.__id_to_page = {}
+		self.__page_id_counter = 0
 
 		self._startupExecuted = False
 
@@ -38,20 +39,20 @@ class ProjectRoot (ProjectContainer):
 	def __getstate__(self):
 		state = super( ProjectRoot, self ).__getstate__()
 		state['pythonPackageName'] = self._pythonPackageName
-		state['frontPageId'] = self.__frontPageId
-		state['startupPageId'] = self.__startupPageId
+		state['frontPageId'] = self.__front_page_id
+		state['startupPageId'] = self.__startup_page_id
 		return state
 
 	def __setstate__(self, state):
-		self.__idToPage = {}
-		self.__pageIdCounter = 0
+		self.__id_to_page = {}
+		self.__page_id_counter = 0
 		self._startupExecuted = False
 
 		# Need to initialise the ID table before loading contents
 		super( ProjectRoot, self ).__setstate__( state )
 		self._pythonPackageName = state['pythonPackageName']
-		self.__frontPageId = state.get( 'frontPageId' )
-		self.__startupPageId = state.get( 'startupPageId' )
+		self.__front_page_id = state.get( 'frontPageId' )
+		self.__startup_page_id = state.get( 'startupPageId' )
 
 
 	def __copy__(self):
@@ -59,15 +60,6 @@ class ProjectRoot (ProjectContainer):
 
 	def __deepcopy__(self, memo):
 		return ProjectRoot( self._pythonPackageName, [ deepcopy( x, memo )   for x in self ] )
-
-
-	def __new_subject__(self, document, enclosingSubject, path, importName, title):
-		"""Used to create the subject that displays the project as a page"""
-		projectSubject = ProjectEditor.Subject.ProjectSubject( document, self, enclosingSubject, path, importName, title )
-		frontPage = self.frontPage
-		if frontPage is not None:
-			return document.newModelSubject( frontPage.data, projectSubject, path, frontPage.importName, frontPage.getName() )
-		return projectSubject
 
 
 	def startup(self):
@@ -100,11 +92,11 @@ class ProjectRoot (ProjectContainer):
 		self.exportContents( myPath )
 
 
-	def _registerRoot(self, root, takePriority):
+	def _register_root(self, root, takePriority):
 		# No need to register the root package; this is the root package
 		pass
 
-	def _unregisterRoot(self, root):
+	def _unregister_root(self, root):
 		# No need to unregister the root package; this is the root package
 		pass
 
@@ -130,48 +122,48 @@ class ProjectRoot (ProjectContainer):
 
 
 
-	def _registerPage(self, page, takePriority):
+	def _register_page(self, page, takePriority):
 		pageId = page._id
 
-		if pageId is not None  and  pageId in self.__idToPage  and  takePriority:
+		if pageId is not None  and  pageId in self.__id_to_page  and  takePriority:
 			# page ID already in use
 			# Take it, and make a new one for the page that is currently using it
 
 			# Get the other page that is currently using the page ID
-			otherPage = self.__idToPage[pageId]
+			otherPage = self.__id_to_page[pageId]
 
 			# Make new page ID
-			self.__pageIdCounter = max( self.__pageIdCounter, len( self.__idToPage) )
-			otherPageId = self.__pageIdCounter
-			self.__pageIdCounter += 1
+			self.__page_id_counter = max( self.__page_id_counter, len( self.__id_to_page) )
+			otherPageId = self.__page_id_counter
+			self.__page_id_counter += 1
 
 			# Re-assign
-			self.__idToPage[pageId] = page
+			self.__id_to_page[pageId] = page
 			page._id = pageId
-			self.__idToPage[otherPageId] = otherPage
+			self.__id_to_page[otherPageId] = otherPage
 			otherPage._id = otherPageId
-		elif pageId is None  or  ( pageId in self.__idToPage  and  not takePriority ):
+		elif pageId is None  or  ( pageId in self.__id_to_page  and  not takePriority ):
 			# Either, no page ID or page ID already in use and not taking priority
 			# Create a new one
-			self.__pageIdCounter = max( self.__pageIdCounter, len( self.__idToPage) )
-			pageId = self.__pageIdCounter
-			self.__pageIdCounter += 1
+			self.__page_id_counter = max( self.__page_id_counter, len( self.__id_to_page) )
+			pageId = self.__page_id_counter
+			self.__page_id_counter += 1
 			page._id = pageId
 
-		self.__idToPage[pageId] = page
+		self.__id_to_page[pageId] = page
 
-	def _unregisterPage(self, node):
+	def _unregister_page(self, node):
 		nodeId = node._id
-		del self.__idToPage[nodeId]
+		del self.__id_to_page[nodeId]
 
 
-	def getPageById(self, nodeId):
-		return self.__idToPage.get( nodeId )
+	def get_page_by_id(self, nodeId):
+		return self.__id_to_page.get( nodeId )
 
 
 
 	@property
-	def rootNode(self):
+	def root_node(self):
 		return self
 
 
@@ -179,11 +171,11 @@ class ProjectRoot (ProjectContainer):
 	def frontPage(self):
 		self._incr.on_access()
 		self.startup()
-		return self.__idToPage.get( self.__frontPageId )   if self.__frontPageId is not None   else None
+		return self.__id_to_page.get( self.__front_page_id )   if self.__front_page_id is not None   else None
 
 	@frontPage.setter
 	def frontPage(self, page):
-		self.__frontPageId = page._id   if page is not None   else None
+		self.__front_page_id = page._id   if page is not None   else None
 		self._incr.on_changed()
 
 
@@ -191,14 +183,22 @@ class ProjectRoot (ProjectContainer):
 	@property
 	def startupPage(self):
 		self._incr.on_access()
-		return self.__idToPage.get( self.__startupPageId )   if self.__startupPageId is not None   else None
+		return self.__id_to_page.get( self.__startup_page_id )   if self.__startup_page_id is not None   else None
 
 	@startupPage.setter
 	def startupPage(self, page):
-		self.__startupPageId = page._id   if page is not None   else None
+		self.__startup_page_id = page._id   if page is not None   else None
 		self._incr.on_changed()
 
 
 
 	def _present_header(self, fragment):
-		return Html('<span class="project_index_text">Index</span>')
+		return Html('<span class="project_index_text">Project contents</span>')
+
+
+
+
+
+
+	def __subject__(self, enclosing_subject, location_trail, perspective):
+		return RootSubject(enclosing_subject, location_trail, self, perspective)

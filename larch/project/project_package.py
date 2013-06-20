@@ -4,6 +4,7 @@ from copy import deepcopy
 from britefury.pres.html import Html
 
 from larch.project.project_container import ProjectContainer
+from larch.project.subject import PackageSubject
 
 
 
@@ -73,5 +74,10 @@ class ProjectPackage (ProjectContainer):
 
 	def _present_header(self, fragment):
 		return Html('<span class="project_package_text">{0}</span>'.format(self.name))
+
+
+
+	def __subject__(self, enclosing_subject, location_trail, perspective):
+		return PackageSubject(enclosing_subject, location_trail, self, perspective)
 
 

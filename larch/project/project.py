@@ -10,6 +10,7 @@ from britefury.live.live_value import LiveValue
 from larch.project.project_root import ProjectRoot
 from larch.project.project_package import ProjectPackage
 from larch.project.project_page import ProjectPage
+from larch.project.subject import ProjectSubject
 
 
 
@@ -17,6 +18,11 @@ from larch.project.project_page import ProjectPage
 class Project (object):
 	def __init__(self):
 		self.__root = ProjectRoot()
+
+
+	@property
+	def root(self):
+		return self.__root
 
 
 	def __getstate__(self):
@@ -37,5 +43,19 @@ class Project (object):
 
 
 
-	def __subject__(self, enclosing_subject, perspective):
-		return Subject(enclosing_subject, self, perspective, 'Worksheet')
+	def __subject__(self, enclosing_subject, location_trail, perspective):
+		return ProjectSubject(enclosing_subject, location_trail, self, perspective)
+
+
+	# From desktop larch:
+	def __new_subject__(self, document, enclosingSubject, path, importName, title):
+		"""Used to create the subject that displays the project as a page"""
+		projectSubject = ProjectEditor.Subject.ProjectSubject( document, self, enclosingSubject, path, importName, title )
+		frontPage = self.frontPage
+		if frontPage is not None:
+			return document.newModelSubject( frontPage.data, projectSubject, path, frontPage.importName, frontPage.getName() )
+		return projectSubject
+
+
+
+

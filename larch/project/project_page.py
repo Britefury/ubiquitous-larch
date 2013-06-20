@@ -87,11 +87,11 @@ class ProjectPage (ProjectNode):
 
 
 
-	def _registerRoot(self, root, takePriority):
-		root._registerPage( self, takePriority )
+	def _register_root(self, root, takePriority):
+		root._register_page( self, takePriority )
 
-	def _unregisterRoot(self, root):
-		root._unregisterPage( self )
+	def _unregister_root(self, root):
+		root._unregister_page( self )
 
 
 
@@ -106,10 +106,19 @@ class ProjectPage (ProjectNode):
 
 
 	def __present__(self, fragment):
+		project_location = fragment.subject.location
+		path_to_root = self.path_to_root
+		trail = list(reversed([node.name   for node in path_to_root[:-1]]))
+		page_location = '/'.join([project_location] + trail)
+
 		contents = [
 			'<div class="project_page">',
-			'<a class="project_page_text" href="#">{0}</a>'.format(self.name),
+			'<a class="project_page_text" href="{0}">{1}</a>'.format(page_location, self.name),
 			'</div>'
 		]
 		return Html(*contents)
+
+
+	def __subject__(self, enclosing_subject, location_trail, perspective):
+		return self._data.__subject__(enclosing_subject, location_trail, perspective)
 
