@@ -61,16 +61,16 @@ class ProjectContainer (ProjectNode):
 		super( ProjectContainer, self ).__init__()
 		self._contents = TrackedLiveList()
 		self._contents.change_listener = self.__contents_changed
-		self._contentsMapLive = LiveFunction( self._computeContentsMap )
+		self._contents_map_live = LiveFunction( self._compute_contents_map )
 		if contents is not None:
 			self[:] = contents
 
 
 	@property
-	def moduleNames(self):
+	def module_names(self):
 		names = []
 		for c in self._contents:
-			names.extend( c.moduleNames )
+			names.extend( c.module_names )
 		return names
 
 
@@ -83,13 +83,13 @@ class ProjectContainer (ProjectNode):
 		super( ProjectContainer, self ).__setstate__( state )
 		self._contents = TrackedLiveList(state.get('contents'))
 		self._contents.change_listener = self.__contents_changed
-		self._contentsMapLive = LiveFunction( self._computeContentsMap )
+		self._contents_map_live = LiveFunction( self._compute_contents_map )
 
 		for x in self._contents:
 			x._set_parent( self, True )
 
 
-	def _computeContentsMap(self):
+	def _compute_contents_map(self):
 		m = {}
 		self._incr.on_access()
 		for x in self._contents:
@@ -114,7 +114,7 @@ class ProjectContainer (ProjectNode):
 		self._incr.on_access()
 		return x in self._contents
 
-	def indexOfById(self, x):
+	def index_of_by_id(self, x):
 		for i, y in enumerate( self._contents ):
 			if x is y:
 				return i
@@ -141,11 +141,11 @@ class ProjectContainer (ProjectNode):
 
 
 	@property
-	def contentsMap(self):
-		return self._contentsMapLive.value
+	def contents_map(self):
+		return self._contents_map_live.value
 
 
-	def exportContents(self, myPath):
+	def export_contents(self, myPath):
 		for x in self._contents:
 			x.export( myPath )
 

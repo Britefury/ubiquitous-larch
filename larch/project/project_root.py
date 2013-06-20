@@ -11,85 +11,85 @@ from larch.project.subject import RootSubject
 
 
 class ProjectRoot (ProjectContainer):
-	def __init__(self, packageName=None, contents=None):
+	def __init__(self, package_name=None, contents=None):
 		super( ProjectRoot, self ).__init__( contents )
-		self._pythonPackageName = packageName
+		self.__python_package_name = package_name
 		self.__front_page_id = None
 		self.__startup_page_id = None
 
 		self.__id_to_page = {}
 		self.__page_id_counter = 0
 
-		self._startupExecuted = False
+		self.__startup_executed = False
 
 
 	@property
-	def importName(self):
-		return self._pythonPackageName   if self._pythonPackageName is not None   else ''
+	def import_name(self):
+		return self.__python_package_name   if self.__python_package_name is not None   else ''
 
 
 	@property
-	def moduleNames(self):
-		if self._pythonPackageName is None:
+	def module_names(self):
+		if self.__python_package_name is None:
 			return []
 		else:
-			return super( ProjectRoot, self ).moduleNames
+			return super( ProjectRoot, self ).module_names
 
 
 	def __getstate__(self):
 		state = super( ProjectRoot, self ).__getstate__()
-		state['pythonPackageName'] = self._pythonPackageName
-		state['frontPageId'] = self.__front_page_id
-		state['startupPageId'] = self.__startup_page_id
+		state['python_package_name'] = self.__python_package_name
+		state['front_page_id'] = self.__front_page_id
+		state['startup_page_id'] = self.__startup_page_id
 		return state
 
 	def __setstate__(self, state):
 		self.__id_to_page = {}
 		self.__page_id_counter = 0
-		self._startupExecuted = False
+		self.__startup_executed = False
 
 		# Need to initialise the ID table before loading contents
 		super( ProjectRoot, self ).__setstate__( state )
-		self._pythonPackageName = state['pythonPackageName']
-		self.__front_page_id = state.get( 'frontPageId' )
-		self.__startup_page_id = state.get( 'startupPageId' )
+		self.__python_package_name = state.get('python_package_name')
+		self.__front_page_id = state.get( 'front_page_id' )
+		self.__startup_page_id = state.get( 'startup_page_id' )
 
 
 	def __copy__(self):
-		return ProjectRoot( self._pythonPackageName, self[:] )
+		return ProjectRoot( self.__python_package_name, self[:] )
 
 	def __deepcopy__(self, memo):
-		return ProjectRoot( self._pythonPackageName, [ deepcopy( x, memo )   for x in self ] )
+		return ProjectRoot( self.__python_package_name, [ deepcopy( x, memo )   for x in self ] )
 
 
 	def startup(self):
-		if not self._startupExecuted:
-			if self._pythonPackageName is not None:
+		if not self.__startup_executed:
+			if self.__python_package_name is not None:
 				startupPage = self.startupPage
 				if startupPage is not None:
-					self._startupExecuted = True
-					__import__( startupPage.importName )
+					self.__startup_executed = True
+					__import__( startupPage.import_name )
 
 	def reset(self):
-		self._startupExecuted = False
+		self.__startup_executed = False
 
 
 
 	def export(self, path):
-		myPath = path
+		my_path = path
 
-		if self._pythonPackageName is not None:
-			components = self._pythonPackageName.split( '.' )
+		if self.__python_package_name is not None:
+			components = self.__python_package_name.split( '.' )
 			for c in components:
-				myPath = os.path.join( myPath, c )
-				if not os.path.exists( myPath ):
-					os.mkdir( myPath )
-					initPath = os.path.join( myPath, '__init__.py' )
-					f = open( initPath, 'w' )
+				my_path = os.path.join( my_path, c )
+				if not os.path.exists( my_path ):
+					os.mkdir( my_path )
+					init_path = os.path.join( my_path, '__init__.py' )
+					f = open( init_path, 'w' )
 					f.write( '' )
 					f.close()
 
-		self.exportContents( myPath )
+		self.export_contents( my_path )
 
 
 	def _register_root(self, root, takePriority):
@@ -104,61 +104,61 @@ class ProjectRoot (ProjectContainer):
 
 
 	@property
-	def pythonPackageName(self):
+	def python_package_name(self):
 		self._incr.on_access()
-		return self._pythonPackageName
+		return self.__python_package_name
 
-	@pythonPackageName.setter
-	def pythonPackageName(self, name):
-		oldName = self._pythonPackageName
-		self._pythonPackageName = name
+	@python_package_name.setter
+	def python_package_name(self, name):
+		oldName = self.__python_package_name
+		self.__python_package_name = name
 		self._incr.on_changed()
 		if self.__change_history__ is not None:
 			def _apply():
-				self.pythonPackageName = name
+				self.python_package_name = name
 			def _revert():
-				self.pythonPackageName = oldName
+				self.python_package_name = oldName
 			self.__change_history__.addChange(_apply, _revert, 'Project root set python package name' )
 
 
 
 	def _register_page(self, page, takePriority):
-		pageId = page._id
+		page_id = page._id
 
-		if pageId is not None  and  pageId in self.__id_to_page  and  takePriority:
+		if page_id is not None  and  page_id in self.__id_to_page  and  takePriority:
 			# page ID already in use
 			# Take it, and make a new one for the page that is currently using it
 
 			# Get the other page that is currently using the page ID
-			otherPage = self.__id_to_page[pageId]
+			other_page = self.__id_to_page[page_id]
 
 			# Make new page ID
 			self.__page_id_counter = max( self.__page_id_counter, len( self.__id_to_page) )
-			otherPageId = self.__page_id_counter
+			other_page_id = self.__page_id_counter
 			self.__page_id_counter += 1
 
 			# Re-assign
-			self.__id_to_page[pageId] = page
-			page._id = pageId
-			self.__id_to_page[otherPageId] = otherPage
-			otherPage._id = otherPageId
-		elif pageId is None  or  ( pageId in self.__id_to_page  and  not takePriority ):
+			self.__id_to_page[page_id] = page
+			page._id = page_id
+			self.__id_to_page[other_page_id] = other_page
+			other_page._id = other_page_id
+		elif page_id is None  or  ( page_id in self.__id_to_page  and  not takePriority ):
 			# Either, no page ID or page ID already in use and not taking priority
 			# Create a new one
 			self.__page_id_counter = max( self.__page_id_counter, len( self.__id_to_page) )
-			pageId = self.__page_id_counter
+			page_id = self.__page_id_counter
 			self.__page_id_counter += 1
-			page._id = pageId
+			page._id = page_id
 
-		self.__id_to_page[pageId] = page
+		self.__id_to_page[page_id] = page
 
 	def _unregister_page(self, node):
-		nodeId = node._id
-		del self.__id_to_page[nodeId]
+		node_id = node._id
+		del self.__id_to_page[node_id]
 
 
-	def get_page_by_id(self, nodeId):
-		return self.__id_to_page.get( nodeId )
+	def get_page_by_id(self, node_id):
+		return self.__id_to_page.get( node_id )
 
 
 

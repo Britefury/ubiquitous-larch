@@ -33,7 +33,7 @@ class PackageFinder (object):
 
 
 	def import_resolve(self, name, fullname, path):
-		item = self._model.contentsMap.get( name )
+		item = self._model.contents_map.get( name )
 
 		if item is not None:
 			model = item
@@ -66,7 +66,7 @@ class PackageFinder (object):
 			pass
 
 		# First, see if there is an '__init__; page
-		initPage = self._model.contentsMap.get( '__init__' )
+		initPage = self._model.contents_map.get( '__init__' )
 
 		if initPage is not None and isinstance( initPage, ProjectPage ):
 			# We have found a page called '__init__' - get its subject

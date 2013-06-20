@@ -22,7 +22,7 @@ class ContainerSubject (Subject):
 
 
 	def __resolve__(self, name):
-		contents_map = self.focus.contentsMap
+		contents_map = self.focus.contents_map
 		if name in contents_map:
 			return contents_map[name].__subject__(self, [name], self.perspective)
 

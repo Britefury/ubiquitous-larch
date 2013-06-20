@@ -19,16 +19,16 @@ class ProjectPage (ProjectNode):
 
 
 	@property
-	def importName(self):
+	def import_name(self):
 		if self._name == '__init__':
-			return self.parent.importName
+			return self.parent.import_name
 		else:
-			return self.parent.importName + '.' + self._name
+			return self.parent.import_name + '.' + self._name
 
 
 	@property
-	def moduleNames(self):
-		return [ self.importName ]
+	def module_names(self):
+		return [ self.import_name ]
 
 
 
@@ -59,14 +59,14 @@ class ProjectPage (ProjectNode):
 
 	@name.setter
 	def name(self, name):
-		oldName = self._name
+		old_name = self._name
 		self._name = name
 		self._incr.on_changed()
 		if self.__change_history__ is not None:
 			def _apply():
 				self.name = name
 			def _revert():
-				self.name = oldName
+				self.name = old_name
 			self.__change_history__.addChange(_apply, _revert, 'Page set name' )
 
 
@@ -78,9 +78,9 @@ class ProjectPage (ProjectNode):
 
 	def export(self, path):
 		filename = self.name + '.py'
-		myPath = os.path.join( path, filename )
+		my_path = os.path.join( path, filename )
 		s = self.data.exportAsString( self.name )
-		f = open( myPath, 'w' )
+		f = open( my_path, 'w' )
 		f.write( s )
 		f.close()
 
@@ -100,7 +100,7 @@ class ProjectPage (ProjectNode):
 
 
 	@property
-	def nodeId(self):
+	def node_id(self):
 		return self._id
 
 

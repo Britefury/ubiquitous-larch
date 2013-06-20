@@ -12,12 +12,12 @@ class ProjectNode (object):
 
 
 	@property
-	def importName(self):
+	def import_name(self):
 		raise NotImplementedError, 'abstract'
 
 
 	@property
-	def moduleNames(self):
+	def module_names(self):
 		raise NotImplementedError, 'abstract'
 
 
@@ -42,15 +42,15 @@ class ProjectNode (object):
 
 	def _set_parent(self, parent, takePriority):
 		self._parent = parent
-		newRoot = parent.root_node
-		if newRoot is not None:
-			self._register_root( newRoot, takePriority )
+		new_root = parent.root_node
+		if new_root is not None:
+			self._register_root( new_root, takePriority )
 
 
 	def _clear_parent(self):
-		oldRoot = self.root_node
-		if oldRoot is not None:
-			self._unregister_root( oldRoot )
+		old_root = self.root_node
+		if old_root is not None:
+			self._unregister_root( old_root )
 		self._parent = None
 
 

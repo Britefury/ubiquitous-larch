@@ -48,12 +48,12 @@ class Project (object):
 
 
 	# From desktop larch:
-	def __new_subject__(self, document, enclosingSubject, path, importName, title):
+	def __new_subject__(self, document, enclosingSubject, path, import_name, title):
 		"""Used to create the subject that displays the project as a page"""
-		projectSubject = ProjectEditor.Subject.ProjectSubject( document, self, enclosingSubject, path, importName, title )
+		projectSubject = ProjectEditor.Subject.ProjectSubject( document, self, enclosingSubject, path, import_name, title )
 		frontPage = self.frontPage
 		if frontPage is not None:
-			return document.newModelSubject( frontPage.data, projectSubject, path, frontPage.importName, frontPage.getName() )
+			return document.newModelSubject( frontPage.data, projectSubject, path, frontPage.import_name, frontPage.getName() )
 		return projectSubject
 
 
