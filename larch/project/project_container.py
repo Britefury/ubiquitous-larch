@@ -8,9 +8,10 @@ from britefury.live.tracked_live_list import TrackedLiveList
 from britefury.pres.html import Html
 from britefury.pres.controls import menu, text_entry, button
 
+from larch import project
 from larch.project.project_node import ProjectNode
 from larch.worksheet.worksheet import Worksheet
-from larch import project
+
 
 
 
@@ -196,6 +197,13 @@ class ProjectContainer (ProjectNode):
 
 
 
+	def __import_resolve__(self, name, fullname, path):
+		contents_map = self.contents_map
+		return contents_map.get(name)
+
+
+
+
 	def __present__(self, fragment):
 		create_gui = LiveValue(Html('<span></span>'))
 
@@ -203,6 +211,7 @@ class ProjectContainer (ProjectNode):
 
 
 		def on_new_package():
+			print dir(project)
 			create_gui.value = NewNodeGUI(create_gui, self, 'package', 'Package', lambda name: project.project_package.ProjectPackage(name))
 
 		def on_new_worksheet():

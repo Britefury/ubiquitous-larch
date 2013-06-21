@@ -12,7 +12,7 @@ from britefury.projection.projection_service import ProjectionService
 from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
 from larch.console import console
 from larch.worksheet import worksheet
-from larch.project import project
+from larch.project import project_root
 
 from britefury.pres.html import Html
 from britefury.pres.controls import menu, button, dialog, text_entry
@@ -137,6 +137,50 @@ class Document (object):
 
 
 
+class _DocListImportHooks (object):
+	def __init__(self, doc_list):
+		self.__doc_list = doc_list
+
+
+
+	def __resolve_name(self, finder, name, fullname, path):
+		try:
+			resolver = finder.__import_resolve__
+		except AttributeError:
+			return None
+		return resolver(name, fullname, path)
+
+
+	def __resolve_model(self, finder, fullname, path):
+		while True:
+			try:
+				__resolve_self__ = finder.__import_resolve_self__
+			except AttributeError:
+				break
+			m = __resolve_self__(fullname, path)
+			if m is finder:
+				break
+			finder = m
+		return finder
+
+
+	def find_module(self, fullname, path=None):
+		finder = self.__doc_list
+		finder = self.__resolve_model(finder, fullname, path)
+
+		names = fullname.split( '.' )
+		for name in names:
+			finder = self.__resolve_name(finder, name, fullname, path)
+			if finder is None:
+				return None
+			finder = self.__resolve_model(finder, fullname, path)
+			if finder is None:
+				return None
+		return finder
+
+
+
+
 
 class DocumentList (object):
 	def __init__(self, path):
@@ -151,6 +195,8 @@ class DocumentList (object):
 		self.__load_documents()
 
 		self.__imported_module_registry = set()
+
+		self.__import_hooks = _DocListImportHooks(self)
 
 
 
@@ -235,14 +281,34 @@ class DocumentList (object):
 
 
 
+	def enable_import_hooks(self):
+		if self.__import_hooks not in sys.meta_path:
+			sys.meta_path.append(self.__import_hooks)
+
+
+
+
 
 	def __resolve__(self, name, subject):
 		doc = self.doc_for_location(name)
 		if doc is not None:
-			subject.add_step(focus=doc.content, location_trail=[name])
+			subject.add_step(focus=doc.content, location_trail=[name], document=doc, title=doc.name)
 			return doc.content
 		else:
 			return None
+
+
+	def __import_resolve__(self, name, fullname, path):
+		for document in self:
+			try:
+				resolve = document.content.__import_resolve__
+			except AttributeError:
+				pass
+			else:
+				result = resolve(name, fullname, path)
+				if result is not None:
+					return result
+		return None
 
 
 	def __present__(self, fragment):
@@ -433,7 +499,7 @@ class LarchApplication (object):
 		reset_section = Html('<div class="larch_app_menu">', reset_button, '</div>')
 
 		add_worksheet = menu.item('Worksheet', lambda: self.__doc_gui.add(NewDocumentGUI(self.__docs, lambda: worksheet.Worksheet(), 'Worksheet')))
-		add_project = menu.item('Project', lambda: self.__doc_gui.add(NewDocumentGUI(self.__docs, lambda: project.Project(), 'Project')))
+		add_project = menu.item('Project', lambda: self.__doc_gui.add(NewDocumentGUI(self.__docs, lambda: project_root.ProjectRoot(), 'Project')))
 		new_item = menu.sub_menu('New', [add_worksheet, add_project])
 
 		new_document_menu = menu.menu([new_item], drop_down=True)

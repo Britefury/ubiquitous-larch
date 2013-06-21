@@ -5,8 +5,12 @@ import os
 from copy import deepcopy
 
 from britefury.pres.html import Html
+from britefury.pres.controls import text_entry
 
 from larch.project.project_container import ProjectContainer
+from larch.project.project_package import ProjectPackage
+from larch.project.project_page import ProjectPage
+
 
 
 class ProjectRoot (ProjectContainer):
@@ -191,11 +195,59 @@ class ProjectRoot (ProjectContainer):
 
 
 
+	def __import_resolve__(self, name, fullname, path):
+		if self.python_package_name is None:
+			return super(ProjectRoot, self).__import_resolve__(name, fullname, path)
+		else:
+			pass
+
+
+
 	def _present_header(self, fragment):
 		return Html('<span class="project_index_text">Project contents</span>')
 
 
 
+	def __present__(self, fragment):
+		super_pres = super(ProjectRoot, self).__present__(fragment)
+
+		def _on_set_package_name(name):
+			self.python_package_name = name
+
+		python_package_name = self.python_package_name
+		python_package_name = python_package_name   if python_package_name is not None  else ''
+		entry = text_entry.text_entry(python_package_name, _on_set_package_name)
+
+		contents = [
+			'<div class="larch_app_title_bar"><h1 class="page_title">Project</h1></div>',
+			'<p class="project_root_package_name">Root package name: ', entry, '<br><span class="notes_text">(this is the base name from which the contents of this project will be importable)</span></p>',
+			super_pres,
+			'</div>',
+		]
+		return Html(*contents).use_css(url="/project.css")
+
+
+
+class _RootNameFinder (object):
+	def __init__(self, root_name, model):
+		if '.' in root_name:
+			self.__head, tail = root_name.partition('.')
+			self.__next = _RootNameFinder(tail, model)
+			self.__model = None
+		else:
+			self.__head = root_name
+			self.__next = None
+			self.__model = model
+
+
+	def __import_resolve__(self, name, fullname, path):
+		if name == self.__head:
+			if self.__next is not None:
+				return self.__next
+			else:
+				return super(ProjectRoot, self.__model)
+		else:
+			return None
 
 
 

@@ -60,6 +60,8 @@ class ProjectionService (DynamicDocumentService):
 			m = self.__resolve_step(m, subject)
 			for n in location.split('/'):
 				m = self.__resolve_name(m, subject, n)
+				if m is None:
+					raise CouldNotResolveLocationError, 'Could not resolve \'{0}\' in location \'{1}\''.format(n, location)
 				m = self.__resolve_step(m, subject)
 				if m is None:
 					raise CouldNotResolveLocationError, 'Could not resolve \'{0}\' in location \'{1}\''.format(n, location)

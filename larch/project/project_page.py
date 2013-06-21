@@ -105,7 +105,7 @@ class ProjectPage (ProjectNode):
 
 
 	def __resolve_self__(self, subject):
-		subject.add_step(focus=self._data)
+		subject.add_step(focus=self._data, title=self.name)
 		return self._data
 
 
