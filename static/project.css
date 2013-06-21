@@ -31,3 +31,7 @@
     font-family: "Palatino linotype", "Book Antiqua", serif;
     color: #20475c;
 }
+
+.project_root_package_name {
+    margin: 1.5em 0 1.5em 0;
+}

@@ -7,7 +7,6 @@ from copy import deepcopy
 from britefury.pres.html import Html
 
 from larch.project.project_container import ProjectContainer
-from larch.project.subject import RootSubject
 
 
 class ProjectRoot (ProjectContainer):
@@ -200,5 +199,3 @@ class ProjectRoot (ProjectContainer):
 
 
 
-	def __subject__(self, enclosing_subject, location_trail, perspective):
-		return RootSubject(enclosing_subject, location_trail, self, perspective)

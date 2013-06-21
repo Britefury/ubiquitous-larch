@@ -104,6 +104,10 @@ class ProjectPage (ProjectNode):
 		return self._id
 
 
+	def __resolve_self__(self, subject):
+		subject.add_step(focus=self._data)
+		return self._data
+
 
 	def __present__(self, fragment):
 		project_location = fragment.subject.location
@@ -118,7 +122,4 @@ class ProjectPage (ProjectNode):
 		]
 		return Html(*contents)
 
-
-	def __subject__(self, enclosing_subject, location_trail, perspective):
-		return self._data.__subject__(enclosing_subject, location_trail, perspective)
 

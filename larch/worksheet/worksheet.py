@@ -259,7 +259,3 @@ class Worksheet (object):
 		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('0'), ctrl=True, prevent_default=True)], on_delete_block_key)
 		return p.use_css('/worksheet.css')
 
-
-	def __subject__(self, enclosing_subject, location_trail, perspective):
-		return Subject(enclosing_subject, location_trail, self, perspective, 'Worksheet')
-

@@ -5,8 +5,9 @@ import os
 import string
 import glob
 import pickle
+import imp
+import sys
 
-from britefury.projection.subject import Subject
 from britefury.projection.projection_service import ProjectionService
 from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
 from larch.console import console
@@ -45,23 +46,6 @@ larch_app_css = '/larch_app.css'
 
 
 
-class AppSubject (Subject):
-	def __init__(self, enclosing_subject, location_trail, app, perspective=None):
-		super(AppSubject, self).__init__(enclosing_subject, location_trail, app, perspective, title='The Ubiquitous Larch')
-		self.docs = DocListSubject(self, ['docs'], app.docs, perspective)
-		self.consoles = ConsoleListSubject(self, ['consoles'], app.consoles, perspective)
-
-
-	def __resolve__(self, name):
-		if name == 'docs':
-			return self.docs
-		elif name == 'consoles':
-			return self.consoles
-		else:
-			return None
-
-
-
 
 _filename_chars = string.ascii_letters + string.digits + ' _-'
 
@@ -81,6 +65,7 @@ class Document (object):
 		loc = ''.join([x   for x in name   if x in string.ascii_letters + string.digits + '_'])
 		self.__loc = loc
 		self.__content = content
+		self.__document_modules = {}
 
 
 	@property
@@ -98,6 +83,37 @@ class Document (object):
 	@property
 	def content(self):
 		return self.__content
+
+
+
+	def new_module(self, fullname, loader):
+		mod = imp.new_module( fullname )
+		#LoadBuiltins.loadBuiltins( mod )
+		sys.modules[fullname] = mod
+		mod.__file__ = fullname
+		mod.__loader__ = loader
+		mod.__path__ = fullname.split( '.' )
+		self.__document_modules[fullname] = mod
+		self.__doc_list._register_imported_module( fullname )
+		return mod
+
+	def unload_imported_modules(self, module_fullnames):
+		modules = set( module_fullnames )
+		modules_to_remove = set( self.__document_modules.keys() ) & modules
+		for module_fullname in modules_to_remove:
+			del sys.modules[module_fullname]
+			del self.__document_modules[module_fullname]
+		self.__doc_list._unregister_imported_modules( modules_to_remove )
+		return modules_to_remove
+
+	def unload_all_imported_modules(self):
+		modules_to_remove = set( self.__document_modules.keys() )
+		for module_fullname in modules_to_remove:
+			del sys.modules[module_fullname]
+		self.__document_modules = {}
+		self.__doc_list._unregister_imported_modules( modules_to_remove )
+		return modules_to_remove
+
 
 
 
@@ -120,31 +136,6 @@ class Document (object):
 
 
 
-class _DocSubject (Subject):
-	def __init__(self, enclosing_subject, location_trail, doc, perspective=None):
-		super(_DocSubject, self).__init__(enclosing_subject, location_trail, doc, perspective, title=doc.name)
-
-
-	def save(self):
-		self.focus.save()
-
-
-
-
-class DocListSubject (Subject):
-	def __init__(self, enclosing_subject, location_trail, docs, perspective=None):
-		super(DocListSubject, self).__init__(enclosing_subject, location_trail, docs, perspective, title='The Ubiquitous Larch')
-
-
-	def __resolve__(self, name):
-		doc = self.focus.doc_for_location(name)
-		if doc is not None:
-			doc_subj = _DocSubject(self, [name], doc, self.perspective)
-			return doc.content.__subject__(doc_subj, [], self.perspective)
-		else:
-			return None
-
-
 
 
 class DocumentList (object):
@@ -158,6 +149,8 @@ class DocumentList (object):
 		self.__docs_by_filename = {}
 
 		self.__load_documents()
+
+		self.__imported_module_registry = set()
 
 
 
@@ -219,6 +212,37 @@ class DocumentList (object):
 
 
 
+	def _register_imported_module(self, fullname):
+		"""Register a module imported via the import hooks"""
+		self.__imported_module_registry.add( fullname )
+
+	def _unregister_imported_modules(self, module_names):
+		"""Unregister a set of modules imported via the import hooks"""
+		self.__imported_module_registry -= set(module_names)
+
+
+	def unload_imported_modules(self, module_fullnames):
+		"""Unload a list of modules
+
+		Only unloads those imported via the import hooks
+		"""
+		modules = set(module_fullnames)
+		modules_to_remove = self.__imported_module_registry & modules
+		for module_fullname in modules_to_remove:
+			del sys.modules[module_fullname]
+		self.__imported_module_registry -= modules_to_remove
+		return modules_to_remove
+
+
+
+
+	def __resolve__(self, name, subject):
+		doc = self.doc_for_location(name)
+		if doc is not None:
+			subject.add_step(focus=doc.content, location_trail=[name])
+			return doc.content
+		else:
+			return None
 
 
 	def __present__(self, fragment):
@@ -230,25 +254,6 @@ class DocumentList (object):
 		contents.append('</tbody></table>')
 		return Html(*contents)
 
-
-
-class ConsoleListSubject (Subject):
-	def __init__(self, enclosing_subject, location_trail, consoles, perspective=None):
-		super(ConsoleListSubject, self).__init__(enclosing_subject, location_trail, consoles, perspective, title='The Ubiquitous Larch')
-
-
-	def __resolve__(self, name):
-		try:
-			index = int(name)
-		except ValueError:
-			return None
-		if index < 0  or  index > len(self.focus):
-			return None
-		console = self.focus[index]
-		if console is not None:
-			return console.__subject__(self, [name], self.perspective)
-		else:
-			return None
 
 
 
@@ -270,6 +275,23 @@ class ConsoleList (object):
 		con = console.Console()
 		self.__consoles.append(con)
 		self.__incr.on_changed()
+
+
+
+	def __resolve__(self, name, subject):
+		try:
+			index = int(name)
+		except ValueError:
+			return None
+		if index < 0  or  index > len(self):
+			return None
+		console = self[index]
+		if console is not None:
+			subject.add_step(focus=console, location_trail=[name])
+			return console
+		else:
+			return None
+
 
 
 
@@ -386,6 +408,22 @@ class LarchApplication (object):
 		return self.__consoles
 
 
+	def __resolve__(self, name, subject):
+		if name == 'docs':
+			subject.add_step(focus=self.__docs, location_trail=[name])
+			return self.__docs
+		elif name == 'consoles':
+			subject.add_step(focus=self.__consoles, location_trail=[name])
+			return self.__consoles
+		else:
+			return None
+
+
+	def __resolve_self__(self, subject):
+		subject.add_step(title='The Ubiquitous Larch')
+		return self
+
+
 	def __present__(self, fragment):
 		def _on_reload():
 			self.__docs.reload()
@@ -443,17 +481,11 @@ class LarchApplication (object):
 
 
 
-	def __subject__(self, enclosing_subject, location_trail, perspective):
-		return AppSubject(enclosing_subject, location_trail, self, perspective)
-
-
-
 
 
 
 
 def create_service(documents_path=None):
-	focus = LarchApplication(documents_path)
-	index_subject = Subject.subject_for(None, ['pages'], focus)
+	app = LarchApplication(documents_path)
 
-	return ProjectionService(index_subject)
+	return ProjectionService(app)

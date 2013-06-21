@@ -4,61 +4,80 @@
 from britefury.default_perspective.default_perspective import DefaultPerspective
 
 
+
 class Subject (object):
-	def __init__(self, enclosing_subject, location_trail, focus, perspective=None, title=None):
-		if perspective is None:
-			perspective = DefaultPerspective.instance
-		self.__enclosing_subject = enclosing_subject
-		self.__location_trail = location_trail
-		self.__focus = focus
-		self.__perspective = perspective
-		self.__title = title
+	class __NoInitialValue (object):
+		pass
+
+	__NoInitialValue.instance = __NoInitialValue()
+
+	def __init__(self):
+		self.__steps = []
 
 
-	def __getattr__(self, item):
-		try:
-			return getattr(self.__enclosing_subject, item)
-		except AttributeError:
-			raise AttributeError, 'Subject {0} has no attribute {1}'.format(self, item)
-
-
-	@property
-	def enclosing_subject(self):
-		return self.__enclosing_subject
-
-	@property
-	def focus(self):
-		return self.__focus
 
 	@property
 	def perspective(self):
-		return self.__perspective
-
-	@property
-	def title(self):
-		return self.__title
+		p = self.get_attr('perspective')
+		return DefaultPerspective.instance   if p is None   else p
 
 
 	@property
 	def location(self):
-		subj = self
-		trail = []
-		while subj is not None:
-			trail = list(subj.__location_trail[:]) + trail
-			subj = subj.__enclosing_subject
+		trail = self.reduce('location_trail', lambda cumulative, t: t + cumulative, [])
 		return '/' + '/'.join(trail)
 
-	def _location_trail_entries(self):
-		return None
 
 
+	def add_step(self, **attributes):
+		"""Add a step to the subject
+		"""
+		self.__steps.append(attributes)
 
-	def __resolve__(self, name):
-		return None
+
+	def get_attr(self, item):
+		"""Get a named attribute
+
+		item - the name of the attribute
+		"""
+		for step in reversed(self.__steps):
+			try:
+				return step[item]
+			except KeyError:
+				pass
+		raise AttributeError, 'Subject has no attribute {0}'.format(item)
 
 
+	def __getattr__(self, item):
+		"""Get a named attribute
 
-	@staticmethod
-	def subject_for(enclosing_subject, location_trail, focus, perspective=None):
-		return focus.__subject__(enclosing_subject, location_trail, perspective)
+		item - the name of the attribute
+		"""
+		return self.get_attr(item)
+
+
+	def reduce(self, item, reduce_fn, initial_value=__NoInitialValue.instance):
+		"""Accumulate values of a named attribute by reduction
+
+		item - the name of the attribute
+		reduce_fn - a reduction function of the form function(cumulative_value, value) -> cumulative_value
+
+		Note that the direction proceeds from tip to root
+		"""
+		for step in reversed(self.__steps):
+			try:
+				value = step[item]
+			except KeyError:
+				continue
+
+			if initial_value is self.__NoInitialValue.instance:
+				initial_value = value
+			else:
+				initial_value = reduce_fn(initial_value, value)
+
+		if initial_value is self.__NoInitialValue.instance:
+			raise AttributeError, 'Subject has no attribute {0}'.format(item)
+		else:
+			return initial_value
+
 

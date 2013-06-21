@@ -185,6 +185,17 @@ class ProjectContainer (ProjectNode):
 		raise NotImplementedError, 'abstract'
 
 
+	def __resolve__(self, name, subject):
+		contents_map = self.contents_map
+		node = contents_map.get(name)
+		if node is not None:
+			subject.add_step(focus=node)
+			return node
+		else:
+			return None
+
+
+
 	def __present__(self, fragment):
 		create_gui = LiveValue(Html('<span></span>'))
 

@@ -3,8 +3,7 @@
 ##-*************************
 import sys
 
-from larch.project.project_package import ProjectPackage
-from larch.project.project_page import ProjectPage
+from larch import project
 
 
 class PageFinder (object):
@@ -24,12 +23,11 @@ class PageFinder (object):
 
 
 class PackageFinder (object):
-	def __init__(self, projectSubject, model):
-		self._projectSubject = projectSubject
+	def __init__(self, project_subject, model):
+		self._project_subject = project_subject
 		if model is None:
-			model = self._projectSubject._model
+			model = self._project_subject._model
 		self._model = model
-		self._document = self._projectSubject._document
 
 
 	def import_resolve(self, name, fullname, path):
@@ -38,19 +36,19 @@ class PackageFinder (object):
 		if item is not None:
 			model = item
 
-			if isinstance( model, ProjectPage ):
+			if isinstance( model, project.project_page.ProjectPage ):
 				# We have found a page: get its subject
-				pageSubject = self._projectSubject._pageSubject( model )
+				page_subject = self._project_subject._pageSubject( model )
 				# Now, check if it has a 'createModuleLoader' method - if it has, then we can use it. Otherwise, we can't
 				try:
-					createModuleLoader = pageSubject.createModuleLoader
+					createModuleLoader = page_subject.createModuleLoader
 				except AttributeError:
 					return None
 				else:
 					# The subject has a 'createModuleLoader' attribute - invoke it to create the module loader, for the module import system to use
-					return PageFinder( createModuleLoader( self._document ) )
-			elif isinstance( model, ProjectPackage ):
-				return PackageFinder( self._projectSubject, model )
+					return PageFinder( createModuleLoader( self._project_subject.document ) )
+			elif isinstance( model, project.project_package.ProjectPackage ):
+				return PackageFinder( self._project_subject, model )
 			else:
 				raise TypeError, 'unrecognised model type'
 		else:
@@ -66,46 +64,45 @@ class PackageFinder (object):
 			pass
 
 		# First, see if there is an '__init__; page
-		initPage = self._model.contents_map.get( '__init__' )
+		init_page = self._model.contents_map.get( '__init__' )
 
-		if initPage is not None and isinstance( initPage, ProjectPage ):
+		if init_page is not None and isinstance( init_page, project.project_page.ProjectPage ):
 			# We have found a page called '__init__' - get its subject
-			pageSubject = self._projectSubject._pageSubject( initPage )
+			page_subject = self._project_subject._pageSubject( init_page )
 			# Now, check if it has a 'createModuleLoader' method - if it has, then we can use it. Otherwise, use the default
 			try:
-				createModuleLoader = pageSubject.createModuleLoader
+				createModuleLoader = page_subject.createModuleLoader
 			except AttributeError:
 				return self._default_load_module( fullname )
 			else:
-				loader = createModuleLoader( self._document )
+				loader = createModuleLoader( self._project_subject.document )
 				return loader.load_module( fullname )
 
 		return self._default_load_module( fullname )
 
 
 	def _default_load_module(self, fullname):
-		return self._document.newModule( fullname, self )
+		return self._project_subject.document.new_module( fullname, self )
 
 
 
 
 class RootFinder (object):
-	def __init__(self, projectSubject, pythonPackageName, packageFinder):
-		self._document = projectSubject._document
-		self._projectSubject = projectSubject
-		self._packageFinder = packageFinder
-		if pythonPackageName is not None:
-			self._name, _, self._nameSuffix = pythonPackageName.partition( '.' )
+	def __init__(self, project_subject, python_package_name, package_finder):
+		self._project_subject = project_subject
+		self._package_finder = package_finder
+		if python_package_name is not None:
+			self._name, _, self._name_suffix = python_package_name.partition( '.' )
 		else:
-			self._name = self._nameSuffix = None
+			self._name = self._name_suffix = None
 
 
 	def import_resolve(self, name, fullname, path):
 		if name == self._name:
-			if self._nameSuffix == '':
-				return self._packageFinder
+			if self._name_suffix == '':
+				return self._package_finder
 			else:
-				return RootFinder( self._projectSubject, self._nameSuffix, self._packageFinder )
+				return RootFinder( self._project_subject, self._name_suffix, self._package_finder )
 		else:
 			return None
 
@@ -115,4 +112,4 @@ class RootFinder (object):
 		except KeyError:
 			pass
 
-		return self._document.newModule( fullname, self )
+		return self._project_subject.document.new_module( fullname, self )

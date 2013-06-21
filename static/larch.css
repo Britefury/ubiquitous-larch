@@ -145,3 +145,11 @@ h6 {
     font-size: 0.75em;
     color: #a00000;
 }
+
+
+.notes_text {
+    font-family: "Open Sans", sans-serif;
+    font-size: 0.8em;
+    color: #505050;
+    font-style: italic;
+}
