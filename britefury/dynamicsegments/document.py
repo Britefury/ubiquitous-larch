@@ -47,6 +47,22 @@ _page_content = u"""
 
 	<body>
 	{content}
+
+	<!-- refresh on back button, adapted from http://www.webdeveloper.com/forum/showthread.php?137518-How-to-refresh-page-after-clicking-quot-Back-quot-button -->
+	<input type="hidden" id="__larch_refreshed" value="0">
+	<script type="text/javascript">
+		onload = function(){{
+			var refresh_elem =document.getElementById("__larch_refreshed");
+			if(refresh_elem.value=="0") {{
+				refresh_elem.value="1";
+			}}
+			else {{
+				refresh_elem.value="0";
+				location.reload();
+			}}
+		}}
+	</script>
+
 	</body>
 </html>
 """
