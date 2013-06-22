@@ -117,6 +117,43 @@ class Document (object):
 
 
 
+	def __import_resolve_name(self, finder, name, fullname, path):
+		try:
+			resolver = finder.__import_resolve__
+		except AttributeError:
+			return None
+		return resolver(name, fullname, path)
+
+
+	def __import_resolve_model(self, finder, fullname, path):
+		while True:
+			try:
+				__resolve_self__ = finder.__import_resolve_self__
+			except AttributeError:
+				break
+			m = __resolve_self__(fullname, path)
+			if m is finder:
+				break
+			finder = m
+		return finder
+
+
+	def find_module(self, fullname, path=None):
+		finder = self.__content
+		finder = self.__import_resolve_model(finder, fullname, path)
+
+		names = fullname.split( '.' )
+		for name in names:
+			finder = self.__import_resolve_name(finder, name, fullname, path)
+			if finder is None:
+				return None
+			finder = self.__import_resolve_model(finder, fullname, path)
+			if finder is None:
+				return None
+		return finder
+
+
+
 
 	def save(self):
 		file_path = os.path.join(self.__doc_list.path, self.__filename + _EXTENSION)
@@ -135,6 +172,21 @@ class Document (object):
 
 
 
+import traceback
+
+class _ImportHookFinderWrapper (object):
+	def __init__(self, document,  finder):
+		self.__document = document
+		self.__finder = finder
+
+	def load_module(self, fullname):
+		try:
+			return self.__finder.__load_module__(self.__document, fullname)
+		except:
+			traceback.print_exc()
+			raise
+
+
 
 
 class _DocListImportHooks (object):
@@ -142,41 +194,16 @@ class _DocListImportHooks (object):
 		self.__doc_list = doc_list
 
 
-
-	def __resolve_name(self, finder, name, fullname, path):
-		try:
-			resolver = finder.__import_resolve__
-		except AttributeError:
-			return None
-		return resolver(name, fullname, path)
-
-
-	def __resolve_model(self, finder, fullname, path):
-		while True:
-			try:
-				__resolve_self__ = finder.__import_resolve_self__
-			except AttributeError:
-				break
-			m = __resolve_self__(fullname, path)
-			if m is finder:
-				break
-			finder = m
-		return finder
-
-
 	def find_module(self, fullname, path=None):
-		finder = self.__doc_list
-		finder = self.__resolve_model(finder, fullname, path)
-
-		names = fullname.split( '.' )
-		for name in names:
-			finder = self.__resolve_name(finder, name, fullname, path)
-			if finder is None:
-				return None
-			finder = self.__resolve_model(finder, fullname, path)
-			if finder is None:
-				return None
-		return finder
+		try:
+			for doc in self.__doc_list:
+				finder = doc.find_module(fullname, path)
+				if finder is not None:
+					return _ImportHookFinderWrapper(doc, finder)
+			return None
+		except:
+			traceback.print_exc()
+			raise
 
 
 
@@ -298,17 +325,6 @@ class DocumentList (object):
 			return None
 
 
-	def __import_resolve__(self, name, fullname, path):
-		for document in self:
-			try:
-				resolve = document.content.__import_resolve__
-			except AttributeError:
-				pass
-			else:
-				result = resolve(name, fullname, path)
-				if result is not None:
-					return result
-		return None
 
 
 	def __present__(self, fragment):
@@ -460,6 +476,7 @@ class LarchApplication (object):
 		self.__documents_path = documents_path
 
 		self.__docs = DocumentList(documents_path)
+		self.__docs.enable_import_hooks()
 		self.__consoles = ConsoleList()
 
 		self.__doc_gui = GUIList()

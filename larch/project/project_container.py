@@ -1,6 +1,8 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
+import sys
+
 from britefury.live.live_value import LiveValue
 from britefury.live.live_function import LiveFunction
 from britefury.live.tracked_live_list import TrackedLiveList
@@ -198,8 +200,33 @@ class ProjectContainer (ProjectNode):
 
 
 	def __import_resolve__(self, name, fullname, path):
-		contents_map = self.contents_map
-		return contents_map.get(name)
+		return self.contents_map.get(name)
+
+
+	def __load_module__(self, document, fullname):
+		try:
+			return sys.modules[fullname]
+		except KeyError:
+			pass
+
+		# First, see if there is an '__init__; page
+		init_page = self.contents_map.get('__init__')
+
+		if init_page is not None and init_page.is_page():
+			# We have found a page called '__init__'
+			# Now, check if it has a '__load_module__' method - if it has, then we can use it. Otherwise, create a blank module
+			try:
+				loader = init_page.content.__load_module__
+			except AttributeError:
+				pass
+			else:
+				module = loader(document, fullname)
+				if module is not None:
+					return module
+
+		return document.new_module(fullname, self)
+
+
 
 
 

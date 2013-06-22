@@ -11,6 +11,10 @@ class ProjectNode (object):
 		self._parent = None
 
 
+	def is_page(self):
+		return False
+
+
 	@property
 	def import_name(self):
 		raise NotImplementedError, 'abstract'

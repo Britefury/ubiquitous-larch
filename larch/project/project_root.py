@@ -2,6 +2,7 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 import os
+import sys
 from copy import deepcopy
 
 from britefury.pres.html import Html
@@ -196,10 +197,10 @@ class ProjectRoot (ProjectContainer):
 
 
 	def __import_resolve__(self, name, fullname, path):
-		if self.python_package_name is None:
+		if self.python_package_name is None  or  self.python_package_name == '':
 			return super(ProjectRoot, self).__import_resolve__(name, fullname, path)
 		else:
-			pass
+			return _RootNameFinder(self.python_package_name, self).__import_resolve__(name, fullname, path)
 
 
 
@@ -231,7 +232,7 @@ class ProjectRoot (ProjectContainer):
 class _RootNameFinder (object):
 	def __init__(self, root_name, model):
 		if '.' in root_name:
-			self.__head, tail = root_name.partition('.')
+			self.__head, _, tail = root_name.partition('.')
 			self.__next = _RootNameFinder(tail, model)
 			self.__model = None
 		else:
@@ -248,6 +249,16 @@ class _RootNameFinder (object):
 				return super(ProjectRoot, self.__model)
 		else:
 			return None
+
+
+	def __load_module__(self, document, fullname):
+		try:
+			return sys.modules[fullname]
+		except KeyError:
+			pass
+
+		# Empty module
+		return document.new_module(fullname, self)
 
 
 

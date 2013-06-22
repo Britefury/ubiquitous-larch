@@ -18,6 +18,10 @@ class ProjectPage (ProjectNode):
 		self._data = data
 
 
+	def is_page(self):
+		return True
+
+
 	@property
 	def import_name(self):
 		if self._name == '__init__':
@@ -107,6 +111,13 @@ class ProjectPage (ProjectNode):
 	def __resolve_self__(self, subject):
 		subject.add_step(focus=self._data, title=self.name)
 		return self._data
+
+
+	def __import_resolve_self__(self, fullname, path):
+		return self._data
+
+
+	# No need for __load_module__, since __import_resolve_self__ bounces on to the content
 
 
 	def __present__(self, fragment):

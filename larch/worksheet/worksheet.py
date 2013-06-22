@@ -2,6 +2,7 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 import imp
+import sys
 
 from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
 from britefury.pres.html import Html
@@ -147,9 +148,13 @@ class Worksheet (object):
 
 	def execute(self):
 		self._module = imp.new_module('<Worksheet>')
-		for block in self.__blocks:
-			block.execute(self._module)
+		self.__execute_in_module(self._module)
 		self.__exec_state_executed()
+
+
+	def __execute_in_module(self, module):
+		for block in self.__blocks:
+			block.execute(module)
 
 
 
@@ -170,6 +175,21 @@ class Worksheet (object):
 		if self.__focus_block is not None  and  self.__focus_block in self.__blocks:
 			self.__blocks.remove(self.__focus_block)
 			self.__incr.on_changed()
+
+
+
+	def __load_module__(self, document, fullname):
+		try:
+			return sys.modules[fullname]
+		except KeyError:
+			pass
+
+		mod = document.new_module(fullname, self)
+
+		self.__execute_in_module(mod)
+
+		return mod
+
 
 
 	def __present__(self, fragment):
