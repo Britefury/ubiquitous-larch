@@ -9,7 +9,7 @@ from britefury.pres.html import Html
 from britefury.pres.key_event import Key
 from britefury.pres.controls import button
 from britefury.projection.subject import Subject
-from larch.python import PythonCode
+from larch.source_code import PythonCode
 
 
 __author__ = 'Geoff'

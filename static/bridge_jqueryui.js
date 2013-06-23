@@ -47,3 +47,10 @@ larch.controls.initTextEntry = function(node) {
         larch.postEvent(node, "text_entry_edit", node.value);
     };
 }
+
+larch.controls.initSelect = function(node) {
+    node.onchange = function() {
+        larch.postEvent(node, "select_choose", node.value);
+    };
+}
+

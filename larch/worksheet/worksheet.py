@@ -7,10 +7,10 @@ import sys
 from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
 from britefury.pres.html import Html
 from britefury.pres.key_event import Key
-from britefury.pres.controls import ckeditor, menu, button
+from britefury.pres.controls import ckeditor, menu, button, text_entry
 from britefury.projection.subject import Subject
 from britefury.live.live_value import LiveValue
-from larch.python import PythonCode
+from larch import source_code
 
 
 __author__ = 'Geoff'
@@ -72,13 +72,9 @@ class WorksheetBlockText (WorksheetBlock):
 
 
 class WorksheetBlockCode (WorksheetBlock):
-	def __init__(self, worksheet, code=None):
+	def __init__(self, worksheet):
 		super(WorksheetBlockCode, self).__init__(worksheet)
-		if code is None:
-			code = PythonCode()
-		else:
-			assert isinstance(code, PythonCode)
-		self.__code = code
+		self.__code = source_code.PythonCode()
 		self.__code.on_focus = self._on_focus
 		self.__result = None
 		self.__incr = IncrementalValueMonitor()
@@ -93,7 +89,7 @@ class WorksheetBlockCode (WorksheetBlock):
 		super(WorksheetBlockCode, self).__setstate__(state)
 		self.__code = state.get('code')
 		if self.__code is None:
-			self.__code = PythonCode()
+			self.__code = source_code.PythonCode()
 		self.__code.on_focus = self._on_focus
 		self.__result = None
 		self.__incr = IncrementalValueMonitor()
@@ -107,9 +103,121 @@ class WorksheetBlockCode (WorksheetBlock):
 
 	def __present__(self, fragment):
 		self.__incr.on_access()
-		code = Html('<div class="worksheet_code_container">', self.__code, '</div>')
-		res = ['<div>', self.__result, '</div>']   if self.__result is not None  else []
-		return Html(*(['<div class="worksheet_block">', code] + res + ['</div>']))
+		header = Html('<div class="worksheet_python_code_header">Python code (executable)</div>')
+		code = Html('<div class="worksheet_python_code_container">', self.__code, '</div>')
+		res = ['<div class="worksheet_result_container">', self.__result, '</div>']   if self.__result is not None  else []
+		return Html(*(['<div class="worksheet_code_block">', header, '<div class="worksheet_code_block_body">', code] + res + ['</div></div>']))
+
+
+
+
+class WorksheetBlockSource (WorksheetBlock):
+	__language_to_type_map = {
+		'css': source_code.CSSCode,
+		'js': source_code.JSCode,
+		'html': source_code.HtmlCode,
+	}
+
+	__type_to_language_map = {
+		source_code.CSSCode: 'css',
+		source_code.JSCode: 'js',
+		source_code.HtmlCode: 'html'
+	}
+
+	__language_to_human_name = {
+		'js': 'Javascript',
+		'css': 'CSS',
+		'html': 'HTML'
+	}
+
+	def __init__(self, worksheet, language, var_name='src'):
+		super(WorksheetBlockSource, self).__init__(worksheet)
+		try:
+			code_type = self.__language_to_type_map[language]
+		except KeyError:
+			raise ValueError, 'Invalid language {0}'.format(language)
+
+		self.__code = code_type()
+		self.__code.on_focus = self._on_focus
+		self.__var_name = var_name
+		self.__incr = IncrementalValueMonitor()
+
+
+	def __getstate__(self):
+		state = super(WorksheetBlockSource, self).__getstate__()
+		state['code'] = self.__code
+		state['var_name'] = self.__var_name
+		return state
+
+	def __setstate__(self, state):
+		super(WorksheetBlockSource, self).__setstate__(state)
+		self.__code = state.get('code')
+		self.__code.on_focus = self._on_focus
+		self.__var_name = state.get('var_name')
+		self.__incr = IncrementalValueMonitor()
+
+
+	@property
+	def language(self):
+		return self.__type_to_language_map[type(self.__code)]
+
+	@language.setter
+	def language(self, lang):
+		try:
+			code_type = self.__language_to_type_map[lang]
+		except KeyError:
+			raise ValueError, 'Invalid language {0}'.format(lang)
+		src_text = self.__code.source_text
+		self.__code = code_type(code=src_text)
+		self.__incr.on_changed()
+
+
+
+	def execute(self, module):
+		module.__dict__[self.__var_name] = self.__code.source_text
+
+
+	def __present__(self, fragment):
+		self.__incr.on_access()
+
+		def _on_change_varname(name):
+			self.__var_name = name
+
+		def _on_change_language(lang):
+			self.language = lang
+
+		language = self.language
+
+
+		var_name = text_entry.text_entry(self.__var_name, _on_change_varname)
+
+
+		js_item = menu.item('Javascript', lambda: _on_change_language('js'))
+		css_item = menu.item('CSS', lambda: _on_change_language('css'))
+		#html_item = menu.item('HTML', lambda: _on_change_language('html'))
+
+		lang_menu = menu.sub_menu('Change language', [
+			js_item,
+			css_item,
+			#html_item
+		])
+		lang_menu_button = menu.menu([lang_menu], drop_down=True)
+
+
+		human_lang_name = self.__language_to_human_name[language]
+
+		header = Html('<div class="worksheet_{0}_code_header">'.format(language),
+			      '<table class="worksheet_src_language_select_table"><tr>',
+			      '<td>{0}</td>'.format(human_lang_name),
+			      '<td>', lang_menu_button, '</td>',
+			      '</tr></table>',
+			      '<table><tr>',
+			      '<td>Variable name:</td>',
+			      '<td>', var_name, '</td>',
+			      '</tr></table>',
+			      '</div>')
+		code = Html('<div class="worksheet_{0}_code_container">'.format(language), self.__code, '</div>')
+		return Html('<div class="worksheet_code_block">', header, '<div class="worksheet_code_block_body">', code, '</div></div>')
 
 
 
@@ -203,7 +311,7 @@ class Worksheet (object):
 		def save():
 			subject = fragment.subject
 			try:
-				save = subject.save
+				save = subject.document.save
 			except AttributeError:
 				print 'WARNING: Could not save; method unavailable'
 				raise
@@ -216,6 +324,15 @@ class Worksheet (object):
 
 		def on_code_key(key):
 			self._insert_block(WorksheetBlockCode(self), True)
+
+		def on_js_key(key):
+			self._insert_block(WorksheetBlockSource(self, 'js', 'js'), True)
+
+		def on_css_key(key):
+			self._insert_block(WorksheetBlockSource(self, 'css', 'css'), True)
+
+		def on_html_key(key):
+			self._insert_block(WorksheetBlockSource(self, 'html', 'html'), True)
 
 		def on_text_key(key):
 			self._insert_block(WorksheetBlockText(self), True)
@@ -232,6 +349,15 @@ class Worksheet (object):
 		def _insert_code(below):
 			self._insert_block(WorksheetBlockCode(self), below)
 
+		def _insert_js(below):
+			self._insert_block(WorksheetBlockSource(self, 'js', 'js'), below)
+
+		def _insert_css(below):
+			self._insert_block(WorksheetBlockSource(self, 'css', 'css'), below)
+
+		def _insert_html(below):
+			self._insert_block(WorksheetBlockSource(self, 'html', 'html'), below)
+
 		def _insert_rich_text(below):
 			self._insert_block(WorksheetBlockText(self), below)
 
@@ -239,14 +365,33 @@ class Worksheet (object):
 		save_button = button.button('Save (Ctrl-S)', save)
 
 
-		insert_code_above = menu.item('Insert code above', lambda: _insert_code(False))
 		insert_rich_text_above = menu.item('Insert rich text above', lambda: _insert_rich_text(False))
+		insert_code_above = menu.item('Insert executable Python code above', lambda: _insert_code(False))
+		insert_js_above = menu.item('Insert JS source above', lambda: _insert_js(False))
+		insert_css_above = menu.item('Insert CSS source above', lambda: _insert_css(False))
+		insert_html_above = menu.item('Insert HTML source above', lambda: _insert_html(False))
 
-		insert_code_below = menu.item('Insert code below (Ctrl-1)', lambda: _insert_code(True))
-		insert_rich_text_below = menu.item('Insert rich text below (Ctrl-2)', lambda: _insert_rich_text(True))
+		insert_rich_text_below = menu.item('Insert rich text below (Ctrl-1)', lambda: _insert_rich_text(True))
+		insert_code_below = menu.item('Insert executable Python code below (Ctrl-2)', lambda: _insert_code(True))
+		insert_js_below = menu.item('Insert JS source below (Ctrl-3)', lambda: _insert_js(True))
+		insert_css_below = menu.item('Insert CSS source below (Ctrl-4)', lambda: _insert_css(True))
+		insert_html_below = menu.item('Insert HTML source below (Ctrl-5)', lambda: _insert_html(True))
 
 		remove_block = menu.item('Remove block (Ctrl-0)', lambda: self._delete_block())
-		edit_menu = menu.sub_menu('Edit', [insert_code_above, insert_rich_text_above, menu.item('--------', None), insert_code_below, insert_rich_text_below, menu.item('--------', None), remove_block])
+		edit_menu = menu.sub_menu('Edit', [
+			insert_rich_text_above,
+			insert_code_above,
+			insert_js_above,
+			insert_css_above,
+			#insert_html_above,
+			menu.item('--------', None),
+			insert_rich_text_below,
+			insert_code_below,
+			insert_js_below,
+			insert_css_below,
+			#insert_html_below,
+			menu.item('--------', None),
+			remove_block])
 
 		page_menu = menu.menu([edit_menu], drop_down=True)
 
@@ -259,7 +404,6 @@ class Worksheet (object):
 			      '<div class="worksheet_menu_bar">',
 			      '<div class="worksheet_menu">', page_menu, '</div>',
 			      '<div class="worksheet_buttons">', save_button, exec_button,'</div>',
-			      '</div>',
 			      '</div>',
 			      self.__execution_state,
 			      doc,
@@ -274,8 +418,11 @@ class Worksheet (object):
 		p = Html(*contents)
 		p = p.with_key_handler([Key(Key.KEY_DOWN, 13, ctrl=True)], on_execute_key)
 		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('S'), ctrl=True, prevent_default=True)], on_save_key)
-		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('1'), ctrl=True, prevent_default=True)], on_code_key)
-		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('2'), ctrl=True, prevent_default=True)], on_text_key)
+		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('1'), ctrl=True, prevent_default=True)], on_text_key)
+		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('2'), ctrl=True, prevent_default=True)], on_code_key)
+		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('3'), ctrl=True, prevent_default=True)], on_js_key)
+		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('4'), ctrl=True, prevent_default=True)], on_css_key)
+		#p = p.with_key_handler([Key(Key.KEY_DOWN, ord('5'), ctrl=True, prevent_default=True)], on_html_key)
 		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('0'), ctrl=True, prevent_default=True)], on_delete_block_key)
 		return p.use_css('/worksheet.css')
 

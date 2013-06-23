@@ -13,7 +13,92 @@ from britefury.pres.pres import Pres
 from britefury.pres.controls import code_mirror, button
 
 
-__author__ = 'Geoff'
+
+
+class AbstractSourceCode (object):
+	__language__ = None
+	__codemirror_script_urls__ = []
+
+	def __init__(self, code=None, editable=True):
+		if code is None:
+			code = ''
+		self.__code = code
+		self.__editable = editable
+		self.__incr = IncrementalValueMonitor()
+		self.on_focus = None
+		self.on_blur = None
+		if self.__language__ is None:
+			raise TypeError, 'Abstract: __language__ not defined'
+
+
+	def __getstate__(self):
+		return {'code': self.__code, 'editable': self.__editable}
+
+	def __setstate__(self, state):
+		self.__code = state.get('code', '')
+		self.__editable = state.get('editable', True)
+		self.__incr = IncrementalValueMonitor()
+		self.on_focus = None
+		self.on_blur = None
+		if self.__language__ is None:
+			raise TypeError, 'Abstract: __language__ not defined'
+
+
+
+	@property
+	def editable(self):
+		return self.__editable
+
+	@editable.setter
+	def editable(self, e):
+		self.__editable = e
+		self.__incr.on_changed()
+
+
+	@property
+	def source_text(self):
+		return self.__code
+
+
+
+
+
+	def __present__(self, fragment):
+		if self.__language__ is None:
+			raise TypeError, 'Abstract: __language__ not defined'
+
+		self.__incr.on_access()
+
+		def on_change(ev_data):
+			self.__code = ev_data
+
+		config = {
+			'mode': {
+			'name': self.__language__,
+			'version': 2,
+			'singleLineStringErrors': False},
+			'lineNumbers': True,
+			'indentUnit': 4,
+			'tabMode': "shift",
+			'matchBrackets': True,
+			'readOnly': 'nocursor'   if not self.__editable   else False,
+			'autofocus': self.__editable
+		}
+
+
+
+		code_area = code_mirror.code_mirror(self.__code, config=config, on_edit=on_change, on_focus=self.on_focus, on_blur=self.on_blur)
+		for script in self.__codemirror_script_urls__:
+			code_area = code_area.use_js(script)
+
+
+		return Html('<div>', code_area, '</div>')
+
+
+
+
+
+
 
 
 TextBlockStyle = namedtuple('TextBlockStyle', ['block_style', 'name_style', 'content_style'])
@@ -122,45 +207,9 @@ _stream_style_map = {
 }
 
 
-class PythonCode (object):
-	def __init__(self, code=None, editable=True):
-		if code is None:
-			code = ''
-		self.__code = code
-		self.__editable = editable
-		self.__incr = IncrementalValueMonitor()
-		self.on_focus = None
-		self.on_blur = None
-
-
-	def __getstate__(self):
-		return {'code': self.__code, 'editable': self.__editable}
-
-	def __setstate__(self, state):
-		self.__code = state.get('code', '')
-		self.__editable = state.get('editable', True)
-		self.__incr = IncrementalValueMonitor()
-		self.on_focus = None
-		self.on_blur = None
-
-
-
-	@property
-	def editable(self):
-		return self.__editable
-
-	@editable.setter
-	def editable(self, e):
-		self.__editable = e
-		self.__incr.on_changed()
-
-
-	@property
-	def code(self):
-		return self.__code
-
-
-
+class PythonCode (AbstractSourceCode):
+	__language__ = 'python'
+	__codemirror_script_urls__ = ['/codemirror/mode/python/python.js']
 
 
 	def execute_in_module(self, module):
@@ -176,7 +225,7 @@ class PythonCode (object):
 
 		try:
 
-			ast_module = compile(self.code, module_name, 'exec', flags=_ast.PyCF_ONLY_AST)
+			ast_module = compile(self.source_text, module_name, 'exec', flags=_ast.PyCF_ONLY_AST)
 
 			exec_code = None
 			eval_code = None
@@ -209,32 +258,18 @@ class PythonCode (object):
 
 
 
-
-
-	def __present__(self, fragment):
-		self.__incr.on_access()
-
-		def on_change(ev_data):
-			self.__code = ev_data
-
-		config = {
-			'mode': {
-			'name': "python",
-			'version': 2,
-			'singleLineStringErrors': False},
-			'lineNumbers': True,
-			'indentUnit': 4,
-			'tabMode': "shift",
-			'matchBrackets': True,
-			'readOnly': 'nocursor'   if not self.__editable   else False,
-			'autofocus': self.__editable
-		}
+class HtmlCode (AbstractSourceCode):
+	__language__ = 'htmlembedded'
+	__codemirror_script_urls__ = ['/codemirror/mode/htmlembedded/htmlembedded.js']
 
 
 
-		code_area = code_mirror.code_mirror(self.__code, config=config, on_edit=on_change, on_focus=self.on_focus, on_blur=self.on_blur)
-		code_area = code_area.use_js('/codemirror/mode/python/python.js')
+class CSSCode (AbstractSourceCode):
+	__language__ = 'css'
+	__codemirror_script_urls__ = ['/codemirror/mode/css/css.js']
 
 
-		return Html('<div>', code_area, '</div>')
 
+class JSCode (AbstractSourceCode):
+	__language__ = 'javascript'
+	__codemirror_script_urls__ = ['/codemirror/mode/javascript/javascript.js']

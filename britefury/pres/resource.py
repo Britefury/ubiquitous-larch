@@ -141,7 +141,8 @@ class PresResource (Resource):
 
 
 		def initialise(self, pres_ctx):
-			subj = Subject(None, self.__contents, pres_ctx.perspective)
+			subj = Subject()
+			subj.add_step(focus=self.__contents, perspective=pres_ctx.perspective, title='Resource')
 			self.data = pres_ctx.fragment_view.service.page(subj)
 			self.mime_type = 'text/html'
 
