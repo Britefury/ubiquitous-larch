@@ -204,7 +204,7 @@ class ProjectRoot (ProjectContainer):
 
 
 
-	def _present_header(self, fragment):
+	def _present_header_contents(self, fragment):
 		return Html('<span class="project_index_text">Project contents</span>')
 
 

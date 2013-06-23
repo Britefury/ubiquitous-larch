@@ -4,9 +4,13 @@
 import os
 from copy import deepcopy
 
+from britefury.live.live_value import LiveValue
+
+from britefury.pres.controls import menu
+
 from britefury.pres.html import Html
 
-from larch.project.project_node import ProjectNode
+from larch.project.project_node import ProjectNode, RenameNodeGUI
 
 
 
@@ -120,17 +124,25 @@ class ProjectPage (ProjectNode):
 	# No need for __load_module__, since __import_resolve_self__ bounces on to the content
 
 
-	def __present__(self, fragment):
+	def _present_menu_items(self, fragment, gui):
+		def on_rename():
+			gui.value = RenameNodeGUI(gui, self)
+
+		rename_item = menu.item('Rename', on_rename)
+
+		return [rename_item]
+
+
+	def _present_header_contents(self, fragment):
 		project_location = fragment.subject.location
 		path_to_root = self.path_to_root
 		trail = list(reversed([node.name   for node in path_to_root[:-1]]))
 		page_location = '/'.join([project_location] + trail)
 
-		contents = [
-			'<div class="project_page">',
-			'<a class="project_page_text" href="{0}">{1}</a>'.format(page_location, self.name),
-			'</div>'
-		]
-		return Html(*contents)
+		return Html('<a class="project_page_text" href="{0}">{1}</a>'.format(page_location, self.name))
+
+
+	def __present__(self, fragment):
+		return self._present_header(fragment)
 
 

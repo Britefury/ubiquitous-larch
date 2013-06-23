@@ -4,14 +4,8 @@
 .project_package {
 }
 
-.project_page {
-}
-
 .project_container_contents {
     margin-left: 1.5em;
-}
-
-.project_container_header {
 }
 
 .project_index_text {
@@ -34,4 +28,8 @@
 
 .project_root_package_name {
     margin: 1.5em 0 1.5em 0;
+}
+
+.project_gui_container {
+    margin-left: 2.5em;
 }

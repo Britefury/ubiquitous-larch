@@ -11,24 +11,15 @@ from britefury.pres.html import Html
 from britefury.pres.controls import menu, text_entry, button
 
 from larch import project
-from larch.project.project_node import ProjectNode
+from larch.project.project_node import ProjectNode, _GUIBox
 from larch.worksheet.worksheet import Worksheet
 
 
 
 
-class GUIBox (object):
-	def __init__(self, create_gui):
-		self.__create_gui = create_gui
-
-
-	def close(self):
-		self.__create_gui.value = Html('<span></span>')
-
-
-class NewNodeGUI (GUIBox):
-	def __init__(self, create_gui, container, node_type_name, initial_name, node_create_fn):
-		super(NewNodeGUI, self).__init__(create_gui)
+class NewNodeGUI (_GUIBox):
+	def __init__(self, gui, container, node_type_name, initial_name, node_create_fn):
+		super(NewNodeGUI, self).__init__(gui)
 		self.__name = initial_name
 		self.__container = container
 		self.__node_type_name = node_type_name
@@ -184,10 +175,6 @@ class ProjectContainer (ProjectNode):
 		self._incr.on_changed()
 
 
-	def _present_header(self, fragment):
-		raise NotImplementedError, 'abstract'
-
-
 	def __resolve__(self, name, subject):
 		contents_map = self.contents_map
 		node = contents_map.get(name)
@@ -228,7 +215,18 @@ class ProjectContainer (ProjectNode):
 
 
 
+	def _present_menu_items(self, fragment, gui):
+		def on_new_package():
+			gui.value = NewNodeGUI(gui, self, 'package', 'Package', lambda name: project.project_package.ProjectPackage(name))
 
+		def on_new_worksheet():
+			gui.value = NewNodeGUI(gui, self, 'worksheet', 'Worksheet', lambda name: project.project_page.ProjectPage(name, Worksheet()))
+
+
+		new_package_item = menu.item('New package', on_new_package)
+		new_worksheet_item = menu.item('New worksheet', on_new_worksheet)
+
+		return [new_package_item, new_worksheet_item]
 
 
 	def __present__(self, fragment):
@@ -236,32 +234,9 @@ class ProjectContainer (ProjectNode):
 
 		header = self._present_header(fragment)
 
-
-		def on_new_package():
-			print dir(project)
-			create_gui.value = NewNodeGUI(create_gui, self, 'package', 'Package', lambda name: project.project_package.ProjectPackage(name))
-
-		def on_new_worksheet():
-			create_gui.value = NewNodeGUI(create_gui, self, 'worksheet', 'Worksheet', lambda name: project.project_page.ProjectPage(name, Worksheet()))
-
-
-		new_package_item = menu.item('New package', on_new_package)
-		new_worksheet_item = menu.item('New worksheet', on_new_worksheet)
-		create_page_item = menu.sub_menu('-', [new_package_item, new_worksheet_item])
-
-		container_menu = menu.menu([create_page_item], drop_down=True)
-
-
-
 		contents = [
 			'<div class="project_package">',
-			'<div class-"project_container_header">',
-			'<table><tr><td>',
-			container_menu,
-			'</td><td>',
 			header,
-			'</td></tr></table>',
-			'</div>',
 			create_gui,
 			'<div class="project_container_contents">',
 		]
