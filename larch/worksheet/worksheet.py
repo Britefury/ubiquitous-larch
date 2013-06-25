@@ -113,21 +113,24 @@ class WorksheetBlockCode (WorksheetBlock):
 
 class WorksheetBlockSource (WorksheetBlock):
 	__language_to_type_map = {
+		'html': source_code.HtmlCode,
 		'css': source_code.CSSCode,
 		'js': source_code.JSCode,
-		'html': source_code.HtmlCode,
+		'glsl': source_code.GLSLCode,
 	}
 
 	__type_to_language_map = {
+		source_code.HtmlCode: 'html',
 		source_code.CSSCode: 'css',
 		source_code.JSCode: 'js',
-		source_code.HtmlCode: 'html'
+		source_code.GLSLCode: 'glsl',
 	}
 
 	__language_to_human_name = {
-		'js': 'Javascript',
+		'html': 'HTML',
 		'css': 'CSS',
-		'html': 'HTML'
+		'js': 'Javascript',
+		'glsl': 'GLSL',
 	}
 
 	def __init__(self, worksheet, language, var_name='src'):
@@ -194,11 +197,13 @@ class WorksheetBlockSource (WorksheetBlock):
 
 		js_item = menu.item('Javascript', lambda: _on_change_language('js'))
 		css_item = menu.item('CSS', lambda: _on_change_language('css'))
+		glsl_item = menu.item('GLSL', lambda: _on_change_language('glsl'))
 		#html_item = menu.item('HTML', lambda: _on_change_language('html'))
 
 		lang_menu = menu.sub_menu('Change language', [
 			js_item,
 			css_item,
+			glsl_item,
 			#html_item
 		])
 		lang_menu_button = menu.menu([lang_menu], drop_down=True)
@@ -322,6 +327,9 @@ class Worksheet (object):
 		def on_save_key(key):
 			save()
 
+		def on_text_key(key):
+			self._insert_block(WorksheetBlockText(self), True)
+
 		def on_code_key(key):
 			self._insert_block(WorksheetBlockCode(self), True)
 
@@ -331,11 +339,11 @@ class Worksheet (object):
 		def on_css_key(key):
 			self._insert_block(WorksheetBlockSource(self, 'css', 'css'), True)
 
+		def on_glsl_key(key):
+			self._insert_block(WorksheetBlockSource(self, 'glsl', 'glsl'), True)
+
 		def on_html_key(key):
 			self._insert_block(WorksheetBlockSource(self, 'html', 'html'), True)
-
-		def on_text_key(key):
-			self._insert_block(WorksheetBlockText(self), True)
 
 		def on_delete_block_key(key):
 			self._delete_block()
@@ -346,6 +354,9 @@ class Worksheet (object):
 
 
 
+		def _insert_rich_text(below):
+			self._insert_block(WorksheetBlockText(self), below)
+
 		def _insert_code(below):
 			self._insert_block(WorksheetBlockCode(self), below)
 
@@ -355,11 +366,11 @@ class Worksheet (object):
 		def _insert_css(below):
 			self._insert_block(WorksheetBlockSource(self, 'css', 'css'), below)
 
+		def _insert_glsl(below):
+			self._insert_block(WorksheetBlockSource(self, 'glsl', 'glsl'), below)
+
 		def _insert_html(below):
 			self._insert_block(WorksheetBlockSource(self, 'html', 'html'), below)
-
-		def _insert_rich_text(below):
-			self._insert_block(WorksheetBlockText(self), below)
 
 
 		save_button = button.button('Save (Ctrl-S)', save)
@@ -369,13 +380,15 @@ class Worksheet (object):
 		insert_code_above = menu.item('Insert executable Python code above', lambda: _insert_code(False))
 		insert_js_above = menu.item('Insert JS source above', lambda: _insert_js(False))
 		insert_css_above = menu.item('Insert CSS source above', lambda: _insert_css(False))
+		insert_glsl_above = menu.item('Insert GLSL source above', lambda: _insert_glsl(False))
 		insert_html_above = menu.item('Insert HTML source above', lambda: _insert_html(False))
 
 		insert_rich_text_below = menu.item('Insert rich text below (Ctrl-1)', lambda: _insert_rich_text(True))
 		insert_code_below = menu.item('Insert executable Python code below (Ctrl-2)', lambda: _insert_code(True))
 		insert_js_below = menu.item('Insert JS source below (Ctrl-3)', lambda: _insert_js(True))
 		insert_css_below = menu.item('Insert CSS source below (Ctrl-4)', lambda: _insert_css(True))
-		insert_html_below = menu.item('Insert HTML source below (Ctrl-5)', lambda: _insert_html(True))
+		insert_glsl_below = menu.item('Insert GLSL source below (Ctrl-5)', lambda: _insert_glsl(True))
+		insert_html_below = menu.item('Insert HTML source below (Ctrl-6)', lambda: _insert_html(True))
 
 		remove_block = menu.item('Remove block (Ctrl-0)', lambda: self._delete_block())
 		edit_menu = menu.sub_menu('Edit', [
@@ -383,12 +396,15 @@ class Worksheet (object):
 			insert_code_above,
 			insert_js_above,
 			insert_css_above,
+			insert_glsl_above,
 			#insert_html_above,
+
 			menu.item('--------', None),
 			insert_rich_text_below,
 			insert_code_below,
 			insert_js_below,
 			insert_css_below,
+			insert_glsl_below,
 			#insert_html_below,
 			menu.item('--------', None),
 			remove_block])
@@ -422,7 +438,8 @@ class Worksheet (object):
 		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('2'), ctrl=True, prevent_default=True)], on_code_key)
 		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('3'), ctrl=True, prevent_default=True)], on_js_key)
 		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('4'), ctrl=True, prevent_default=True)], on_css_key)
-		#p = p.with_key_handler([Key(Key.KEY_DOWN, ord('5'), ctrl=True, prevent_default=True)], on_html_key)
+		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('5'), ctrl=True, prevent_default=True)], on_glsl_key)
+		#p = p.with_key_handler([Key(Key.KEY_DOWN, ord('6'), ctrl=True, prevent_default=True)], on_html_key)
 		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('0'), ctrl=True, prevent_default=True)], on_delete_block_key)
 		return p.use_css('/worksheet.css')
 

@@ -273,3 +273,9 @@ class CSSCode (AbstractSourceCode):
 class JSCode (AbstractSourceCode):
 	__language__ = 'javascript'
 	__codemirror_script_urls__ = ['/codemirror/mode/javascript/javascript.js']
+
+
+
+class GLSLCode (AbstractSourceCode):
+	__language__ = 'glsl'
+	__codemirror_script_urls__ = ['/codemirror/mode/glsl/glsl.js']

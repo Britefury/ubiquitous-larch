@@ -90,6 +90,19 @@
     padding: 0 2px 0 2px;
 }
 
+.worksheet_glsl_code_header {
+    padding: 5px;
+    background: #e1ebeb;
+    font-family: "Open Sans", sans-serif;
+}
+
+.worksheet_glsl_code_container {
+    margin: 3px 0 3px 0;
+    border-left: 2px solid #008080;
+    border-right: 2px solid #008080;
+    padding: 0 2px 0 2px;
+}
+
 .worksheet_html_code_header {
     padding: 5px;
     background: #e1e1eb;
