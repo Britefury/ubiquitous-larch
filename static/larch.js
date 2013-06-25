@@ -5,7 +5,12 @@ larch.controls = {};
 
 
 larch.__executeJS = function(js_code) {
-    eval(js_code);
+    try {
+        eval(js_code);
+    }
+    catch (e) {
+        console.log("Dynamic JS code execution: caught " + e + " when executing " + code);;
+    }
 }
 
 larch.__addDependency = function(dep) {
@@ -168,7 +173,12 @@ larch.__executeInitialisers = function(initialisers) {
             // The 'unused' variable node is referenced by the source code contained in the initialiser; it is needed by eval()
             var node = nodes[j];
             for (var k = 0; k < inits.length; k++) {
-                eval(inits[k]);
+                try {
+                    eval(inits[k]);
+                }
+                catch (e) {
+                    console.log("Executing initialisers: caught " + e + " when executing " + inits[k]);
+                }
             }
         }
     }
