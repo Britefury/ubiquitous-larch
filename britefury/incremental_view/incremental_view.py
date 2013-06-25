@@ -536,6 +536,12 @@ class FragmentFactory (object):
 			fragment_pres = _exception_during_presentation(present_exception(e, sys.exc_info()[2]))
 
 		try:
+			if not isinstance(fragment_pres, Pres):
+				raise TypeError, 'Presentation functions must return an object of type Pres, an object of type {0} was received'.format(type(fragment_pres).__name__)
+		except Exception, e:
+			fragment_pres = _exception_during_presentation(present_exception(e, sys.exc_info()[2]))
+
+		try:
 			html_content = self.__pres_to_html_content(fragment_pres, fragment_view)
 		except Exception, e:
 			fragment_pres = _exception_during_presentation(present_exception(e, sys.exc_info()[2]))
