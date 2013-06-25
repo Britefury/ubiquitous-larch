@@ -105,8 +105,15 @@
 
 .worksheet_html_code_header {
     padding: 5px;
-    background: #e1e1eb;
+    background: #ebebe1;
     font-family: "Open Sans", sans-serif;
+}
+
+.worksheet_html_code_container {
+    margin: 3px 0 3px 0;
+    border-left: 2px solid #808000;
+    border-right: 2px solid #808000;
+    padding: 0 2px 0 2px;
 }
 
 .worksheet_code_block_body {
