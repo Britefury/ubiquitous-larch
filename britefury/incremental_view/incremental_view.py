@@ -174,12 +174,6 @@ class _FragmentView (object):
 
 
 
-	#
-	#
-	# Sub-segments
-	#
-	#
-
 	def create_resource(self, rsc_data, context):
 		rsc = self.__inc_view.dynamic_document.resource_for(rsc_data, context)
 		self.__resources.append(rsc)
