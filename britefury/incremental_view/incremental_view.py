@@ -175,9 +175,9 @@ class _FragmentView (object):
 
 
 	def create_resource(self, rsc_data, context):
-		rsc = self.__inc_view.dynamic_document.resource_for(rsc_data, context)
-		self.__resources.append(rsc)
-		return rsc
+		doc_rsc = self.__inc_view.dynamic_document.resource_for(rsc_data, context)
+		self.__resources.append(doc_rsc)
+		return doc_rsc
 
 
 

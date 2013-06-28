@@ -128,12 +128,13 @@ class Resource (Pres):
 	def build(self, pres_ctx):
 		return HtmlContent([self._url(pres_ctx)])
 
-	def _json_encoded_url(self, pres_ctx):
-		return json.dumps(self._url(pres_ctx))
+	def _client_side_js(self, pres_ctx):
+		doc_rsc = pres_ctx.fragment_view.create_resource(self.__rsc_data, pres_ctx)
+		return doc_rsc.client_side_js()
 
 	def _url(self, pres_ctx):
-		rsc = pres_ctx.fragment_view.create_resource(self.__rsc_data, pres_ctx)
-		return rsc.url
+		doc_rsc = pres_ctx.fragment_view.create_resource(self.__rsc_data, pres_ctx)
+		return doc_rsc.url
 
 
 
@@ -211,7 +212,7 @@ class JSEval (SubSegmentPres):
 			# Most common case
 			seg.add_initialiser(ex[0])
 		else:
-			seg.add_initialiser(''.join([(x._json_encoded_url(pres_ctx)   if isinstance(x, Resource)   else x)   for x in ex]))
+			seg.add_initialiser(''.join([(x._client_side_js(pres_ctx)   if isinstance(x, Resource)   else x)   for x in ex]))
 
 
 

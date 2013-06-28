@@ -16,6 +16,27 @@ class IncrementalEvaluationCycleError (Exception):
 
 
 class IncrementalFunctionMonitor (incremental_monitor.IncrementalMonitor):
+	""" Incremental Function Monitor
+
+	Monitor a value acquired by evaluating a function.
+
+	When acquiring the value:
+		def get_value():
+			try:
+				refresh_value()
+			finally:
+				inc_fn_mon.on_access()
+			return value_cache
+
+
+		def refresh_value():
+			refresh_state = inc_fn_mon.on_refresh_begin()
+			try:
+				if refresh_state is not None:
+					value_cache = evaluate_function()
+			finally:
+				inc_fn_mon.on_refresh_end(refresh_state)
+	"""
 	_FLAG_CYCLE_LOCK = 0x1
 	_FLAG_BLOCK_INCOMING_DEPENDENCIES = 0x2
 

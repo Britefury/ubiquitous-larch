@@ -15,3 +15,9 @@ def execute_js_message(js_code):
 	return {'msgtype' : 'execute_js', 'js_code' : js_code}
 
 
+def resources_modified_message(resource_ids):
+	return {'msgtype': 'resources_modified', 'resource_ids': list(resource_ids)}
+
+
+def resources_disposed_message(resource_ids):
+	return {'msgtype': 'resources_disposed', 'resource_ids': list(resource_ids)}

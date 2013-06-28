@@ -9,6 +9,8 @@ import json
 
 from copy import copy
 
+from britefury.incremental.incremental_function_monitor import IncrementalFunctionMonitor
+
 from britefury.dynamicsegments.segment import DynamicSegment, SegmentRef
 from britefury.dynamicsegments import messages, dependencies
 from britefury.dynamicsegments import global_dependencies
@@ -110,6 +112,8 @@ class DynamicDocument (object):
 		self.__rsc_id_counter = 1
 		self.__rsc_id_to_rsc = {}
 		self.__rsc_content_to_rsc = {}
+		self.__modified_resources = set()
+		self.__disposed_resources = set()
 
 		# Threading lock, required for servers such as CherryPy
 		self.__lock = None
@@ -212,26 +216,57 @@ class DynamicDocument (object):
 		"""Create a new resource
 
 		rsc_data - A resource data object that provides:
-			initialise(context) and dispose(context) methods. These are called before the resource is first used and when it is no longer needed, respectively.
+			initialise(context, change_listener) and dispose(context) methods. These are called before the resource is first used and when it is no longer needed, respectively.
 					The context parameter of these methods receives the value passed to context of this method
 			data and mime_type attributes/properties: the data and its MIME type
 		context - context data, used by the resource data object at initialisation and disposal time
 		"""
-		rsc = self.__rsc_content_to_rsc.get(rsc_data)
-		if rsc is None:
+		doc_rsc = self.__rsc_content_to_rsc.get(rsc_data)
+		if doc_rsc is None:
 			rsc_id = 'rsc{0}'.format(self.__rsc_id_counter)
 			self.__rsc_id_counter += 1
-			rsc = DynamicResource(self, rsc_id, rsc_data)
-			self.__rsc_id_to_rsc[rsc_id] = rsc
+			doc_rsc = DynamicResource(self, rsc_id, rsc_data)
+			self.__rsc_id_to_rsc[rsc_id] = doc_rsc
 
-		rsc.ref(context)
+		doc_rsc.ref(context)
 
-		return rsc
+		return doc_rsc
 
 
 	def unref_resource(self, rsc):
 		if rsc.unref() == 0:
 			del self.__rsc_id_to_rsc[rsc.id]
+
+
+	def _resource_modified(self, rsc):
+		"""Notify of resource modification
+		"""
+		self.__modified_resources.add(rsc.id)
+
+
+	def _resouce_disposed(self, rsc):
+		"""Notify of resource disposal
+		"""
+		self.__disposed_resources.add(rsc.id)
+
+
+	def __resources_modified_message(self):
+		if len(self.__modified_resources) > 0:
+			rsc_mod_message = messages.resources_modified_message(self.__modified_resources - self.__disposed_resources)
+			self.__modified_resources = set()
+			return rsc_mod_message
+		else:
+			return None
+
+
+	def __resources_disposed_message(self):
+		if len(self.__disposed_resources) > 0:
+			rsc_disp_message = messages.resources_disposed_message(self.__disposed_resources)
+			self.__disposed_resources = set()
+			return rsc_disp_message
+		else:
+			return None
+
 
 
 
@@ -301,6 +336,16 @@ class DynamicDocument (object):
 		if self.__execute_js_message is not None:
 			msg_list.append(self.__execute_js_message)
 			self.__execute_js_message = None
+
+		# Resource modification message
+		rsc_mod_message = self.__resources_modified_message()
+		if rsc_mod_message is not None:
+			msg_list.append(rsc_mod_message)
+
+		# Resource disposal message
+		rsc_disp_message = self.__resources_disposed_message()
+		if rsc_disp_message is not None:
+			msg_list.append(rsc_disp_message)
 
 		return msg_list
 
@@ -567,7 +612,7 @@ class DynamicResource (object):
 	def ref(self, context):
 		if self.__ref_count == 0:
 			self.__context = context
-			self.__rsc_data.initialise(context)
+			self.__rsc_data.initialise(context, self.__on_changed)
 		self.__ref_count += 1
 		return self.__ref_count
 
@@ -575,7 +620,13 @@ class DynamicResource (object):
 		self.__ref_count -= 1
 		if self.__ref_count == 0:
 			self.__rsc_data.dispose(self.__context)
+			self.__doc._resouce_disposed(self)
 		return self.__ref_count
+
+
+
+	def __on_changed(self):
+		self.__doc._resource_modified(self)
 
 
 	@property
@@ -598,3 +649,7 @@ class DynamicResource (object):
 	@property
 	def url(self):
 		return '/rsc?session_id={0}&rsc_id={1}'.format(self.__doc._session_id, self.__rsc_id)
+
+
+	def client_side_js(self):
+		return '(larch.__createResource("{0}", {1}))'.format(self.__rsc_id, json.dumps(self.url))

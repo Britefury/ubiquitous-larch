@@ -9,13 +9,13 @@ larch.__executeJS = function(js_code) {
         eval(js_code);
     }
     catch (e) {
-        console.log("Dynamic JS code execution: caught " + e + " when executing " + code);;
+        console.log("Dynamic JS code execution: caught " + e + " when executing " + code);
     }
-}
+};
 
 larch.__addDependency = function(dep) {
     $(dep).appendTo("head");
-}
+};
 
 
 
@@ -34,7 +34,7 @@ larch.__buildConnectivity = function(segment) {
         p = n;
     }
     p.__lch_next = segment.end;
-}
+};
 
 larch.__clearConnectivity = function(nodes) {
     // Clear connectivity built earlier
@@ -47,13 +47,13 @@ larch.__clearConnectivity = function(nodes) {
         }
         p = n;
     }
-}
+};
 
 
 larch.__newSegmentState = function(start, end) {
     // This creates a new 'segment state' to go into the segment table.
     return {'start': start, 'end': end}
-}
+};
 
 larch.__getNodesInActiveSegment = function(segment) {
     var nodeList = [];
@@ -62,7 +62,7 @@ larch.__getNodesInActiveSegment = function(segment) {
     }
     nodeList.push(segment.end);
     return nodeList;
-}
+};
 
 larch.__getNodesInInactiveSegment = function(segment) {
     // Iterate using __lch_next attribute; see __newSegmentState function for explanation
@@ -84,7 +84,7 @@ larch.__getNodesInInactiveSegment = function(segment) {
     }
     nodeList.push(segment.end);
     return nodeList;
-}
+};
 
 
 
@@ -102,7 +102,7 @@ larch.__replaceSegment = function(oldSegmentState, newSegmentState) {
 
     newNodes.forEach(function(n) {parent.insertBefore(n, first);});
     oldNodes.forEach(function(n) {parent.removeChild(n);});
-}
+};
 
 
 larch.__replacePlaceholder = function(placeHolder, existingInactiveSegmentState) {
@@ -116,7 +116,7 @@ larch.__replacePlaceholder = function(placeHolder, existingInactiveSegmentState)
     larch.__clearConnectivity(newNodes);
 
     parent.removeChild(placeHolder);
-}
+};
 
 
 
@@ -126,7 +126,7 @@ larch.__createSegmentContentNodesFromSource = function(content) {
     var elem = document.createElement("div");
     elem.innerHTML = content;
     return larch.__newSegmentState(elem.firstChild, elem.lastChild);
-}
+};
 
 
 
@@ -147,15 +147,15 @@ larch.__getElementsOfClass = function(className, tagName) {
         }
         return placeHolders;
     }
-}
+};
 
 larch.__getPlaceHolderNodes = function() {
     return larch.__getElementsOfClass("__lch_seg_placeholder", "span");
-}
+};
 
 larch.__getSegmentBeginNodes = function() {
     return larch.__getElementsOfClass("__lch_seg_begin", "span");
-}
+};
 
 larch.__executeInitialisers = function(initialisers) {
     var segment_table = larch.__segment_table;
@@ -171,7 +171,7 @@ larch.__executeInitialisers = function(initialisers) {
         var nodes = larch.__getNodesInActiveSegment(state);
         for (var j = 1; j < nodes.length - 1; j++) {
             // The 'unused' variable node is referenced by the source code contained in the initialiser; it is needed by eval()
-            var node = nodes[j];
+            var node = nodes[j];        // <<-- DO NOT DELETE
             for (var k = 0; k < inits.length; k++) {
                 try {
                     eval(inits[k]);
@@ -182,7 +182,7 @@ larch.__executeInitialisers = function(initialisers) {
             }
         }
     }
-}
+};
 
 larch.__register_segments = function() {
     var segment_table = larch.__segment_table;
@@ -226,7 +226,7 @@ larch.__register_segments = function() {
             segment_table[segment_id] = larch.__newSegmentState(start, end);
         }
     }
-}
+};
 
 
 
@@ -300,7 +300,7 @@ larch.__applyChanges = function(changes) {
     // Execute initialisers
     larch.__executeInitialisers(initialisers);
     //console.log("FINISHED UPDATE");
-}
+};
 
 larch.__handleMessageFromServer = function(message) {
     var msg_type = message.msgtype;
@@ -318,17 +318,29 @@ larch.__handleMessageFromServer = function(message) {
             larch.__addDependency(deps[i]);
         }
     }
+    else if (msg_type === "resources_modified") {
+        var resource_ids = message.resource_ids;
+        for (var i = 0; i < resource_ids.length; i++) {
+            larch.__resourceModified(resource_ids[i]);
+        }
+    }
+    else if (msg_type === "resources_disposed") {
+        var resource_ids = message.resource_ids;
+        for (var i = 0; i < resource_ids.length; i++) {
+            larch.__destroyResource(resource_ids[i]);
+        }
+    }
     else {
         // Unreckognised message
         throw ('Larch: unrecognised message" + message');
     }
-}
+};
 
 larch.__handleMessagesFromServer = function(messages) {
     for (var i = 0; i < messages.length; i++) {
         larch.__handleMessageFromServer(messages[i]);
     }
-}
+};
 
 
 
@@ -359,7 +371,7 @@ larch.__handleKeyEvent = function(event, keys) {
         }
     }
     return undefined;
-}
+};
 
 larch.__onkeydown = function(event, keys) {
     var k = larch.__handleKeyEvent(event, keys);
@@ -371,7 +383,7 @@ larch.__onkeydown = function(event, keys) {
         }
     }
     return true;
-}
+};
 
 larch.__onkeyup = function(event, keys) {
     var k = larch.__handleKeyEvent(event, keys);
@@ -383,7 +395,7 @@ larch.__onkeyup = function(event, keys) {
         }
     }
     return true;
-}
+};
 
 larch.__onkeypress = function(event, keys) {
     var k = larch.__handleKeyEvent(event, keys);
@@ -395,7 +407,7 @@ larch.__onkeypress = function(event, keys) {
         }
     }
     return true;
-}
+};
 
 
 
@@ -412,7 +424,7 @@ larch.__getSegmentIDForEvent = function(src_element) {
     }
 
     return segment_id;
-}
+};
 
 larch.__buildElementEventMessage = function(segment_id, event_name, event_data) {
     return {
@@ -421,7 +433,7 @@ larch.__buildElementEventMessage = function(segment_id, event_name, event_data) 
         event_name: event_name,
         ev_data: event_data
     };
-}
+};
 
 
 
@@ -442,7 +454,7 @@ larch.__sendEventMessagesToServer = function(ev_messages) {
         },
         dataType: 'json'
     });
-}
+};
 
 larch.__postEventMessage = function(ev_msg) {
     var messages = [];
@@ -466,7 +478,7 @@ larch.__postEventMessage = function(ev_msg) {
 
     // Send
     larch.__sendEventMessagesToServer(messages);
-}
+};
 
 
 larch.postEvent = function(src_element, event_name, event_data) {
@@ -476,7 +488,7 @@ larch.postEvent = function(src_element, event_name, event_data) {
         var ev_msg = larch.__buildElementEventMessage(segment_id, event_name, event_data);
         larch.__postEventMessage(ev_msg);
     }
-}
+};
 
 
 larch.postDocumentEvent = function(event_name, event_data) {
@@ -488,7 +500,7 @@ larch.postDocumentEvent = function(event_name, event_data) {
     };
 
     larch.__postEventMessage(ev_msg);
-}
+};
 
 
 larch.__eventFactoryQueue = [];
@@ -504,18 +516,72 @@ larch.queueEventFactory = function(src_element, event_name, event_factory) {
         larch.__eventFactoryQueue.push(key);
     }
     larch.__eventFactoriesBySrcAndName[key] = fac;
-}
+};
 
 larch.hasQueuedEventFactory = function(src_element, event_name) {
     var segment_id = larch.__getSegmentIDForEvent(src_element);
     var key = segment_id + '__' + event_name;
 
     return larch.__eventFactoriesBySrcAndName.hasOwnProperty(key);
-}
+};
+
+
+larch.__resourceIdToResource = {};
+
+larch.__createResource = function(rscId, rscUrl) {
+    var rsc = {};
+    rsc.__rscId = rscId;
+    rsc.url = rscUrl;
+    rsc.__listeners = [];
+
+    rsc.fetchData = function(handlerFn) {
+        $.ajax({
+            type: 'GET',
+            url: rsc.url,
+            //data: ev_data,
+            success: handlerFn
+            //dataType: 'json'
+        });
+    };
+
+    rsc.addListener = function(listener) {
+        for (var i = 0; i < rsc.__listeners.length; i++) {
+            if (rsc.__listeners[i] === listener) {
+                return;
+            }
+        }
+
+        rsc.__listeners.push(listener);
+    };
+
+    rsc.removeListener = function(listener) {
+        for (var i = 0; i < rsc.__listeners.length; i++) {
+            if (rsc.__listeners[i] === listener) {
+                delete rsc.__listeners[i];
+                return;
+            }
+        }
+    };
+
+    larch.__resourceIdToResource[rscId] = rsc;
+    return rsc;
+};
+
+larch.__destroyResource = function(rscId) {
+   delete larch.__resourceIdToResource[rscId];
+};
+
+larch.__resourceModified = function(rscId) {
+    var rsc = larch.__resourceIdToResource[rscId];
+
+    for (var i = 0; i < rsc.__listeners.length; i++) {
+        rsc.__listeners[i]();
+    }
+};
 
 
 larch.__onDocumentReady = function(initialisers) {
     larch.__register_segments();
     larch.__executeInitialisers(initialisers);
-}
+};
 

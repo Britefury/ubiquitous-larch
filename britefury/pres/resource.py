@@ -8,6 +8,7 @@ import mimetypes
 
 from britefury.dynamicsegments.segment import HtmlContent
 from britefury.pres.pres import Resource
+from britefury.live.live_function import LiveFunction
 from britefury.projection.subject import Subject
 
 __author__ = 'Geoff'
@@ -15,13 +16,31 @@ __author__ = 'Geoff'
 
 
 
+class ResourceData (object):
+	def initialise(self, context, change_listener):
+		raise NotImplementedError, 'abstract'
+
+	def dispose(self, context):
+		raise NotImplementedError, 'abstract'
+
+	@property
+	def data(self):
+		raise NotImplementedError, 'abstract'
+
+	@property
+	def mime_type(self):
+		raise NotImplementedError, 'abstract'
+
+
+
+
 class ConstResource (Resource):
-	class _ConstResourceData (object):
+	class _ConstResourceData (ResourceData):
 		def __init__(self, data, mime_type):
 			self.data = data
 			self.mime_type = mime_type
 
-		def initialise(self, pres_ctx):
+		def initialise(self, pres_ctx, change_listener):
 			pass
 
 		def dispose(self, pres_ctx):
@@ -47,7 +66,7 @@ class FnResource (Resource):
 			self.data_fn = data_fn
 			self.mime_type = mime_type
 
-		def initialise(self, pres_ctx):
+		def initialise(self, pres_ctx, change_listener):
 			pass
 
 		def dispose(self, pres_ctx):
@@ -69,6 +88,46 @@ class CSVFnResource (FnResource):
 	def __init__(self, data_fn):
 		super(CSVFnResource, self).__init__(self._FnResourceData(data_fn(), 'text/csv'))
 
+
+
+
+
+class LiveFnResource (Resource):
+	class _LiveFnResourceData (object):
+		def __init__(self, data_fn, mime_type):
+			self.data_fn = LiveFunction(lambda: self.data_fn())
+			self.mime_type = mime_type
+			self.__change_listener = None
+
+		def initialise(self, pres_ctx, change_listener):
+			self.__change_listener = change_listener
+			self.data_fn.add_listener(self._live_listener)
+
+
+		def dispose(self, pres_ctx):
+			self.data_fn.remove_listener(self._live_listener)
+			self.data_fn = None
+			self.mime_type = None
+			self.__change_listener = None
+
+
+		def _live_listener(self, incr):
+			self.__change_listener()
+
+		@property
+		def data(self):
+			return self.data_fn()
+
+
+class JsonLiveFnResource (LiveFnResource):
+	def __init__(self, data_fn):
+		super(JsonLiveFnResource, self).__init__(self._LiveFnResourceData(lambda: json.dumps(data_fn()), 'application/json'))
+
+
+
+class CSVLiveFnResource (LiveFnResource):
+	def __init__(self, data_fn):
+		super(CSVLiveFnResource, self).__init__(self._LiveFnResourceData(data_fn(), 'text/csv'))
 
 
 
