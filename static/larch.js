@@ -534,13 +534,23 @@ larch.__createResource = function(rscId, rscUrl) {
     rsc.url = rscUrl;
     rsc.__listeners = [];
 
-    rsc.fetchData = function(handlerFn) {
+    rsc.fetchString = function(handlerFn) {
         $.ajax({
             type: 'GET',
             url: rsc.url,
             //data: ev_data,
             success: handlerFn
             //dataType: 'json'
+        });
+    };
+
+    rsc.fetchJSON = function(handlerFn) {
+        $.ajax({
+            type: 'GET',
+            url: rsc.url,
+            //data: ev_data,
+            success: handlerFn,
+            dataType: 'json'
         });
     };
 

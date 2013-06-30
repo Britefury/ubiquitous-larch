@@ -95,7 +95,7 @@ class CSVFnResource (FnResource):
 class LiveFnResource (Resource):
 	class _LiveFnResourceData (object):
 		def __init__(self, data_fn, mime_type):
-			self.data_fn = LiveFunction(lambda: self.data_fn())
+			self.data_fn = LiveFunction(data_fn)
 			self.mime_type = mime_type
 			self.__change_listener = None
 
