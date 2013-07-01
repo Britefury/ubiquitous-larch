@@ -19,7 +19,8 @@ class DynamicSegment (object):
 		self.__content = content
 		self.__parent = None
 		self.__event_handlers = None
-		self.__initialisers = None
+		self.__initialise_scripts = None
+		self.__shutdown_scripts = None
 		self.__connect_children()
 
 
@@ -63,10 +64,6 @@ class DynamicSegment (object):
 		return SegmentRef(self)
 
 
-	def get_initialisers(self):
-		return self.__initialisers
-
-
 
 	# Event handling
 	def add_event_handler(self, handler):
@@ -86,12 +83,30 @@ class DynamicSegment (object):
 
 
 	# Initialisation
-	def add_initialiser(self, initialiser):
+	def get_initialise_scripts(self):
+		return self.__initialise_scripts
+
+
+	def add_initialise_script(self, initialiser):
 		"""Add an initialiser
 		"""
-		if self.__initialisers is None:
-			self.__initialisers = []
-		self.__initialisers.append(initialiser)
+		if self.__initialise_scripts is None:
+			self.__initialise_scripts = []
+		self.__initialise_scripts.append(initialiser)
+
+
+
+	# Shutdown
+	def get_shutdown_scripts(self):
+		return self.__initialise_scripts
+
+
+	def add_shutdown_script(self, script):
+		"""Add a shutdown script
+		"""
+		if self.__shutdown_scripts is None:
+			self.__shutdown_scripts = []
+		self.__shutdown_scripts.append(script)
 
 
 

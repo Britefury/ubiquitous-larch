@@ -40,11 +40,7 @@ class Pres (object):
 		return KeyEventSource(keys_and_handlers, self)
 
 
-	def js_eval(self, expr):
-		return JSEval(self, expr)
-
-
-	def js_function_call(self, js_fn_name, *json_args):
+	def __js_fn_call_expr(self, js_fn_name, json_args):
 		call = [js_fn_name + '(node']
 		for a in json_args:
 			if isinstance(a, Resource):
@@ -53,7 +49,22 @@ class Pres (object):
 			else:
 				call.append(', ' + json.dumps(a))
 		call.append(');')
-		return JSEval(self, *call)
+		return call
+
+
+
+	def js_eval(self, expr):
+		return JSInitEval(self, expr)
+
+	def js_function_call(self, js_fn_name, *json_args):
+		return JSInitEval(self, *self.__js_fn_call_expr(js_fn_name, json_args))
+
+
+	def js_shutdown_eval(self, expr):
+		return JSShutdownEval(self, expr)
+
+	def js_shutdown_function_call(self, js_fn_name, *json_args):
+		return JSShutdownEval(self, *self.__js_fn_call_expr(js_fn_name, json_args))
 
 
 	def use_css(self, url=None, source=None):
@@ -207,12 +218,39 @@ class JSEval (SubSegmentPres):
 
 
 	def initialise_segment(self, seg, pres_ctx):
+		raise NotImplementedError, 'abstract'
+
+
+
+class JSInitEval (JSEval):
+	def __init__(self, child, *expr):
+		super(JSInitEval, self).__init__(child)
+		self.__expr = expr
+
+
+	def initialise_segment(self, seg, pres_ctx):
 		ex = self.__expr
 		if len(ex) == 1  and  not isinstance(ex[0], Resource):
 			# Most common case
-			seg.add_initialiser(ex[0])
+			seg.add_initialise_script(ex[0])
 		else:
-			seg.add_initialiser(''.join([(x._client_side_js(pres_ctx)   if isinstance(x, Resource)   else x)   for x in ex]))
+			seg.add_initialise_script(''.join([(x._client_side_js(pres_ctx)   if isinstance(x, Resource)   else x)   for x in ex]))
+
+
+
+class JSShutdownEval (SubSegmentPres):
+	def __init__(self, child, *expr):
+		super(JSShutdownEval, self).__init__(child)
+		self.__expr = expr
+
+
+	def initialise_segment(self, seg, pres_ctx):
+		ex = self.__expr
+		if len(ex) == 1  and  not isinstance(ex[0], Resource):
+			# Most common case
+			seg.add_shutddown_script(ex[0])
+		else:
+			seg.add_shutddown_script(''.join([(x._client_side_js(pres_ctx)   if isinstance(x, Resource)   else x)   for x in ex]))
 
 
 
@@ -280,9 +318,9 @@ class KeyEventSource (EventSource):
 		keydown_json = self.__keydown_json_str
 		keyup_json = self.__keyup_json_str
 		keypress_json = self.__keypress_json_str
-		seg.add_initialiser('node.onkeydown = function(event) {{return larch.__onkeydown(event, {0});}}'.format(keydown_json))
-		seg.add_initialiser('node.onkeyup = function(event) {{return larch.__onkeyup(event, {0});}}'.format(keyup_json))
-		seg.add_initialiser('node.onkeypress = function(event) {{return larch.__onkeypress(event, {0});}}'.format(keypress_json))
+		seg.add_initialise_script('node.onkeydown = function(event) {{return larch.__onkeydown(event, {0});}}'.format(keydown_json))
+		seg.add_initialise_script('node.onkeyup = function(event) {{return larch.__onkeyup(event, {0});}}'.format(keyup_json))
+		seg.add_initialise_script('node.onkeypress = function(event) {{return larch.__onkeypress(event, {0});}}'.format(keypress_json))
 
 
 

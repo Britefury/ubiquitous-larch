@@ -479,29 +479,35 @@ class _ChangeSet (object):
 
 		self.removed = [seg.id   for seg in removed_segs]
 		self.modified = []
-		self.initialisers = []
+		self.initialise_scripts = []
+		self.shutdown_scripts = []
+
+		for seg in removed_segs:
+			shutdown_scripts = seg.get_shutdown_scripts()
+			if shutdown_scripts is not None:
+				self.shutdown_scripts.append((seg.id, shutdown_scripts))
 
 		assert isinstance(self.__added_segs, set)
 		while len(self.__added_segs) > 0:
 			seg = added_segs.pop()
-			initialisers = seg.get_initialisers()
-			if initialisers is not None:
-				self.initialisers.append((seg.id, initialisers))
+			initialise_scripts = seg.get_initialise_scripts()
+			if initialise_scripts is not None:
+				self.initialise_scripts.append((seg.id, initialise_scripts))
 			items = []
-			html = seg._build_inline_html(items, self.__resolve_reference)
+			seg._build_inline_html(items, self.__resolve_reference)
 			self.__added_seg_to_html_bits[seg] = items
 
 		for seg in modified_segs:
 			html = seg._inline_html(self.__resolve_reference)
 			self.modified.append((seg.id, html))
-			initialisers = seg.get_initialisers()
-			if initialisers is not None:
-				self.initialisers.append((seg.id, initialisers))
+			initialise_scripts = seg.get_initialise_scripts()
+			if initialise_scripts is not None:
+				self.initialise_scripts.append((seg.id, initialise_scripts))
 
 		assert len(self.__added_seg_to_html_bits) == 0
 		assert len(self.__added_segs) == 0
 
-		print 'CHANGES TO SEND: {0} removed, {1} modified, {2} initialisers'.format(len(self.removed), len(self.modified), len(self.initialisers))
+		print 'CHANGES TO SEND: {0} removed, {1} modified, {2} initialise scripts, {3} shutdown scripts'.format(len(self.removed), len(self.modified), len(self.initialise_scripts), len(self.shutdown_scripts))
 
 
 
@@ -509,7 +515,7 @@ class _ChangeSet (object):
 	def json(self):
 		"""Generates a JSON object describing the changes
 		"""
-		return {'removed': self.removed, 'modified': self.modified, 'initialisers': self.initialisers}
+		return {'removed': self.removed, 'modified': self.modified, 'initialise_scripts': self.initialise_scripts, 'shutdown_scripts': self.shutdown_scripts}
 
 
 	def __resolve_reference(self, items, seg):
@@ -519,9 +525,9 @@ class _ChangeSet (object):
 			items.extend(html_bits)
 		elif seg in self.__added_segs:
 			self.__added_segs.remove(seg)
-			initialisers = seg.get_initialisers()
+			initialisers = seg.get_initialise_scripts()
 			if initialisers is not None:
-				self.initialisers.append((seg.id, initialisers))
+				self.initialise_scripts.append((seg.id, initialisers))
 			seg._build_inline_html(items, self.__resolve_reference)
 		else:
 			items.append(seg._place_holder())
@@ -562,8 +568,9 @@ class _SegmentTable (object):
 	def get_all_initialisers(self):
 		initialisers = []
 		for segment in self.__id_to_segment.values():
-			if segment.get_initialisers() is not None:
-				initialisers.append((segment.id, segment.get_initialisers()))
+			init_scripts = segment.get_initialise_scripts()
+			if init_scripts is not None:
+				initialisers.append((segment.id, init_scripts))
 		return initialisers
 
 

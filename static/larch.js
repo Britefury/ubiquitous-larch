@@ -157,12 +157,12 @@ larch.__getSegmentBeginNodes = function() {
     return larch.__getElementsOfClass("__lch_seg_begin", "span");
 };
 
-larch.__executeInitialisers = function(initialisers) {
+larch.__executeNodeScripts = function(node_scripts) {
     var segment_table = larch.__segment_table;
-    for (var i = 0; i < initialisers.length; i++) {
-        var x = initialisers[i];
-        var segment_id = x[0];
-        var inits = x[1];
+    for (var i = 0; i < node_scripts.length; i++) {
+        var node_scipt = node_scripts[i];
+        var segment_id = node_scipt[0];
+        var script = node_scipt[1];
         //console.log("Executing initialisers for " + segment_id);
         var state = segment_table[segment_id];
         if (state === undefined) {
@@ -172,12 +172,12 @@ larch.__executeInitialisers = function(initialisers) {
         for (var j = 1; j < nodes.length - 1; j++) {
             // The 'unused' variable node is referenced by the source code contained in the initialiser; it is needed by eval()
             var node = nodes[j];        // <<-- DO NOT DELETE
-            for (var k = 0; k < inits.length; k++) {
+            for (var k = 0; k < script.length; k++) {
                 try {
-                    eval(inits[k]);
+                    eval(script[k]);
                 }
                 catch (e) {
-                    console.log("Executing initialisers: caught " + e + " when executing " + inits[k]);
+                    console.log("Executing initialisers: caught " + e + " when executing " + script[k]);
                 }
             }
         }
@@ -234,9 +234,13 @@ larch.__applyChanges = function(changes) {
     //console.log("STARTING UPDATE");
     var removed = changes.removed;
     var modified = changes.modified;
-    var initialisers = changes.initialisers;
+    var initialise_scripts = changes.initialise_scripts;
+    var shutdown_scripts = changes.shutdown_scripts;
 
     var segment_table = larch.__segment_table;
+
+    // Execute shutdown scripts
+    larch.__executeNodeScripts(shutdown_scripts);
 
     // Handle removals
     for (var i = 0; i < removed.length; i++) {
@@ -297,8 +301,8 @@ larch.__applyChanges = function(changes) {
     larch.__register_segments();
 
 
-    // Execute initialisers
-    larch.__executeInitialisers(initialisers);
+    // Execute initialise scripts
+    larch.__executeNodeScripts(initialise_scripts);
     //console.log("FINISHED UPDATE");
 };
 
@@ -592,6 +596,6 @@ larch.__resourceModified = function(rscId) {
 
 larch.__onDocumentReady = function(initialisers) {
     larch.__register_segments();
-    larch.__executeInitialisers(initialisers);
+    larch.__executeNodeScripts(initialisers);
 };
 
