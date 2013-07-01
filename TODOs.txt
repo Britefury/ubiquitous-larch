@@ -1,0 +1,4 @@
+Live inspection (variables in scope)
+
+Access to documentation
+

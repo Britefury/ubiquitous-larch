@@ -6,7 +6,7 @@ import json
 from britefury.dynamicsegments.segment import HtmlContent
 from britefury.dynamicsegments import dependencies
 from britefury.pres.presctx import PresentationContext
-from britefury.pres.key_event import Key
+from britefury.pres.key_event import KeyAction
 
 
 
@@ -277,9 +277,9 @@ class KeyEventSource (EventSource):
 
 		self.__keys_and_handlers = keys_and_handlers
 
-		self.__keydown = [k   for k in keys_and_handlers   if k[0].event_type == Key.KEY_DOWN]
-		self.__keyup = [k   for k in keys_and_handlers   if k[0].event_type == Key.KEY_UP]
-		self.__keypress = [k   for k in keys_and_handlers   if k[0].event_type == Key.KEY_PRESS]
+		self.__keydown = [k   for k in keys_and_handlers   if k[0].event_type == KeyAction.KEY_DOWN]
+		self.__keyup = [k   for k in keys_and_handlers   if k[0].event_type == KeyAction.KEY_UP]
+		self.__keypress = [k   for k in keys_and_handlers   if k[0].event_type == KeyAction.KEY_PRESS]
 
 		self.__keydown_json_str = json.dumps([k[0].__to_json__()   for k in self.__keydown]).replace('"', '\'')
 		self.__keyup_json_str = json.dumps([k[0].__to_json__()   for k in self.__keyup]).replace('"', '\'')
@@ -294,13 +294,13 @@ class KeyEventSource (EventSource):
 
 	def __handle_key_event(self, event_name, ev_data):
 		if event_name == 'keydown':
-			ev_key = Key.__from_keydown_json__(ev_data)
+			ev_key = KeyAction.__from_keydown_json__(ev_data)
 			keys_and_handlers = self.__keydown
 		elif event_name == 'keyup':
-			ev_key = Key.__from_keyup_json__(ev_data)
+			ev_key = KeyAction.__from_keyup_json__(ev_data)
 			keys_and_handlers = self.__keyup
 		elif event_name == 'keypress':
-			ev_key = Key.__from_keypress_json__(ev_data)
+			ev_key = KeyAction.__from_keypress_json__(ev_data)
 			keys_and_handlers = self.__keypress
 		else:
 			return False

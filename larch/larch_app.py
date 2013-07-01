@@ -10,6 +10,7 @@ import sys
 
 from britefury.projection.projection_service import ProjectionService
 from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
+from britefury import command
 from larch.console import console
 from larch.worksheet import worksheet
 from larch.project import project_root
@@ -153,9 +154,19 @@ class Document (object):
 		return finder
 
 
+	def __resolve_self__(self, subject):
+		subject.add_step(focus=self.content)
+		return self.content
+
+
+	def __commands__(self):
+		return [
+			command.Command([command.Key(ord('S'))], 'Save', lambda: self.save()),
+		]
 
 
 	def save(self):
+		print 'SAVED {0}'.format(self.__filename)
 		file_path = os.path.join(self.__doc_list.path, self.__filename + _EXTENSION)
 		save_document(file_path, self.__content)
 
@@ -319,12 +330,10 @@ class DocumentList (object):
 	def __resolve__(self, name, subject):
 		doc = self.doc_for_location(name)
 		if doc is not None:
-			subject.add_step(focus=doc.content, location_trail=[name], document=doc, title=doc.name)
-			return doc.content
+			subject.add_step(focus=doc, location_trail=[name], document=doc, title=doc.name)
+			return doc
 		else:
 			return None
-
-
 
 
 	def __present__(self, fragment):

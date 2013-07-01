@@ -6,7 +6,7 @@ import _ast
 import sys
 from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
 from britefury.pres.html import Html
-from britefury.pres.key_event import Key
+from britefury.pres.key_event import KeyAction
 from britefury.pres.controls import button
 from britefury.projection.subject import Subject
 from larch.source_code import PythonCode
@@ -53,7 +53,7 @@ class CurrentBlock (object):
 		code_area = Html('<div>', self.__python_code, '</div>')
 		execute_button = button.button('Execute', on_execute)
 
-		code_area_with_key_handler = code_area.with_key_handler([Key(Key.KEY_DOWN, 13, ctrl=True)], on_execute_key)
+		code_area_with_key_handler = code_area.with_key_handler([KeyAction(KeyAction.KEY_DOWN, 13, ctrl=True)], on_execute_key)
 
 		return Html('<div>', code_area_with_key_handler, execute_button, '</div>')
 

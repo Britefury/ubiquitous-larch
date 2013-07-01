@@ -93,6 +93,9 @@ class DynamicDocument (object):
 		self.__global_deps_version = 0
 		self.__global_deps = set()
 
+		# Document event handlers
+		self.__doc_event_handlers = []
+
 		# Dependencies
 		self.__dependencies = []
 		self.__all_dependencies = set()
@@ -363,7 +366,11 @@ class DynamicDocument (object):
 	# Event handling
 	def handle_event(self, segment_id, event_name, ev_data):
 		if segment_id is None:
-			return True
+			for handler_ev_name, handler_fn in self.__doc_event_handlers:
+				if handler_ev_name == event_name:
+					if handler_fn(ev_data):
+						return True
+			return False
 		else:
 			try:
 				segment = self._table[segment_id]
@@ -375,6 +382,10 @@ class DynamicDocument (object):
 					return True
 				segment = segment.parent
 			return False
+
+
+	def add_document_event_handler(self, event_name, event_response_function):
+		self.__doc_event_handlers.append((event_name, event_response_function))
 
 
 	# Resource retrieval
@@ -397,7 +408,7 @@ class DynamicDocument (object):
 			f()
 
 
-	def _queue_js_to_execute(self, js):
+	def queue_js_to_execute(self, js):
 		self.__js_queue.append( js )
 
 

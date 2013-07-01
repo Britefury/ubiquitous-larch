@@ -6,10 +6,11 @@ import sys
 
 from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
 from britefury.pres.html import Html
-from britefury.pres.key_event import Key
+from britefury.pres.key_event import KeyAction
 from britefury.pres.controls import ckeditor, menu, button, text_entry
 from britefury.projection.subject import Subject
 from britefury.live.live_value import LiveValue
+from britefury import command
 from larch import source_code
 
 
@@ -304,6 +305,22 @@ class Worksheet (object):
 		return mod
 
 
+	def __commands__(self):
+		return [
+			command.Command([command.Key(ord('R'))], 'Insert rich text below', lambda: self._insert_block(WorksheetBlockText(self), True)),
+			command.Command([command.Key(ord('P'))], 'Insert Python code below', lambda: self._insert_block(WorksheetBlockCode(self), True)),
+			command.Command([command.Key(ord('J'))], 'Insert Javascript source below', lambda: self._insert_block(WorksheetBlockSource(self, 'js', 'js'), True)),
+			command.Command([command.Key(ord('C'))], 'Insert CSS source below', lambda: self._insert_block(WorksheetBlockSource(self, 'css', 'css'), True)),
+			command.Command([command.Key(ord('G'))], 'Insert GLSL source below', lambda: self._insert_block(WorksheetBlockSource(self, 'glsl', 'glsl'), True)),
+
+			command.Command([command.Key(ord('A')), command.Key(ord('R'))], 'Insert rich text below', lambda: self._insert_block(WorksheetBlockText(self), False)),
+			command.Command([command.Key(ord('A')), command.Key(ord('P'))], 'Insert Python code below', lambda: self._insert_block(WorksheetBlockCode(self), False)),
+			command.Command([command.Key(ord('A')), command.Key(ord('J'))], 'Insert Javascript source below', lambda: self._insert_block(WorksheetBlockSource(self, 'js', 'js'), False)),
+			command.Command([command.Key(ord('A')), command.Key(ord('C'))], 'Insert CSS source below', lambda: self._insert_block(WorksheetBlockSource(self, 'css', 'css'), False)),
+			command.Command([command.Key(ord('A')), command.Key(ord('G'))], 'Insert GLSL source below', lambda: self._insert_block(WorksheetBlockSource(self, 'glsl', 'glsl'), False)),
+		]
+
+
 
 	def __present__(self, fragment):
 		def on_execute():
@@ -432,14 +449,14 @@ class Worksheet (object):
 
 
 		p = Html(*contents)
-		p = p.with_key_handler([Key(Key.KEY_DOWN, 13, ctrl=True)], on_execute_key)
-		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('S'), ctrl=True, prevent_default=True)], on_save_key)
-		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('1'), ctrl=True, prevent_default=True)], on_text_key)
-		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('2'), ctrl=True, prevent_default=True)], on_code_key)
-		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('3'), ctrl=True, prevent_default=True)], on_js_key)
-		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('4'), ctrl=True, prevent_default=True)], on_css_key)
-		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('5'), ctrl=True, prevent_default=True)], on_glsl_key)
+		p = p.with_key_handler([KeyAction(KeyAction.KEY_DOWN, 13, ctrl=True)], on_execute_key)
+		p = p.with_key_handler([KeyAction(KeyAction.KEY_DOWN, ord('S'), ctrl=True, prevent_default=True)], on_save_key)
+		p = p.with_key_handler([KeyAction(KeyAction.KEY_DOWN, ord('1'), ctrl=True, prevent_default=True)], on_text_key)
+		p = p.with_key_handler([KeyAction(KeyAction.KEY_DOWN, ord('2'), ctrl=True, prevent_default=True)], on_code_key)
+		p = p.with_key_handler([KeyAction(KeyAction.KEY_DOWN, ord('3'), ctrl=True, prevent_default=True)], on_js_key)
+		p = p.with_key_handler([KeyAction(KeyAction.KEY_DOWN, ord('4'), ctrl=True, prevent_default=True)], on_css_key)
+		p = p.with_key_handler([KeyAction(KeyAction.KEY_DOWN, ord('5'), ctrl=True, prevent_default=True)], on_glsl_key)
 		#p = p.with_key_handler([Key(Key.KEY_DOWN, ord('6'), ctrl=True, prevent_default=True)], on_html_key)
-		p = p.with_key_handler([Key(Key.KEY_DOWN, ord('0'), ctrl=True, prevent_default=True)], on_delete_block_key)
+		p = p.with_key_handler([KeyAction(KeyAction.KEY_DOWN, ord('0'), ctrl=True, prevent_default=True)], on_delete_block_key)
 		return p.use_css('/worksheet.css')
 

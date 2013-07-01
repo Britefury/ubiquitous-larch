@@ -348,29 +348,41 @@ larch.__handleMessagesFromServer = function(messages) {
 
 
 
+larch.__matchKeyEvent = function(event, key) {
+    if (key.keyCode === undefined  ||  event.keyCode == key.keyCode) {
+        if (key.altKey !== undefined  &&  event.altKey != key.altKey) {
+            return false;
+        }
+        if (key.ctrlKey !== undefined  &&  event.ctrlKey != key.ctrlKey) {
+            return false;
+        }
+        if (key.shiftKey !== undefined  &&  event.shiftKey != key.shiftKey) {
+            return false;
+        }
+        if (key.metaKey !== undefined  &&  event.metaKey != key.metaKey) {
+            return false;
+        }
+        return true;
+    }
+    return false;
+};
+
+larch.__eventToKey = function(event) {
+    return {
+        keyCode: event.keyCode,
+        altKey: event.altKey,
+        ctrlKey: event.ctrlKey,
+        shiftKey: event.shiftKey,
+        metaKey: event.metaKey
+    };
+};
+
 larch.__handleKeyEvent = function(event, keys) {
     for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
-        if (key.keyCode === undefined  ||  event.keyCode == key.keyCode) {
-            if (key.altKey !== undefined  &&  event.altKey != key.altKey) {
-                continue;
-            }
-            if (key.ctrlKey !== undefined  &&  event.ctrlKey != key.ctrlKey) {
-                continue;
-            }
-            if (key.shiftKey !== undefined  &&  event.shiftKey != key.shiftKey) {
-                continue;
-            }
-            if (key.metaKey !== undefined  &&  event.metaKey != key.metaKey) {
-                continue;
-            }
+        if (larch.__matchKeyEvent(event, key)) {
             // We have a match
-            var k = {};
-            k.keyCode = event.keyCode;
-            k.altKey = event.altKey;
-            k.ctrlKey = event.ctrlKey;
-            k.shiftKey = event.shiftKey;
-            k.metaKey = event.metaKey;
+            var k = larch.__eventToKey(event);
             return [k, key.preventDefault];
         }
     }
@@ -594,8 +606,99 @@ larch.__resourceModified = function(rscId) {
 };
 
 
+
+
+larch.__commands = [];
+larch.__userEnteringCommand = false;
+larch.__partialCommandKeySequence = null;
+
+
+larch.registerCommand = function(keySequence, commandId) {
+    var cmd = {
+        keySequence: keySequence,
+        commandId: commandId
+    };
+    larch.__commands.push(cmd);
+};
+
+larch.unregisterCommand = function(commandId) {
+    for (var i = 0; i < larch.__commands.length; i++) {
+        if (larch.__commands[i].commandId === commandId) {
+            delete larch.__commands[i];
+            return;
+        }
+    }
+};
+
+larch.__compareKeySequences = function(enteredSequence, commandSequence) {
+    if (enteredSequence.length === commandSequence.length) {
+        for (var j = 0; j < enteredSequence.length; j++) {
+            if (!larch.__matchKeyEvent(enteredSequence[j], commandSequence[j])) {
+                console.log("Failed key " + j)
+                console.log(enteredSequence[j]);
+                console.log(commandSequence[j]);
+                return false;
+            }
+        }
+        return true;
+    }
+    return false;
+};
+
+larch.__setupCommandListeners = function() {
+    document.body.onkeydown = function(event) {
+        if (larch.__userEnteringCommand) {
+            // Check for Escape
+            event.preventDefault();
+            if (event.keyCode == 27) {
+                // Quit the command
+                larch.__userEnteringCommand = false;
+                larch.__partialCommandKeySequence = null;
+                console.log("Terminating command");
+                return false;
+            }
+            else {
+                console.log("Command: got a key");
+                var k = larch.__eventToKey(event);
+                var matchingCommand = null;
+                larch.__partialCommandKeySequence.push(k);
+
+                for (var i = 0; i < larch.__commands.length; i++) {
+                    var cmd = larch.__commands[i];
+                    if (larch.__compareKeySequences(larch.__partialCommandKeySequence, cmd.keySequence)) {
+                        matchingCommand = cmd;
+                        break;
+                    }
+                }
+
+                if (matchingCommand !== null) {
+                    console.log("Command: sending...");
+                    larch.postDocumentEvent('command', cmd.commandId);
+                    larch.__userEnteringCommand = false;
+                    larch.__partialCommandKeySequence = null;
+                    return false;
+                }
+            }
+        }
+        else {
+            // Check for CTRL-M
+            if (event.keyCode === 77  &&  event.ctrlKey) {
+                event.preventDefault();
+                // We have started a command
+                larch.__userEnteringCommand = true;
+                larch.__partialCommandKeySequence = [];
+                console.log("Beginning command");
+                return false;
+            }
+        }
+
+        return true;
+    };
+};
+
 larch.__onDocumentReady = function(initialisers) {
     larch.__register_segments();
     larch.__executeNodeScripts(initialisers);
+    larch.__setupCommandListeners();
 };
 
