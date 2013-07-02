@@ -36,16 +36,16 @@ void main(void) {
 
 
 class Shader (object):
-	def __init__(self, vs_source, fs_source):
-		self.vs_source = vs_source
-		self.fs_source = fs_source
+	def __init__(self, vs_sources, fs_sources):
+		self.vs_sources = vs_sources
+		self.fs_sources = fs_sources
 
 
 	def __js__(self, pres_ctx, scene):
-		return '{0}.createShader({1}, {2})'.format(scene, json.dumps(self.vs_source), json.dumps(self.fs_source))
+		return '{0}.createShader({1}, {2})'.format(scene, json.dumps(self.vs_sources), json.dumps(self.fs_sources))
 
 
-Shader.plain_white = Shader(__plain_white_vshader, __plain_white_fshader)
+Shader.plain_white = Shader([__plain_white_vshader], [__plain_white_fshader])
 
 
 

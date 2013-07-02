@@ -73,35 +73,56 @@ function webglscene(canvas) {
 
 
     // SHADER CREATION
-    glc.createShader = function(vsSource, fsSource) {
+    glc.createShader = function(vsSources, fsSources) {
         var gl = glc.gl;
+        var i;
         var shader = {
-            vsSource: vsSource,
-            fsSource: fsSource
+            vsSources: vsSources,
+            fsSources: fsSources
         };
         //
         // SHADERS
         //
 
-        var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-        gl.shaderSource(vertexShader, vsSource);
-        gl.compileShader(vertexShader);
+        var vertexShaders = [];
+        for (i = 0; i < vsSources.length; i++) {
+            var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+            gl.shaderSource(vertexShader, vsSources[i]);
+            gl.compileShader(vertexShader);
 
-        if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-            alert("Vertex shader compile failed " + gl.getShaderInfoLog(vertexShader));
+            if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+                alert("Vertex shader compile failed " + gl.getShaderInfoLog(vertexShader));
+            }
+
+            vertexShaders.push(vertexShader);
         }
 
-        var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-        gl.shaderSource(fragmentShader, fsSource);
-        gl.compileShader(fragmentShader);
 
-        if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-            alert("Fragment shader compile failed " + gl.getShaderInfoLog(fragmentShader));
+        var fragmentShaders = [];
+        for (i = 0; i < fsSources.length; i++) {
+            var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+            gl.shaderSource(fragmentShader, fsSources[i]);
+            gl.compileShader(fragmentShader);
+
+            if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+                alert("Fragment shader compile failed " + gl.getShaderInfoLog(fragmentShader));
+            }
+
+            fragmentShaders.push(fragmentShader);
         }
 
+
+        // Create the program
         var shaderProgram = gl.createProgram();
-        gl.attachShader(shaderProgram, vertexShader);
-        gl.attachShader(shaderProgram, fragmentShader);
+        // Attach the vertex shaders
+        for (i = 0; i < vertexShaders.length; i++) {
+            gl.attachShader(shaderProgram, vertexShaders[i]);
+        }
+        // Attach the fragment shaders
+        for (i = 0; i < fragmentShaders.length; i++) {
+            gl.attachShader(shaderProgram, fragmentShaders[i]);
+        }
+        // Link
         gl.linkProgram(shaderProgram);
 
         if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
@@ -608,49 +629,5 @@ function webglscene(canvas) {
     };
 
     return glc;
-}
-
-
-function LiteralMeshCanvas(canvas, vsSource, fsSource, fovY, focalPoint, orbitalRadius, vertexAttribNamesSizes, vertices, indexBufferModesData) {
-    var scene = webglscene(canvas);
-    var camera = scene.createTurntableCamera(fovY, 0.01, 100.0, focalPoint, orbitalRadius, scene.degToRad(0.0), scene.degToRad(30.0));
-    scene.setCamera(camera);
-    var shader = scene.createShader(vsSource, fsSource);
-    var entity = scene.createLiteralMeshEntity(shader, vertexAttribNamesSizes, vertices, indexBufferModesData);
-    scene.addEntity(entity);
-
-    scene.queueRedraw();
-
-    return scene;
-}
-
-
-function LiteralUVMeshCanvas(canvas, vsSource, fsSource, fovY, focalPoint, orbitalRadius, uSegs, vSegs, closedU, closedV, vertexPositions, vertexAttribsNamesSizesData) {
-    var scene = webglscene(canvas);
-    var camera = scene.createTurntableCamera(fovY, 0.01, 100.0, focalPoint, orbitalRadius, scene.degToRad(0.0), scene.degToRad(30.0));
-    scene.setCamera(camera);
-    var shader = scene.createShader(vsSource, fsSource);
-    var entity = scene.createUVMeshEntity(shader);
-    scene.addEntity(entity);
-
-    entity.refreshUVMesh(uSegs, vSegs, closedU, closedV, vertexPositions, vertexAttribsNamesSizesData);
-
-    scene.queueRedraw();
-
-    return scene;
-}
-
-
-function ResourceUVMeshCanvas(canvas, vsSource, fsSource, fovY, focalPoint, orbitalRadius, rsc) {
-    var scene = webglscene(canvas);
-    var camera = scene.createTurntableCamera(fovY, 0.01, 100.0, focalPoint, orbitalRadius, scene.degToRad(0.0), scene.degToRad(30.0));
-    scene.setCamera(camera);
-    var shader = scene.createShader(vsSource, fsSource);
-    var entity = scene.createUVMeshEntity(shader);
-    scene.addEntity(entity);
-
-    entity.attachResource(rsc);
-
-    return scene;
 }
 
