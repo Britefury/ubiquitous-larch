@@ -33,6 +33,7 @@ function webglscene(canvas) {
     // ADD ENTITY
     glc.addEntity = function(entity) {
         glc.entities.push(entity);
+        glc.queueRedraw();
     };
 
 
@@ -53,6 +54,19 @@ function webglscene(canvas) {
                 glc.camera.apply(entity.shader);
             }
             entity.draw();
+        }
+    };
+
+
+    glc.__redrawQueued = false;
+
+    glc.queueRedraw = function() {
+        if (!glc.__redrawQueued) {
+            glc.__redrawQueued = true;
+            setTimeout(function() {
+                glc.__redrawQueued = false;
+                glc.redraw();
+            }, 0);
         }
     };
 
@@ -110,6 +124,11 @@ function webglscene(canvas) {
         };
 
         return shader;
+    };
+
+
+    glc.createPlainWhiteShader = function() {
+        return glc.createShader();
     };
 
 
@@ -357,6 +376,8 @@ function webglscene(canvas) {
         entity.verticesBuffer = gl.createBuffer();
         entity.indexBuffer = gl.createBuffer();
 
+        entity.__ready = false;
+
 
         entity.refreshUVMesh = function(uSegs, vSegs, closedU, closedV, vertexPositions, vertexAttribsNamesSizesData) {
             //
@@ -538,6 +559,8 @@ function webglscene(canvas) {
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
             entity.numElements = indices.length;
 
+            entity.__ready = true;
+
             return entity;
         };
 
@@ -545,21 +568,23 @@ function webglscene(canvas) {
         entity.draw = function() {
             var gl = glc.gl;
 
-            entity.shader.use();
+            if (entity.__ready) {
+                entity.shader.use();
 
-            //
-            // OBJECT
-            //
+                //
+                // OBJECT
+                //
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, entity.verticesBuffer);
-            var offset = 0;
-            for (var i = 0; i < entity.attribLocations.length; i++) {
-                gl.vertexAttribPointer(entity.attribLocations[i], entity.attribSizes[i], gl.FLOAT, false, entity.attribStride * 4, offset * 4);
-                offset += entity.attribSizes[i];
+                gl.bindBuffer(gl.ARRAY_BUFFER, entity.verticesBuffer);
+                var offset = 0;
+                for (var i = 0; i < entity.attribLocations.length; i++) {
+                    gl.vertexAttribPointer(entity.attribLocations[i], entity.attribSizes[i], gl.FLOAT, false, entity.attribStride * 4, offset * 4);
+                    offset += entity.attribSizes[i];
+                }
+
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, entity.indexBuffer);
+                gl.drawElements(gl.TRIANGLES, entity.numElements, gl.UNSIGNED_SHORT, 0);
             }
-
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, entity.indexBuffer);
-            gl.drawElements(gl.TRIANGLES, entity.numElements, gl.UNSIGNED_SHORT, 0);
         };
 
 
@@ -568,7 +593,7 @@ function webglscene(canvas) {
             var update = function() {
                 resource.fetchJSON(function (data) {
                     entity.refreshUVMesh(data.uSegs, data.vSegs, data.closedU, data.closedV, data.vertexPositions, data.vertexAttribsNamesSizesData);
-                    glc.redraw();
+                    glc.queueRedraw();
                 });
             };
 
@@ -594,7 +619,7 @@ function LiteralMeshCanvas(canvas, vsSource, fsSource, fovY, focalPoint, orbital
     var entity = scene.createLiteralMeshEntity(shader, vertexAttribNamesSizes, vertices, indexBufferModesData);
     scene.addEntity(entity);
 
-    scene.redraw();
+    scene.queueRedraw();
 
     return scene;
 }
@@ -610,7 +635,7 @@ function LiteralUVMeshCanvas(canvas, vsSource, fsSource, fovY, focalPoint, orbit
 
     entity.refreshUVMesh(uSegs, vSegs, closedU, closedV, vertexPositions, vertexAttribsNamesSizesData);
 
-    scene.redraw();
+    scene.queueRedraw();
 
     return scene;
 }

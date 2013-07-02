@@ -9,6 +9,31 @@ from britefury.pres.html import Html
 
 
 
+__plain_white_vshader = """
+attribute vec3 vertexPos;
+attribute vec3 vertexNrm;
+
+uniform mat4 cameraMatrix;
+uniform mat4 projectionMatrix;
+
+varying vec3 colour;
+
+
+void main(void) {
+	gl_Position = projectionMatrix * cameraMatrix * vec4(vertexPos, 1.0);
+	colour = vec3(dot(vertexNrm, vec3(0,1,0)));
+}"""
+
+__plain_white_fshader = """
+precision mediump float;
+
+varying vec3 colour;
+
+void main(void) {
+	gl_FragColor = vec4(colour, 1.0)*0.5+0.5;
+}"""
+
+
 
 class Shader (object):
 	def __init__(self, vs_source, fs_source):
@@ -18,6 +43,9 @@ class Shader (object):
 
 	def __js__(self, pres_ctx, scene):
 		return '{0}.createShader({1}, {2})'.format(scene, json.dumps(self.vs_source), json.dumps(self.fs_source))
+
+
+Shader.plain_white = Shader(__plain_white_vshader, __plain_white_fshader)
 
 
 
@@ -133,7 +161,6 @@ class Scene (JS):
 			var scene = webglscene(canvas);
 			scene.setCamera({0});
 			{1}
-			scene.redraw();
 		}})(node);
 		"""
 		camera = self.camera.__js__(pres_ctx, 'scene')
@@ -145,4 +172,4 @@ class Scene (JS):
 
 
 def scene_canvas(width, height, scene):
-	return Html('<canvas width="{0}" height="{1}"></canvas>'.format(width, height)).js_eval(scene)
+	return Html('<canvas width="{0}" height="{1}"></canvas>'.format(width, height)).js_eval(scene).use_js(url='/webglscene.js').use_js(url='/gl-matrix-min.js')
