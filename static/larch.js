@@ -169,16 +169,12 @@ larch.__executeNodeScripts = function(node_scripts) {
             throw "Cannot get segment " + segment_id
         }
         var nodes = larch.__getNodesInActiveSegment(state);
+        var exceptions = null;
         for (var j = 1; j < nodes.length - 1; j++) {
             // The 'unused' variable node is referenced by the source code contained in the initialiser; it is needed by eval()
             var node = nodes[j];        // <<-- DO NOT DELETE
             for (var k = 0; k < script.length; k++) {
-                try {
-                    eval(script[k]);
-                }
-                catch (e) {
-                    console.log("Executing initialisers: caught " + e + " when executing " + script[k]);
-                }
+                eval(script[k]);
             }
         }
     }
@@ -240,70 +236,77 @@ larch.__applyChanges = function(changes) {
     var segment_table = larch.__segment_table;
 
     // Execute shutdown scripts
-    larch.__executeNodeScripts(shutdown_scripts);
-
-    // Handle removals
-    for (var i = 0; i < removed.length; i++) {
-        // Just remove them from the table
-        // The DOM modifications will remove the nodes
-        //console.log("Removed " + removed[i]);
-        delete segment_table[removed[i]];
+    try {
+        larch.__executeNodeScripts(shutdown_scripts);
     }
-
-    // Handle modifications
-    for (var i = 0; i < modified.length; i++) {
-        // Get the segment ID and content
-        var segment_id = modified[i][0];
-        var content = modified[i][1];
-
-        var state = segment_table[segment_id];
-
-        //console.log("Replaced " + segment_id);
-
-        var newState = larch.__createSegmentContentNodesFromSource(content);
-        newState.start.__lch_initialised = true;
-
-        // Unregister segment IDs
-        var oldNodes = larch.__getNodesInActiveSegment(state);
-        oldNodes.forEach(function(n) {n.__lch_seg_id = null;});
-
-        larch.__replaceSegment(state, newState);
-
-        // Register segment IDs
-        var newNodes = larch.__getNodesInActiveSegment(newState);
-        newNodes.forEach(function(n) {n.__lch_seg_id = segment_id;});
-
-        // Put in segment table
-        segment_table[segment_id] = newState;
-    }
-
-    // Replace the placeholders with the segments that they reference
-    var placeHolders = larch.__getPlaceHolderNodes();
-    // Replacing a placeholder may introduce content that contains yet more placeholders....
-    while (placeHolders.length > 0) {
-        for (var i = 0; i < placeHolders.length; i++) {
-            // Get the placeholder node
-            var p = placeHolders[i];
-            // Extract the segment ID that if references
-            var segment_id = p.getAttribute("data-larchsegid");
-
-            // Get the segment that is to take its place
-            var segment = segment_table[segment_id];
-
-            // Replace it
-            larch.__replacePlaceholder(p, segment);
+    finally {
+        // Handle removals
+        for (var i = 0; i < removed.length; i++) {
+            // Just remove them from the table
+            // The DOM modifications will remove the nodes
+            //console.log("Removed " + removed[i]);
+            delete segment_table[removed[i]];
         }
 
-        placeHolders = larch.__getPlaceHolderNodes();
+        // Handle modifications
+        for (var i = 0; i < modified.length; i++) {
+            // Get the segment ID and content
+            var segment_id = modified[i][0];
+            var content = modified[i][1];
+
+            var state = segment_table[segment_id];
+
+            //console.log("Replaced " + segment_id);
+
+            var newState = larch.__createSegmentContentNodesFromSource(content);
+            newState.start.__lch_initialised = true;
+
+            // Unregister segment IDs
+            var oldNodes = larch.__getNodesInActiveSegment(state);
+            oldNodes.forEach(function(n) {n.__lch_seg_id = null;});
+
+            larch.__replaceSegment(state, newState);
+
+            // Register segment IDs
+            var newNodes = larch.__getNodesInActiveSegment(newState);
+            newNodes.forEach(function(n) {n.__lch_seg_id = segment_id;});
+
+            // Put in segment table
+            segment_table[segment_id] = newState;
+        }
+
+        // Replace the placeholders with the segments that they reference
+        var placeHolders = larch.__getPlaceHolderNodes();
+        // Replacing a placeholder may introduce content that contains yet more placeholders....
+        while (placeHolders.length > 0) {
+            for (var i = 0; i < placeHolders.length; i++) {
+                // Get the placeholder node
+                var p = placeHolders[i];
+                // Extract the segment ID that if references
+                var segment_id = p.getAttribute("data-larchsegid");
+
+                // Get the segment that is to take its place
+                var segment = segment_table[segment_id];
+
+                // Replace it
+                larch.__replacePlaceholder(p, segment);
+            }
+
+            placeHolders = larch.__getPlaceHolderNodes();
+        }
+
+        // Register any unregistered segments that have been introduced by modifications
+        larch.__register_segments();
+
+
+        // Execute initialise scripts
+        try {
+            larch.__executeNodeScripts(initialise_scripts);
+        }
+        finally {
+            //console.log("FINISHED UPDATE");
+        }
     }
-
-    // Register any unregistered segments that have been introduced by modifications
-    larch.__register_segments();
-
-
-    // Execute initialise scripts
-    larch.__executeNodeScripts(initialise_scripts);
-    //console.log("FINISHED UPDATE");
 };
 
 larch.__handleMessageFromServer = function(message) {
@@ -698,7 +701,11 @@ larch.__setupCommandListeners = function() {
 
 larch.__onDocumentReady = function(initialisers) {
     larch.__register_segments();
-    larch.__executeNodeScripts(initialisers);
-    larch.__setupCommandListeners();
+    try {
+        larch.__executeNodeScripts(initialisers);
+    }
+    finally {
+        larch.__setupCommandListeners();
+    }
 };
 
