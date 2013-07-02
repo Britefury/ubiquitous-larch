@@ -173,12 +173,12 @@ larch.__executeNodeScripts = function(node_scripts) {
             // The 'unused' variable node is referenced by the source code contained in the initialiser; it is needed by eval()
             var node = nodes[j];        // <<-- DO NOT DELETE
             for (var k = 0; k < script.length; k++) {
-                //try {
+                try {
                     eval(script[k]);
-                //}
-                //catch (e) {
-                //    console.log("Executing initialisers: caught " + e + " when executing " + script[k]);
-                //}
+                }
+                catch (e) {
+                    console.log("Executing initialisers: caught " + e + " when executing " + script[k]);
+                }
             }
         }
     }
