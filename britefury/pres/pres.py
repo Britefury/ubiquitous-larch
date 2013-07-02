@@ -53,15 +53,15 @@ class Pres (object):
 
 
 
-	def js_eval(self, expr):
-		return JSInitEval(self, expr)
+	def js_eval(self, *expr):
+		return JSInitEval(self, *expr)
 
 	def js_function_call(self, js_fn_name, *json_args):
 		return JSInitEval(self, *self.__js_fn_call_expr(js_fn_name, json_args))
 
 
-	def js_shutdown_eval(self, expr):
-		return JSShutdownEval(self, expr)
+	def js_shutdown_eval(self, *expr):
+		return JSShutdownEval(self, *expr)
 
 	def js_shutdown_function_call(self, js_fn_name, *json_args):
 		return JSShutdownEval(self, *self.__js_fn_call_expr(js_fn_name, json_args))
@@ -131,7 +131,14 @@ class Pres (object):
 
 
 
-class Resource (Pres):
+class JS (object):
+	def build_js(self, pres_ctx):
+		raise NotImplementedError, 'abstract'
+
+
+
+
+class Resource (Pres, JS):
 	def __init__(self, rsc_data):
 		self.__rsc_data = rsc_data
 
@@ -139,7 +146,7 @@ class Resource (Pres):
 	def build(self, pres_ctx):
 		return HtmlContent([self._url(pres_ctx)])
 
-	def _client_side_js(self, pres_ctx):
+	def build_js(self, pres_ctx):
 		doc_rsc = pres_ctx.fragment_view.create_resource(self.__rsc_data, pres_ctx)
 		return doc_rsc.client_side_js()
 
@@ -230,11 +237,11 @@ class JSInitEval (JSEval):
 
 	def initialise_segment(self, seg, pres_ctx):
 		ex = self.__expr
-		if len(ex) == 1  and  not isinstance(ex[0], Resource):
+		if len(ex) == 1  and  not isinstance(ex[0], JS):
 			# Most common case
 			seg.add_initialise_script(ex[0])
 		else:
-			seg.add_initialise_script(''.join([(x._client_side_js(pres_ctx)   if isinstance(x, Resource)   else x)   for x in ex]))
+			seg.add_initialise_script(''.join([(x.build_js(pres_ctx)   if isinstance(x, JS)   else x)   for x in ex]))
 
 
 
@@ -246,11 +253,11 @@ class JSShutdownEval (SubSegmentPres):
 
 	def initialise_segment(self, seg, pres_ctx):
 		ex = self.__expr
-		if len(ex) == 1  and  not isinstance(ex[0], Resource):
+		if len(ex) == 1  and  not isinstance(ex[0], JS):
 			# Most common case
 			seg.add_shutddown_script(ex[0])
 		else:
-			seg.add_shutddown_script(''.join([(x._client_side_js(pres_ctx)   if isinstance(x, Resource)   else x)   for x in ex]))
+			seg.add_shutddown_script(''.join([(x.build_js(pres_ctx)   if isinstance(x, JS)   else x)   for x in ex]))
 
 
 

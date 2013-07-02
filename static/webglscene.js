@@ -1,3 +1,7 @@
+//-*************************
+//-* This source code is (C)copyright Geoffrey French 2011-2012.
+//-*************************
+
 function webglscene(canvas) {
     var glc = {};
 
@@ -533,6 +537,8 @@ function webglscene(canvas) {
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, entity.indexBuffer);
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
             entity.numElements = indices.length;
+
+            return entity;
         };
 
 
@@ -568,6 +574,8 @@ function webglscene(canvas) {
 
             resource.addListener(update);
             update();
+
+            return entity;
         };
 
 
