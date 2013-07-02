@@ -556,6 +556,21 @@ function webglscene(canvas) {
             gl.drawElements(gl.TRIANGLES, entity.numElements, gl.UNSIGNED_SHORT, 0);
         };
 
+
+
+        entity.attachResource = function(resource) {
+            var update = function() {
+                resource.fetchJSON(function (data) {
+                    entity.refreshUVMesh(data.uSegs, data.vSegs, data.closedU, data.closedV, data.vertexPositions, data.vertexAttribsNamesSizesData);
+                    glc.redraw();
+                });
+            };
+
+            resource.addListener(update);
+            update();
+        };
+
+
         return entity;
     };
 
@@ -601,15 +616,7 @@ function ResourceUVMeshCanvas(canvas, vsSource, fsSource, fovY, focalPoint, orbi
     var entity = scene.createUVMeshEntity(shader);
     scene.addEntity(entity);
 
-    function update() {
-        rsc.fetchJSON(function (data) {
-            entity.refreshUVMesh(data.uSegs, data.vSegs, data.closedU, data.closedV, data.vertexPositions, data.vertexAttribsNamesSizesData);
-            scene.redraw();
-        });
-    };
-
-    rsc.addListener(update);
-    update();
+    entity.attachResource(rsc);
 
     return scene;
 }
