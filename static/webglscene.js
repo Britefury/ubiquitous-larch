@@ -5,6 +5,8 @@
 function webglscene(canvas) {
     var glc = {};
 
+
+
     glc.degToRad = function(deg) {
         return deg * (Math.PI / 180.0);
     };
@@ -22,6 +24,7 @@ function webglscene(canvas) {
         console.log("Caught " + e + " when initialising webgl");
     }
 
+    var __textureUnits = [glc.gl.TEXTURE0, glc.gl.TEXTURE1, glc.gl.TEXTURE2, glc.gl.TEXTURE3, glc.gl.TEXTURE4, glc.gl.TEXTURE5, glc.gl.TEXTURE6, glc.gl.TEXTURE7];
 
 
     // SET CAMERA
@@ -51,7 +54,7 @@ function webglscene(canvas) {
         for (var i = 0; i < glc.entities.length; i++) {
             var entity = glc.entities[i];
             if (glc.camera !== null) {
-                glc.camera.apply(entity.shader);
+                glc.camera.apply(entity.material.shader);
             }
             entity.draw();
         }
@@ -148,11 +151,81 @@ function webglscene(canvas) {
     };
 
 
-    glc.createPlainWhiteShader = function() {
-        return glc.createShader();
+    glc.createTexture = function() {
+        var texture = {};
+
+        var gl = glc.gl;
+
+        if (gl) {
+            texture.texId = gl.createTexture();
+        }
+
+        texture.attach = function(shader, texNum, samplerName) {
+            throw "Abstract";
+        };
+
+        return texture;
     };
 
 
+    glc.createTexture2D = function(rsc) {
+        var texture = glc.createTexture();
+
+        var gl = glc.gl;
+
+        if (gl) {
+            var img = new Image();
+            img.onload = function() {
+                gl.bindTexture(gl.TEXTURE_2D, texture.texId);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+                gl.generateMipmap(gl.TEXTURE_2D);
+                gl.bindTexture(gl.TEXTURE_2D, null);
+            };
+            img.src = rsc.url;
+
+            texture.image = img;
+
+            texture.attach = function(shader, texNum, samplerName) {
+                gl.activeTexture(__textureUnits[texNum]);
+                gl.bindTexture(gl.TEXTURE_2D, texture.texId);
+                gl.uniform1i(shader.getUniformLocation(samplerName), texNum);
+            };
+        }
+
+        return texture;
+    };
+
+
+    glc.createMaterial = function(shader, samplerNamesToTextures) {
+        var material = {
+            shader: shader
+        };
+
+
+        var samplerNamesAndTextures = [];
+        for (var samplerName in samplerNamesToTextures) {
+            if (samplerNamesToTextures.hasOwnProperty(samplerName)) {
+                var texture = samplerNamesToTextures[samplerName];
+                var sAndT = [samplerName, texture];
+                samplerNamesAndTextures.push(sAndT);
+            }
+        }
+
+        material.samplerNamesAndTextures = samplerNamesAndTextures;
+
+
+        material.use = function() {
+            material.shader.use();
+            for (var i = 0; i < material.samplerNamesAndTextures.length; i++) {
+                var sAndT = material.samplerNamesAndTextures[i];
+                sAndT[1].attach(material.shader, i, sAndT[0]);
+            }
+        };
+
+        return material;
+    };
 
 
 
@@ -233,11 +306,11 @@ function webglscene(canvas) {
             // Move the world and camera so that the camera lies at the origin
             mat4.translate(cameraMatrix, cameraMatrix, [0.0, 0.0, -camera.orbitalRadius]);
 
-            // Rotate the world so that the camera lies on the forward axis
-            mat4.rotateY(cameraMatrix, cameraMatrix, -camera.azimuth);
-
             // Rotate the world and camera so that the camera rests on the XZ plane
             mat4.rotateX(cameraMatrix, cameraMatrix, camera.altitude);
+
+            // Rotate the world so that the camera lies on the forward axis
+            mat4.rotateY(cameraMatrix, cameraMatrix, -camera.azimuth);
 
             // Move the focal point to the centre of the world
             mat4.translate(cameraMatrix, cameraMatrix, invPos);
@@ -283,9 +356,9 @@ function webglscene(canvas) {
 
 
 
-    glc.createEntity = function(shader) {
+    glc.createEntity = function(material) {
         var entity = {
-            shader: shader
+            material: material
         };
 
         entity.draw = function() {
@@ -297,8 +370,8 @@ function webglscene(canvas) {
 
 
 
-    glc.createLiteralMeshEntity = function(shader, vertexAttribNamesSizes, vertices, indexBufferModesData) {
-        var entity = glc.createEntity(shader);
+    glc.createLiteralMeshEntity = function(material, vertexAttribNamesSizes, vertices, indexBufferModesData) {
+        var entity = glc.createEntity(material);
 
         var gl = glc.gl;
 
@@ -320,7 +393,7 @@ function webglscene(canvas) {
         var attribSizes = [];
         var attribStride = 0;
         for (var i = 0; i < vertexAttribNamesSizes.length; i++) {
-            var loc = shader.getAttribLocation(vertexAttribNamesSizes[i][0]);
+            var loc = material.shader.getAttribLocation(vertexAttribNamesSizes[i][0]);
             gl.enableVertexAttribArray(loc);
 
             attribLocations.push(loc);
@@ -367,7 +440,7 @@ function webglscene(canvas) {
 
 
         entity.draw = function() {
-            entity.shader.use();
+            entity.material.use();
             //
             // OBJECT
             //
@@ -389,8 +462,8 @@ function webglscene(canvas) {
     };
 
 
-    glc.createUVMeshEntity = function(shader) {
-        var entity = glc.createEntity(shader);
+    glc.createUVMeshEntity = function(material) {
+        var entity = glc.createEntity(material);
 
         var gl = glc.gl;
 
@@ -481,12 +554,12 @@ function webglscene(canvas) {
 
             // Handle position and normal first
 
-            var vertexPosLoc = entity.shader.getAttribLocation("vertexPos");
+            var vertexPosLoc = entity.material.shader.getAttribLocation("vertexPos");
             gl.enableVertexAttribArray(vertexPosLoc);
             attribLocations.push(vertexPosLoc);
             attribSizes.push(3);
 
-            var vertexNrmLoc = entity.shader.getAttribLocation("vertexNrm");
+            var vertexNrmLoc = entity.material.shader.getAttribLocation("vertexNrm");
             gl.enableVertexAttribArray(vertexNrmLoc);
             attribLocations.push(vertexNrmLoc);
             attribSizes.push(3);
@@ -496,7 +569,7 @@ function webglscene(canvas) {
             // Now handle remaining attributes
 
             for (var i = 0; i < vertexAttribsNamesSizesData.length; i++) {
-                var loc = entity.shader.getAttribLocation(vertexAttribsNamesSizesData[i][0]);
+                var loc = entity.material.shader.getAttribLocation(vertexAttribsNamesSizesData[i][0]);
                 gl.enableVertexAttribArray(loc);
 
                 attribLocations.push(loc);
@@ -590,7 +663,7 @@ function webglscene(canvas) {
             var gl = glc.gl;
 
             if (entity.__ready) {
-                entity.shader.use();
+                entity.material.use();
 
                 //
                 // OBJECT

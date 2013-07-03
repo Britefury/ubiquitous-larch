@@ -9,7 +9,7 @@ from britefury.pres.html import Html
 
 
 
-__plain_white_vshader = """
+_plain_white_vshader = """
 attribute vec3 vertexPos;
 attribute vec3 vertexNrm;
 
@@ -24,13 +24,46 @@ void main(void) {
 	colour = vec3(dot(vertexNrm, vec3(0,1,0)));
 }"""
 
-__plain_white_fshader = """
+_plain_white_fshader = """
 precision mediump float;
 
 varying vec3 colour;
 
 void main(void) {
 	gl_FragColor = vec4(colour, 1.0)*0.5+0.5;
+}"""
+
+
+
+_single_texture_vshader = """
+attribute vec3 vertexPos;
+attribute vec3 vertexNrm;
+attribute vec2 vertexTex;
+
+uniform mat4 cameraMatrix;
+uniform mat4 projectionMatrix;
+
+varying vec3 colour;
+varying vec2 texCoord;
+
+
+void main(void) {
+	gl_Position = projectionMatrix * cameraMatrix * vec4(vertexPos, 1.0);
+	colour = vec3(dot(vertexNrm, vec3(0,1,0)));
+	texCoord = vertexTex;
+}"""
+
+_single_texture_fshader = """
+precision mediump float;
+
+uniform sampler2D sampler;
+
+varying vec3 colour;
+varying vec2 texCoord;
+
+void main(void) {
+	vec4 lighting = vec4(colour, 1.0)*0.5+0.5;
+	gl_FragColor = texture2D(sampler, texCoord) * lighting;
 }"""
 
 
@@ -45,41 +78,84 @@ class Shader (object):
 		return '{0}.createShader({1}, {2})'.format(scene, json.dumps(self.vs_sources), json.dumps(self.fs_sources))
 
 
-Shader.plain_white = Shader([__plain_white_vshader], [__plain_white_fshader])
+
+class Texture (object):
+	def __js__(self, pres_ctx, scene):
+		raise NotImplementedError, 'abstract'
+
+
+class Texture2D (Texture):
+	def __init__(self, resource):
+		self.resource = resource
+
+	def __js__(self, pres_ctx, scene):
+		resource = self.resource.build_js(pres_ctx)
+		return '{0}.createTexture2D({1})'.format(scene, resource)
+
+
+class Material (object):
+	def __init__(self, shader, sampler_names_to_textures=None):
+		if sampler_names_to_textures is None:
+			sampler_names_to_textures = {}
+
+		self.shader = shader
+		self.sampler_names_to_textures = sampler_names_to_textures
+
+
+	def has_textures(self):
+		return len(self.sampler_names_to_textures) > 0
+
+	def __js__(self, pres_ctx, scene):
+		shader = self.shader.__js__(pres_ctx, scene)
+		sampler_names_to_textures = '{' + ', '.join(['{0}:{1}'.format(name, texture.__js__(pres_ctx, scene))   for name, texture in self.sampler_names_to_textures.items()]) + '}'
+		return '{0}.createMaterial({1}, {2})'.format(scene, shader, sampler_names_to_textures)
+
+
+	__single_texture_shader = Shader([_single_texture_vshader], [_single_texture_fshader])
+
+	@staticmethod
+	def single_texture_2d(resource):
+		t = Texture2D(resource)
+		return Material(Material.__single_texture_shader, {'sampler': t})
+
+
+Material.plain_white = Material(Shader([_plain_white_vshader], [_plain_white_fshader]))
 
 
 
 class Entity (object):
-	def __init__(self, shader):
-		self.shader = shader
+	def __init__(self, material):
+		if isinstance(material, Shader):
+			material = Material(material)
+		self.material = material
 
 	def __js__(self, pres_ctx, scene):
 		raise NotImplementedError, 'abstract'
 
 
 class MeshEntity (Entity):
-	def __init__(self, shader, vertex_attrib_names_sizes, vertices, index_buffer_modes_data):
-		super(MeshEntity, self).__init__(shader)
+	def __init__(self, material, vertex_attrib_names_sizes, vertices, index_buffer_modes_data):
+		super(MeshEntity, self).__init__(material)
 		self.vertex_attrib_names_sizes = vertex_attrib_names_sizes
 		self.vertices =  vertices
 		self.index_buffer_modes_data = index_buffer_modes_data
 
 	def __js__(self, pres_ctx, scene):
-		shader = self.shader.__js__(pres_ctx, scene)
+		material = self.material.__js__(pres_ctx, scene)
 		vertex_attrib_names_sizes = json.dumps(self.vertex_attrib_names_sizes)
 		vertices = json.dumps(self.vertices)
 		index_buffer_modes_data = json.dumps(self.index_buffer_modes_data)
-		return '{0}.createLiteralMeshEntity({1}, {2}, {3}, {4})'.format(scene, shader, vertex_attrib_names_sizes, vertices, index_buffer_modes_data)
+		return '{0}.createLiteralMeshEntity({1}, {2}, {3}, {4})'.format(scene, material, vertex_attrib_names_sizes, vertices, index_buffer_modes_data)
 
 
 class UVMeshEntity (Entity):
-	def __init__(self, shader, data_source):
-		super(UVMeshEntity, self).__init__(shader)
+	def __init__(self, material, data_source):
+		super(UVMeshEntity, self).__init__(material)
 		self.data_source = data_source
 
 	def __js__(self, pres_ctx, scene):
-		shader = self.shader.__js__(pres_ctx, scene)
-		entity = '{0}.createUVMeshEntity({1})'.format(scene, shader)
+		material = self.material.__js__(pres_ctx, scene)
+		entity = '{0}.createUVMeshEntity({1})'.format(scene, material)
 		return self.data_source.__js__(pres_ctx, scene, entity)
 
 

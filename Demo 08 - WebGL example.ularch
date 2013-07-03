@@ -271,7 +271,7 @@ Ntp111
 Rp112
 (dp113
 g45
-Vcam = webglscene.TurntableCamera(45.0, 0.01, 100.0, [0.0, 0.0, 0.0], 12.0, 0.0, math.radians(30.0))\u000ashader = webglscene.Shader.plain_white\u000a
+Vcam = webglscene.TurntableCamera(45.0, 0.01, 100.0, [0.0, 0.0, 0.0], 12.0, 0.0, math.radians(30.0))\u000amaterial = webglscene.Material.plain_white\u000a
 p114
 sg51
 I01
@@ -364,7 +364,7 @@ Ntp144
 Rp145
 (dp146
 g45
-Vmesh_verts, mesh_indices = mesh_torus(4.0, 32, 1.0, 16)\u000atorus_mesh = webglscene.MeshEntity(shader, [['vertexPos', 3], ['vertexNrm', 3]], mesh_verts, [['triangles', mesh_indices]])\u000awebglscene.scene_canvas(800, 600, webglscene.Scene(cam, [torus_mesh]))
+Vmesh_verts, mesh_indices = mesh_torus(4.0, 32, 1.0, 16)\u000atorus_mesh = webglscene.MeshEntity(material, [['vertexPos', 3], ['vertexNrm', 3]], mesh_verts, [['triangles', mesh_indices]])\u000awebglscene.scene_canvas(800, 600, webglscene.Scene(cam, [torus_mesh]))
 p147
 sg51
 I01
@@ -395,7 +395,7 @@ Ntp155
 Rp156
 (dp157
 g45
-Vuvmesh_vertpos = uvmesh_torus(4.0, 32, 1.0, 16)\u000a\u000auvsource = webglscene.UVMeshDataLiteral(16, 32, True, True, uvmesh_vertpos, [])\u000auvtorus = webglscene.UVMeshEntity(shader, uvsource)\u000a\u000awebglscene.scene_canvas(800, 600, webglscene.Scene(cam, [uvtorus]))
+Vuvmesh_vertpos = uvmesh_torus(4.0, 32, 1.0, 16)\u000a\u000auvsource = webglscene.UVMeshDataLiteral(16, 32, True, True, uvmesh_vertpos, [])\u000auvtorus = webglscene.UVMeshEntity(material, uvsource)\u000a\u000awebglscene.scene_canvas(800, 600, webglscene.Scene(cam, [uvtorus]))
 p158
 sg51
 I01
@@ -426,7 +426,7 @@ Ntp166
 Rp167
 (dp168
 g45
-Vmaj_rad = LiveValue(40)\u000amin_rad = LiveValue(10) \u000amaj_segs = LiveValue(32)\u000amin_segs = LiveValue(16) \u000a\u000a\u000a@JsonLiveFnResource\u000a@LiveFunction\u000adef torus_rsc():\u000a    vertices = uvmesh_torus(float(maj_rad.value)*0.1, maj_segs.value, float(min_rad.value)*0.1, min_segs.value)\u000a    return {\u000a            'uSegs': min_segs.value,\u000a            'vSegs': maj_segs.value,\u000a            'closedU': True,\u000a            'closedV': True,\u000a            'vertexPositions': vertices,\u000a            'vertexAttribsNamesSizesData': []\u000a            }\u000a\u000a\u000amaj_rad_slider = slider.live_slider(maj_rad, True)\u000amin_rad_slider = slider.live_slider(min_rad, True)\u000a\u000amaj_segs_slider = slider.live_slider(maj_segs, True)\u000amin_segs_slider = slider.live_slider(min_segs, True)\u000a\u000auvrsc = webglscene.UVMeshDataResource(torus_rsc)\u000auvrsctorus = webglscene.UVMeshEntity(shader, uvrsc)\u000a\u000acanvas = webglscene.scene_canvas(800, 600, webglscene.Scene(cam, [uvrsctorus]))\u000aHtml(canvas, '<br>Major radius: ', maj_rad_slider, 'Major segments: ', maj_segs_slider, 'Minor radius: ', min_rad_slider, 'Minor segments: ', min_segs_slider)
+Vmaj_rad = LiveValue(40)\u000amin_rad = LiveValue(10) \u000amaj_segs = LiveValue(32)\u000amin_segs = LiveValue(16) \u000a\u000a\u000a@JsonLiveFnResource\u000a@LiveFunction\u000adef torus_rsc():\u000a    vertices = uvmesh_torus(float(maj_rad.value)*0.1, maj_segs.value, float(min_rad.value)*0.1, min_segs.value)\u000a    return {\u000a            'uSegs': min_segs.value,\u000a            'vSegs': maj_segs.value,\u000a            'closedU': True,\u000a            'closedV': True,\u000a            'vertexPositions': vertices,\u000a            'vertexAttribsNamesSizesData': []\u000a            }\u000a\u000a\u000amaj_rad_slider = slider.live_slider(maj_rad, True)\u000amin_rad_slider = slider.live_slider(min_rad, True)\u000a\u000amaj_segs_slider = slider.live_slider(maj_segs, True)\u000amin_segs_slider = slider.live_slider(min_segs, True)\u000a\u000auvrsc = webglscene.UVMeshDataResource(torus_rsc)\u000auvrsctorus = webglscene.UVMeshEntity(material, uvrsc)\u000a\u000acanvas = webglscene.scene_canvas(800, 600, webglscene.Scene(cam, [uvrsctorus]))\u000aHtml(canvas, '<br>Major radius: ', maj_rad_slider, 'Major segments: ', maj_segs_slider, 'Minor radius: ', min_rad_slider, 'Minor segments: ', min_segs_slider)
 p169
 sg51
 I01
@@ -508,7 +508,7 @@ Ntp196
 Rp197
 (dp198
 g45
-Vdef plot3d(data, width, depth, canvas_width=800, canvas_height=600, shader=webglscene.Shader.plain_white):\u000a    v_segs = len(data)\u000a    u_segs = len(data[0])\u000a    \u000a    vertex_positions = []\u000a    \u000a    delta_z = depth / v_segs\u000a    delta_x = width / u_segs\u000a\u000a    min_y = 1.0e18\u000a    max_y = -1.0e18\u000a    z = depth * -0.5\u000a    for row in data:\u000a        x = width * -0.5\u000a        for col in row:\u000a            vertex_positions.extend([x, col, z])\u000a            min_y = min(min_y, col)\u000a            max_y = max(max_y, col)\u000a            x += delta_x\u000a        z += delta_z\u000a        \u000a    focal_y = (min_y + max_y) * 0.5\u000a    \u000a    dim = max(width, depth, max_y - min_y)\u000a    \u000a    cam = webglscene.TurntableCamera(45.0, 0.01, 100.0, [0.0, focal_y, 0.0], dim * 1.5, 0.0, math.radians(30.0))\u000a\u000a    uvsource = webglscene.UVMeshDataLiteral(u_segs, v_segs, False, False, vertex_positions, [])\u000a    uvmesh = webglscene.UVMeshEntity(shader, uvsource)\u000a\u000a    return webglscene.scene_canvas(canvas_width, canvas_height, webglscene.Scene(cam, [uvmesh]))\u000a\u000a\u000a\u000adef plot3d_live(data_live, width, depth, canvas_width=800, canvas_height=600, shader=webglscene.Shader.plain_white):\u000a    @JsonLiveFnResource\u000a    @LiveFunction\u000a    def plot_rsc():\u000a        data = data_live.value\u000a        \u000a        v_segs = len(data)\u000a        u_segs = len(data[0])\u000a        \u000a        vertex_positions = []\u000a        \u000a        delta_z = depth / v_segs\u000a        delta_x = width / u_segs\u000a    \u000a        z = depth * -0.5\u000a        for row in data:\u000a            x = width * -0.5\u000a            for col in row:\u000a                vertex_positions.extend([x, col, z])\u000a                x += delta_x\u000a            z += delta_z\u000a\u000a        return {\u000a                'uSegs': u_segs,\u000a                'vSegs': v_segs,\u000a                'closedU': False,\u000a                'closedV': False,\u000a                'vertexPositions': vertex_positions,\u000a                'vertexAttribsNamesSizesData': []\u000a                }\u000a    \u000a    dim = max(width, depth)\u000a    \u000a    cam = webglscene.TurntableCamera(45.0, 0.01, 100.0, [0.0, 0.0, 0.0], dim * 1.5, 0.0, math.radians(30.0))\u000a\u000a    uvsource = webglscene.UVMeshDataResource(plot_rsc)\u000a    uvmesh = webglscene.UVMeshEntity(shader, uvsource)\u000a\u000a    return webglscene.scene_canvas(canvas_width, canvas_height, webglscene.Scene(cam, [uvmesh]))\u000a\u000a\u000a\u000a
+Vdef plot3d(data, width, depth, canvas_width=800, canvas_height=600, material=webglscene.Material.plain_white):\u000a    v_segs = len(data)\u000a    u_segs = len(data[0])\u000a    \u000a    use_texturing = material.has_textures()\u000a    \u000a    vertex_positions = []\u000a    vertex_tex = None\u000a    vertex_attribs_names_sizes_data = []\u000a    \u000a    if use_texturing:\u000a        vertex_tex = []\u000a        vertex_attribs_names_sizes_data.append(['vertexTex', 2, vertex_tex])\u000a    \u000a    delta_z = depth / v_segs\u000a    delta_x = width / u_segs\u000a    delta_s = 1.0 / u_segs\u000a    delta_t = 1.0 / v_segs\u000a\u000a    min_y = 1.0e18\u000a    max_y = -1.0e18\u000a    z = depth * -0.5\u000a    t = 0.0\u000a    for row in data:\u000a        x = width * -0.5\u000a        s = 0.0\u000a        for col in row:\u000a            vertex_positions.extend([x, col, z])\u000a            if use_texturing:\u000a                vertex_tex.extend([s, t])\u000a            min_y = min(min_y, col)\u000a            max_y = max(max_y, col)\u000a            x += delta_x\u000a            s += delta_s\u000a        z += delta_z\u000a        t += delta_t\u000a        \u000a    focal_y = (min_y + max_y) * 0.5\u000a    \u000a    dim = max(width, depth, max_y - min_y)\u000a    \u000a    cam = webglscene.TurntableCamera(45.0, 0.01, 100.0, [0.0, focal_y, 0.0], dim * 1.5, 0.0, math.radians(30.0))\u000a\u000a    uvsource = webglscene.UVMeshDataLiteral(u_segs, v_segs, False, False, vertex_positions, vertex_attribs_names_sizes_data)\u000a    uvmesh = webglscene.UVMeshEntity(material, uvsource)\u000a\u000a    return webglscene.scene_canvas(canvas_width, canvas_height, webglscene.Scene(cam, [uvmesh]))\u000a\u000a
 p199
 sg51
 I01
@@ -521,7 +521,7 @@ Rp201
 g34
 g175
 sg35
-V<p>Test (literal first):</p>
+V<p>Live plotting:</p>
 p203
 sbag0
 (g41
@@ -539,7 +539,7 @@ Ntp207
 Rp208
 (dp209
 g45
-Vplot3d([[float((i-8)**2+(j-8)**2)   for i in xrange(16)] for j in xrange(16)], 100.0, 100.0)
+Vdef plot3d_live(data_live, width, depth, canvas_width=800, canvas_height=600, material=webglscene.Material.plain_white):\u000a    use_texturing = material.has_textures()\u000a\u000a    @JsonLiveFnResource\u000a    @LiveFunction\u000a    def plot_rsc():\u000a        data = data_live.value\u000a        \u000a        v_segs = len(data)\u000a        u_segs = len(data[0])\u000a        \u000a        vertex_positions = []\u000a        vertex_attribs_names_sizes_data = []\u000a        if use_texturing:\u000a            vertex_tex = []\u000a            vertex_attribs_names_sizes_data.append(['vertexTex', 2, vertex_tex])\u000a        \u000a        \u000a        delta_z = depth / v_segs\u000a        delta_x = width / u_segs\u000a        delta_s = 1.0 / u_segs\u000a        delta_t = 1.0 / v_segs\u000a    \u000a        z = depth * -0.5\u000a        t = 0.0\u000a        for row in data:\u000a            x = width * -0.5\u000a            s = 0.0\u000a            for col in row:\u000a                vertex_positions.extend([x, col, z])\u000a                if use_texturing:\u000a                    vertex_tex.extend([s, t])\u000a                x += delta_x\u000a                s += delta_s\u000a            z += delta_z\u000a            t += delta_t\u000a\u000a        return {\u000a                'uSegs': u_segs,\u000a                'vSegs': v_segs,\u000a                'closedU': False,\u000a                'closedV': False,\u000a                'vertexPositions': vertex_positions,\u000a                'vertexAttribsNamesSizesData': vertex_attribs_names_sizes_data\u000a                }\u000a    \u000a    dim = max(width, depth)\u000a    \u000a    cam = webglscene.TurntableCamera(45.0, 0.01, 100.0, [0.0, 0.0, 0.0], dim * 1.5, 0.0, math.radians(30.0))\u000a\u000a    uvsource = webglscene.UVMeshDataResource(plot_rsc)\u000a    uvmesh = webglscene.UVMeshEntity(material, uvsource)\u000a\u000a    return webglscene.scene_canvas(canvas_width, canvas_height, webglscene.Scene(cam, [uvmesh]))\u000a
 p210
 sg51
 I01
@@ -552,7 +552,7 @@ Rp212
 g34
 g175
 sg35
-V<p>Now live data:</p>
+V<p>Test (literal first):</p>
 p214
 sbag0
 (g41
@@ -570,13 +570,124 @@ Ntp218
 Rp219
 (dp220
 g45
-Vu_scale = LiveValue(10)\u000av_scale = LiveValue(10) \u000a\u000a\u000a@LiveFunction\u000adef data():\u000a    us = u_scale.value*0.01\u000a    vs = v_scale.value*0.01\u000a    return [[float(((i-8)**2)*us+((j-8)**2))*vs   for i in xrange(16)] for j in xrange(16)]\u000a    #return [[float((i-8)**2+(j-8)**2)   for i in xrange(16)] for j in xrange(16)]\u000a\u000au_slider = slider.live_slider(u_scale, True)\u000av_slider = slider.live_slider(v_scale, True)\u000a\u000acanvas = plot3d_live(data, 100.0, 100.0)\u000aHtml(canvas, '<br>U scale: ', u_slider, 'V scale: ', v_slider)
+Vplot3d([[float((i-8)**2+(j-8)**2)   for i in xrange(16)] for j in xrange(16)], 100.0, 100.0)
 p221
+sg51
+I01
+sbsbag0
+(g30
+g2
+Ntp222
+Rp223
+(dp224
+g34
+g175
+sg35
+V<p>Now live data:</p>
+p225
+sbag0
+(g41
+g2
+Ntp226
+Rp227
+(dp228
+g34
+g175
+sg45
+g0
+(g46
+g2
+Ntp229
+Rp230
+(dp231
+g45
+Vu_scale = LiveValue(10)\u000av_scale = LiveValue(10) \u000a\u000a\u000a@LiveFunction\u000adef data():\u000a    us = u_scale.value*0.01\u000a    vs = v_scale.value*0.01\u000a    return [[float(((i-8)**2)*us+((j-8)**2))*vs   for i in xrange(16)] for j in xrange(16)]\u000a    #return [[float((i-8)**2+(j-8)**2)   for i in xrange(16)] for j in xrange(16)]\u000a\u000au_slider = slider.live_slider(u_scale, True)\u000av_slider = slider.live_slider(v_scale, True)\u000a\u000acanvas = plot3d_live(data, 100.0, 100.0)\u000aHtml(canvas, '<br>U scale: ', u_slider, 'V scale: ', v_slider)
+p232
 sg51
 I01
 sbsbasbsg16
 Vplot3d
-p222
+p233
 sg80
 I2
+sbag0
+(g19
+g2
+Ntp234
+Rp235
+(dp236
+g23
+g0
+(g24
+g2
+Ntp237
+Rp238
+(dp239
+g28
+(lp240
+g0
+(g41
+g2
+Ntp241
+Rp242
+(dp243
+g34
+g238
+sg45
+g0
+(g46
+g2
+Ntp244
+Rp245
+(dp246
+g45
+Vimport math\u000aimport numpy as np\u000aimport random\u000a#from matplotlib import *\u000a\u000aimport plot3d\u000a\u000a\u000a\u000a\u000aclass PhilipsSpectrum (object):\u000a    def __init__(self, wave_height_factor, wind_speed, wind_vector, gravitational_constant, smoothness):\u000a        wind_inv_len = 1.0/math.sqrt(wind_vector[0]*wind_vector[0] + wind_vector[1]*wind_vector[1])\u000a        wind_vector[0] *= wind_inv_len\u000a        wind_vector[1] *= wind_inv_len\u000a        \u000a        self.wave_height_factor = wave_height_factor\u000a        self.wind_speed = wind_speed\u000a        self.wind_vector = wind_vector\u000a        self.largest_wave = wind_speed * wind_speed / gravitational_constant\u000a        self.gravitational_constant = gravitational_constant\u000a        self.smoothness = smoothness\u000a\u000a        \u000a\u000a    def philips_spectrum(self, kx, ky):\u000a        k_length = math.sqrt(kx*kx + ky*ky)\u000a        j = k_length / (2.0 * math.pi)\u000a        j2 = j * j\u000a        j4 = j2 * j2\u000a    \u000a        a = self.wave_height_factor\u000a        jl = j * self.largest_wave\u000a        e_ = -1.0 / (jl * jl)\u000a        b = math.exp(e_) / j4\u000a        knx = kx / k_length\u000a        kny = ky / k_length\u000a        k_dot_w = knx * self.wind_vector[0]  +  kny * self.wind_vector[1]\u000a        c = k_dot_w * k_dot_w\u000a        l = self.largest_wave * self.smoothness\u000a        d = math.exp(-j2 * l*l)\u000a\u000a        return a * b * c * d\u000a\u000a    \u000a    \u000a    def philips_matrix(self, size, resolution):\u000a        n_verts = resolution + 1\u000a        \u000a        k = np.linspace(0.0, 2.0 * math.pi * resolution / size, n_verts)\u000a        \u000a        inv_sqrt_2 = 1.0 / math.sqrt(2.0)\u000a        \u000a        philips = np.zeros((n_verts, n_verts))\u000a        \u000a        for y in xrange(n_verts):\u000a            for x in xrange(n_verts):\u000a                if x != 0  or  y != 0:\u000a                    p = self.philips_spectrum(k[x], k[y])\u000a                else:\u000a                    p = 0.0\u000a                q = inv_sqrt_2 * math.sqrt(p)\u000a                \u000a                philips[y,x] = q\u000a        \u000a        return philips\u000a    \u000a    \u000a    \u000a    \u000aclass Ocean (object):\u000a    def __init__(self, rnd_state, size, resolution, time_step):\u000a        \u000a        self.gravitational_constant = 1.0\u000a        self.size = size\u000a        self.resolution = resolution\u000a        self.n_verts = resolution + 1\u000a        self.time_step = time_step\u000a        \u000a        self.freq_rnd = rnd_state.randn(self.n_verts, self.n_verts) + rnd_state.randn(self.n_verts, self.n_verts) * 1j\u000a        self.freq = np.zeros((self.n_verts, self.n_verts), dtype=complex)\u000a        \u000a        self.heights = np.zeros((self.n_verts, self.n_verts), dtype=complex)\u000a        \u000a        self.single_step = np.zeros((self.n_verts, self.n_verts), dtype=complex)\u000a        self.step_table = []\u000a        \u000a        self.vertex_positions = []\u000a        \u000a        self.__update_step_table()\u000a        \u000a        \u000a    \u000a    def __update_step_table(self):\u000a        for y in xrange(self.n_verts):\u000a            for x in xrange(self.n_verts):\u000a                ux = x / self.size\u000a                uy = y / self.size\u000a                u = math.sqrt(ux*ux +uy*uy)\u000a                omega = math.sqrt(u * self.gravitational_constant) * self.time_step\u000a                c = math.cos(omega)\u000a                s = math.sin(omega)\u000a                self.single_step[y,x] = c + s *  1j\u000a                self.step_table = [self.single_step]\u000a        \u000a    \u000a    def apply_philips(self, spectrum):\u000a        philips = spectrum.philips_matrix(self.size, self.resolution)\u000a        \u000a        g_changed = self.gravitational_constant != spectrum.gravitational_constant\u000a        if g_changed:\u000a            self.gravitational_constant = spectrum.gravitational_constant\u000a            self.__update_step_table()\u000a        \u000a        \u000a        self.freq = self.freq_rnd * philips\u000a        \u000a                \u000a                \u000a                \u000a    def step(self, delta_t):\u000a        steps = int(delta_t / self.time_step)\u000a        if steps != 0:\u000a            ndx = steps - 1\u000a            try:\u000a                u = self.step_table[ndx]\u000a            except IndexError:\u000a                u = self.step_table[-1]\u000a                for i in xrange(len(self.step_table),ndx):\u000a                    u = u * self.single_step\u000a                    self.step_table.append(u)\u000a            \u000a            self.freq = self.freq * u\u000a        \u000a        \u000a    def update_heights(self):\u000a        spatial = np.fft.fft2(self.freq)\u000a        self.heights = np.array(spatial, dtype=float)\u000a        \u000a        self.vertex_positions = []\u000a        dx = self.size / self.resolution\u000a        z = 0.0\u000a        for j in xrange(self.n_verts):\u000a            x = 0.0\u000a            for i in xrange(self.n_verts):\u000a                self.vertex_positions.extend([x,self.heights[j,i],z])\u000a                x += dx\u000a            z += dx\u000a                \u000a                \u000a    \u000a    \u000a\u000a#o = Ocean(random.Random(123), 100.0, 127, 0.0000010, 10.0, [1.0, 0.5], 9.81, 0.2, 0.005)\u000a#o = Ocean(random.Random(223783), 100.0, 127, 0.0000010, 10.0, [1.0, 0.5], 9.81, 0.2, 0.005)\u000aphilips_spectrum = PhilipsSpectrum(0.0000010, 10.0, [1.0, 0.5], 9.81, 0.2)\u000ao = Ocean(np.random.RandomState(223783), 100.0, 127, 0.005)\u000ao.apply_philips(philips_spectrum)\u000a\u000ao.step(0.5)\u000ao.update_heights()\u000a#imshow(o.heights)\u000a\u000aplot3d.plot3d(o.heights, o.size, o.size)
+p247
+sg51
+I01
+sbsbasbsg16
+Vocean
+p248
+sg80
+I3
+sbag0
+(g19
+g2
+Ntp249
+Rp250
+(dp251
+g23
+g0
+(g24
+g2
+Ntp252
+Rp253
+(dp254
+g28
+(lp255
+g0
+(g41
+g2
+Ntp256
+Rp257
+(dp258
+g34
+g253
+sg45
+g0
+(g46
+g2
+Ntp259
+Rp260
+(dp261
+g45
+Vimport numpy as np\u000afrom scipy import interpolate\u000afrom larch import webglscene\u000afrom britefury.pres.resource import ImageFromFile\u000aimport plot3d\u000a\u000a\u000a\u000adef make_harmonic(rnd, resolution, magnitude):\u000a    return rnd.randn(resolution+1, resolution+1) * magnitude\u000a\u000a\u000adef upscale_harmonic(h, resolution):\u000a    x = np.linspace(0.0, 1.0, len(h))\u000a    p = interpolate.interp2d(x, x, h, kind='cubic')\u000a    x_new = np.linspace(0.0, 1.0, resolution+1)\u000a    return p(x_new, x_new)\u000a    \u000a\u000a    \u000adef fractal_heightfield(rand_state, resolution, size, n_harmonics, top_h_res, magnitude, mag_scale):\u000a    # Generate harmonics\u000a    harmonics = []\u000a    h_res = top_h_res\u000a    h_mag = magnitude * mag_scale**(n_harmonics-1)\u000a    for i in xrange(n_harmonics):\u000a        h = make_harmonic(rand_state, h_res, h_mag)\u000a        h = upscale_harmonic(h, resolution)\u000a        harmonics.append(h)\u000a        h_res /= 2\u000a        h_mag = h_mag / mag_scale\u000a    \u000a    return sum(harmonics)\u000a    \u000a\u000a\u000ah = fractal_heightfield(np.random.RandomState(123), 128, 100.0, 4, 32, 5.0, 0.3)\u000amaterial=webglscene.Material.single_texture_2d(ImageFromFile('c:\u005c\u005ccode\u005c\u005cubiquitous-larch\u005c\u005csand.jpg'))\u000aplot3d.plot3d(h, len(h), len(h[0]), material=material)
+p262
+sg51
+I01
+sbsbasbsg16
+Vfractal_landscape
+p263
+sg80
+I4
 sbasb.
