@@ -53,9 +53,6 @@ function webglscene(canvas) {
 
         for (var i = 0; i < glc.entities.length; i++) {
             var entity = glc.entities[i];
-            if (glc.camera !== null) {
-                glc.camera.apply(entity.material.shader);
-            }
             entity.draw();
         }
     };
@@ -139,6 +136,13 @@ function webglscene(canvas) {
             gl.useProgram(shader.shaderProgram);
         };
 
+        shader.useForRendering = function() {
+            shader.use();
+            if (glc.camera !== null) {
+                glc.camera.apply(shader);
+            }
+        };
+
         shader.getUniformLocation = function(name) {
             return gl.getUniformLocation(shader.shaderProgram, name);
         };
@@ -216,8 +220,8 @@ function webglscene(canvas) {
         material.samplerNamesAndTextures = samplerNamesAndTextures;
 
 
-        material.use = function() {
-            material.shader.use();
+        material.useForRendering = function() {
+            material.shader.useForRendering();
             for (var i = 0; i < material.samplerNamesAndTextures.length; i++) {
                 var sAndT = material.samplerNamesAndTextures[i];
                 sAndT[1].attach(material.shader, i, sAndT[0]);
@@ -289,8 +293,6 @@ function webglscene(canvas) {
             //cameraMatrix = mat4.create();
             //mat4.lookAt(cameraMatrix, [0.0, 6.0*Math.sin(glc.degToRad(30.0)), -6.0*Math.cos(glc.degToRad(30.0))], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
 
-            shader.use();
-
             var pUniform = shader.getUniformLocation("projectionMatrix");
             gl.uniformMatrix4fv(pUniform, false, new Float32Array(projectionMatrix));
 
@@ -356,9 +358,8 @@ function webglscene(canvas) {
 
 
 
-    glc.createEntity = function(material) {
+    glc.createEntity = function() {
         var entity = {
-            material: material
         };
 
         entity.draw = function() {
@@ -371,7 +372,8 @@ function webglscene(canvas) {
 
 
     glc.createLiteralMeshEntity = function(material, vertexAttribNamesSizes, vertices, indexBufferModesData) {
-        var entity = glc.createEntity(material);
+        var entity = glc.createEntity();
+        entity.material = material;
 
         var gl = glc.gl;
 
@@ -440,7 +442,7 @@ function webglscene(canvas) {
 
 
         entity.draw = function() {
-            entity.material.use();
+            entity.material.useForRendering();
             //
             // OBJECT
             //
@@ -463,7 +465,8 @@ function webglscene(canvas) {
 
 
     glc.createUVMeshEntity = function(material) {
-        var entity = glc.createEntity(material);
+        var entity = glc.createEntity();
+        entity.material = material;
 
         var gl = glc.gl;
 
@@ -663,7 +666,7 @@ function webglscene(canvas) {
             var gl = glc.gl;
 
             if (entity.__ready) {
-                entity.material.use();
+                entity.material.useForRendering();
 
                 //
                 // OBJECT
@@ -700,6 +703,76 @@ function webglscene(canvas) {
 
         return entity;
     };
+
+
+
+    glc.createSkybox = function(materials) {
+        var entity = glc.createEntity();
+
+        var verts = [
+            [ -1.0, -1.0, -1.0 ],
+            [ 1.0, -1.0, -1.0 ],
+            [ -1.0, 1.0, -1.0 ],
+            [ 1.0, 1.0, -1.0 ],
+            [ -1.0, -1.0, 1.0 ],
+            [ 1.0, -1.0, 1.0 ],
+            [ -1.0, 1.0, 1.0 ],
+            [ 1.0, 1.0, 1.0 ]
+        ];
+        var vert_indices = [
+            [4, 0, 2, 6],		// X-neg  --+  ---  -+-  -++
+            [1, 5, 7, 3],		// X-pos  +--  +-+  +++  ++-
+            [4, 5, 1, 0],		// Y-neg  --+  +-+  +--  ---
+            [2, 3, 7, 6],		// Y-pos  -+-  ++-  +++  -++
+            [0, 1, 3, 2],		// Z-neg  ---  +--  ++-  -+-
+            [5, 4, 6, 7]			// Z-pos  +-+  --+  -++  +++
+        ];
+
+        var tex_coords = [
+            [0.0, 1.0],
+            [1.0, 1.0],
+            [1.0, 0.0],
+            [0.0, 0.0]
+        ];
+
+
+        var faces = [];
+
+        for (var faceIndex = 0; faceIndex < 6; faceIndex++) {
+            var faceVerts = [];
+
+            var idxs = vert_indices[faceIndex];
+            for (var faceVertIndex = 0; faceVertIndex < 4; faceVertIndex++) {
+                faceVerts.push(verts[idxs[faceVertIndex]][0]);
+                faceVerts.push(verts[idxs[faceVertIndex]][1]);
+                faceVerts.push(verts[idxs[faceVertIndex]][2]);
+                faceVerts.push(tex_coords[faceVertIndex][0]);
+                faceVerts.push(tex_coords[faceVertIndex][1]);
+            }
+
+            var face =  glc.createLiteralMeshEntity(materials[faceIndex], [['vertexPos', 3], ['vertexTex', 2]], faceVerts, [['triangles', [0, 1, 2, 0, 2, 3]]]);
+            faces.push(face);
+        }
+
+        entity.faces = faces;
+
+        entity.draw = function() {
+            var gl = glc.gl;
+
+            gl.disable(gl.DEPTH_TEST);
+            gl.depthMask(false);
+
+            for (var i = 0; i < entity.faces.length; i++) {
+                entity.faces[i].draw();
+            }
+
+            gl.enable(gl.DEPTH_TEST);
+            gl.depthMask(true);
+        };
+
+        return entity;
+    };
+
 
     return glc;
 }

@@ -67,6 +67,33 @@ void main(void) {
 }"""
 
 
+_skybox_vshader = """
+attribute vec3 vertexPos;
+attribute vec2 vertexTex;
+
+uniform mat4 cameraMatrix;
+uniform mat4 projectionMatrix;
+
+varying vec2 texCoord;
+
+
+void main(void) {
+	gl_Position = projectionMatrix * cameraMatrix * vec4(vertexPos, 1.0);
+	texCoord = vertexTex;
+}"""
+
+_skybox_fshader = """
+precision mediump float;
+
+uniform sampler2D sampler;
+
+varying vec2 texCoord;
+
+void main(void) {
+	gl_FragColor = texture2D(sampler, texCoord);
+}"""
+
+
 
 class Shader (object):
 	def __init__(self, vs_sources, fs_sources):
@@ -124,18 +151,16 @@ Material.plain_white = Material(Shader([_plain_white_vshader], [_plain_white_fsh
 
 
 class Entity (object):
-	def __init__(self, material):
-		if isinstance(material, Shader):
-			material = Material(material)
-		self.material = material
-
 	def __js__(self, pres_ctx, scene):
 		raise NotImplementedError, 'abstract'
 
 
 class MeshEntity (Entity):
 	def __init__(self, material, vertex_attrib_names_sizes, vertices, index_buffer_modes_data):
-		super(MeshEntity, self).__init__(material)
+		super(MeshEntity, self).__init__()
+		if isinstance(material, Shader):
+			material = Material(material)
+		self.material = material
 		self.vertex_attrib_names_sizes = vertex_attrib_names_sizes
 		self.vertices =  vertices
 		self.index_buffer_modes_data = index_buffer_modes_data
@@ -150,7 +175,10 @@ class MeshEntity (Entity):
 
 class UVMeshEntity (Entity):
 	def __init__(self, material, data_source):
-		super(UVMeshEntity, self).__init__(material)
+		super(UVMeshEntity, self).__init__()
+		if isinstance(material, Shader):
+			material = Material(material)
+		self.material = material
 		self.data_source = data_source
 
 	def __js__(self, pres_ctx, scene):
@@ -222,6 +250,18 @@ class TurntableCamera (Camera):
 		azimuth = json.dumps(self.azimuth)
 		altitude = json.dumps(self.altitude)
 		return '{0}.createTurntableCamera({1}, {2}, {3}, {4}, {5}, {6}, {7})'.format(scene, fov_y, near_frac, far_frac, focal_point, orbital_radius, azimuth, altitude)
+
+
+class Skybox (Entity):
+	def __init__(self, face_texture_resources):
+		materials = [Material(Shader([_skybox_vshader], [_skybox_fshader]), {'sampler': Texture2D(tex)})   for tex in face_texture_resources]
+		self.materials = materials
+
+
+	def __js__(self, pres_ctx, scene):
+		# fovY, nearFrac, farFrac, focalPoint, orbitalRadius, azimuth, altitude
+		materials = '[' + ', '.join([mat.__js__(pres_ctx, scene)    for mat in self.materials]) + ']'
+		return '{0}.createSkybox({1})'.format(scene, materials)
 
 
 
