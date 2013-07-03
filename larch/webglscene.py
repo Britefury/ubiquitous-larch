@@ -73,12 +73,14 @@ attribute vec2 vertexTex;
 
 uniform mat4 cameraMatrix;
 uniform mat4 projectionMatrix;
+uniform mat4 invCameraMatrix;
 
 varying vec2 texCoord;
 
 
 void main(void) {
-	gl_Position = projectionMatrix * cameraMatrix * vec4(vertexPos, 1.0);
+	vec4 camPos = invCameraMatrix * vec4(0, 0, 0, 1);
+	gl_Position = projectionMatrix * cameraMatrix * (vec4(vertexPos + camPos.xyz, 1.0));
 	texCoord = vertexTex;
 }"""
 
@@ -118,6 +120,15 @@ class Texture2D (Texture):
 	def __js__(self, pres_ctx, scene):
 		resource = self.resource.build_js(pres_ctx)
 		return '{0}.createTexture2D({1})'.format(scene, resource)
+
+
+class TextureCube (Texture):
+	def __init__(self, resources):
+		self.resources = resources
+
+	def __js__(self, pres_ctx, scene):
+		resources = '[' + ', '.join([rsc.build_js(pres_ctx)    for rsc in self.resources]) + ']'
+		return '{0}.createTextureCube({1})'.format(scene, resources)
 
 
 class Material (object):

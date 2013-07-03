@@ -202,6 +202,57 @@ function webglscene(canvas) {
     };
 
 
+    glc.createTextureCube = function(resources) {
+        var texture = glc.createTexture();
+
+        var gl = glc.gl;
+
+        if (gl) {
+            var imgs = [];
+            var count = [0];
+
+            var onload = function() {
+                count[0]++;
+                if (count[0] == 6) {
+                    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture.texId);
+                    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+                    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[0]);
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[1]);
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[2]);
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[3]);
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[4]);
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[5]);
+
+                    gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+                    gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+                }
+            };
+
+            for (var i = 0; i < resources.length; i++) {
+                var img = new Image();
+                img = resources[i].url;
+                img.onload = onload;
+                imgs.push(img);
+            }
+
+            texture.images = imgs;
+
+            texture.attach = function(shader, texNum, samplerName) {
+                gl.activeTexture(__textureUnits[texNum]);
+                gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture.texId);
+                gl.uniform1i(shader.getUniformLocation(samplerName), texNum);
+            };
+        }
+
+        return texture;
+    };
+
+
     glc.createMaterial = function(shader, samplerNamesToTextures) {
         var material = {
             shader: shader
@@ -298,6 +349,14 @@ function webglscene(canvas) {
 
             var mvUniform = shader.getUniformLocation("cameraMatrix");
             gl.uniformMatrix4fv(mvUniform, false, new Float32Array(cameraMatrix));
+
+
+            var invMVUniform = shader.getUniformLocation("invCameraMatrix");
+            if (invMVUniform != -1) {
+                var invMV = mat4.create();
+                mat4.invert(invMV, cameraMatrix);
+                gl.uniformMatrix4fv(invMVUniform, false, new Float32Array(invMV));
+            }
         };
 
         camera._createWorldToCameraMatrix = function () {
@@ -710,14 +769,14 @@ function webglscene(canvas) {
         var entity = glc.createEntity();
 
         var verts = [
-            [ -1.0, -1.0, -1.0 ],
-            [ 1.0, -1.0, -1.0 ],
-            [ -1.0, 1.0, -1.0 ],
-            [ 1.0, 1.0, -1.0 ],
-            [ -1.0, -1.0, 1.0 ],
-            [ 1.0, -1.0, 1.0 ],
-            [ -1.0, 1.0, 1.0 ],
-            [ 1.0, 1.0, 1.0 ]
+            [ -10.0, -10.0, -10.0 ],
+            [ 10.0, -10.0, -10.0 ],
+            [ -10.0, 10.0, -10.0 ],
+            [ 10.0, 10.0, -10.0 ],
+            [ -10.0, -10.0, 10.0 ],
+            [ 10.0, -10.0, 10.0 ],
+            [ -10.0, 10.0, 10.0 ],
+            [ 10.0, 10.0, 10.0 ]
         ];
         var vert_indices = [
             [4, 0, 2, 6],		// X-neg  --+  ---  -+-  -++
