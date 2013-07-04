@@ -21,7 +21,7 @@ varying vec3 colour;
 
 void main(void) {
 	gl_Position = projectionMatrix * cameraMatrix * vec4(vertexPos, 1.0);
-	colour = vec3(dot(vertexNrm, vec3(0,1,0)));
+	colour = vec3(dot(vertexNrm, vec3(0,1,0)))*0.5+0.5;
 }"""
 
 _plain_white_fshader = """
@@ -30,7 +30,7 @@ precision mediump float;
 varying vec3 colour;
 
 void main(void) {
-	gl_FragColor = vec4(colour, 1.0)*0.5+0.5;
+	gl_FragColor = vec4(colour, 1.0);
 }"""
 
 
@@ -49,7 +49,7 @@ varying vec2 texCoord;
 
 void main(void) {
 	gl_Position = projectionMatrix * cameraMatrix * vec4(vertexPos, 1.0);
-	colour = vec3(dot(vertexNrm, vec3(0,1,0)));
+	colour = vec3(dot(vertexNrm, vec3(0,1,0)))*0.5+0.5;
 	texCoord = vertexTex;
 }"""
 
@@ -62,7 +62,7 @@ varying vec3 colour;
 varying vec2 texCoord;
 
 void main(void) {
-	vec4 lighting = vec4(colour, 1.0)*0.5+0.5;
+	vec4 lighting = vec4(colour, 1.0);
 	gl_FragColor = texture2D(sampler, texCoord) * lighting;
 }"""
 
@@ -73,13 +73,12 @@ attribute vec2 vertexTex;
 
 uniform mat4 cameraMatrix;
 uniform mat4 projectionMatrix;
-uniform mat4 invCameraMatrix;
+uniform vec4 camPos;
 
 varying vec2 texCoord;
 
 
 void main(void) {
-	vec4 camPos = invCameraMatrix * vec4(0, 0, 0, 1);
 	gl_Position = projectionMatrix * cameraMatrix * (vec4(vertexPos + camPos.xyz, 1.0));
 	texCoord = vertexTex;
 }"""
@@ -132,12 +131,13 @@ class TextureCube (Texture):
 
 
 class Material (object):
-	def __init__(self, shader, sampler_names_to_textures=None):
+	def __init__(self, shader, sampler_names_to_textures=None, use_blending=False):
 		if sampler_names_to_textures is None:
 			sampler_names_to_textures = {}
 
 		self.shader = shader
 		self.sampler_names_to_textures = sampler_names_to_textures
+		self.use_blending = use_blending
 
 
 	def has_textures(self):
@@ -146,7 +146,8 @@ class Material (object):
 	def __js__(self, pres_ctx, scene):
 		shader = self.shader.__js__(pres_ctx, scene)
 		sampler_names_to_textures = '{' + ', '.join(['{0}:{1}'.format(name, texture.__js__(pres_ctx, scene))   for name, texture in self.sampler_names_to_textures.items()]) + '}'
-		return '{0}.createMaterial({1}, {2})'.format(scene, shader, sampler_names_to_textures)
+		use_blending = json.dumps(self.use_blending)
+		return '{0}.createMaterial({1}, {2}, {3})'.format(scene, shader, sampler_names_to_textures, use_blending)
 
 
 	__single_texture_shader = Shader([_single_texture_vshader], [_single_texture_fshader])

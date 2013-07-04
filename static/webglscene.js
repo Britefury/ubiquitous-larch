@@ -126,7 +126,7 @@ function webglscene(canvas) {
         gl.linkProgram(shaderProgram);
 
         if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-            alert("Unable to link the shader program.");
+            alert("Unable to link the shader program." + gl.getProgramInfoLog(shaderProgram));
         }
 
         shader.shaderProgram = shaderProgram;
@@ -211,22 +211,23 @@ function webglscene(canvas) {
             var imgs = [];
             var count = [0];
 
-            var onload = function() {
+            var onloadtex = function() {
                 count[0]++;
                 if (count[0] == 6) {
                     gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture.texId);
                     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
                     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-                    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+                    //gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                    //gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                    //gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
 
-                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[0]);
-                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[1]);
-                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[2]);
-                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[3]);
-                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[4]);
-                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[5]);
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imgs[0]);
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imgs[1]);
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imgs[2]);
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imgs[3]);
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imgs[4]);
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imgs[5]);
+                    gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
 
                     gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
                     gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
@@ -235,8 +236,8 @@ function webglscene(canvas) {
 
             for (var i = 0; i < resources.length; i++) {
                 var img = new Image();
-                img = resources[i].url;
-                img.onload = onload;
+                img.src = resources[i].url;
+                img.onload = onloadtex;
                 imgs.push(img);
             }
 
@@ -253,9 +254,10 @@ function webglscene(canvas) {
     };
 
 
-    glc.createMaterial = function(shader, samplerNamesToTextures) {
+    glc.createMaterial = function(shader, samplerNamesToTextures, useBlending) {
         var material = {
-            shader: shader
+            shader: shader,
+            useBlending: useBlending
         };
 
 
@@ -272,10 +274,19 @@ function webglscene(canvas) {
 
 
         material.useForRendering = function() {
+            var gl = glc.gl;
+
             material.shader.useForRendering();
             for (var i = 0; i < material.samplerNamesAndTextures.length; i++) {
                 var sAndT = material.samplerNamesAndTextures[i];
                 sAndT[1].attach(material.shader, i, sAndT[0]);
+            }
+            if (material.useBlending) {
+                gl.blendFunc(gl.ONE, gl.SRC_ALPHA);
+                gl.enable(gl.BLEND);
+            }
+            else {
+                gl.disable(gl.BLEND);
             }
         };
 
@@ -351,11 +362,14 @@ function webglscene(canvas) {
             gl.uniformMatrix4fv(mvUniform, false, new Float32Array(cameraMatrix));
 
 
-            var invMVUniform = shader.getUniformLocation("invCameraMatrix");
-            if (invMVUniform != -1) {
+            var camPosUniform = shader.getUniformLocation("camPos");
+            if (camPosUniform != -1) {
                 var invMV = mat4.create();
                 mat4.invert(invMV, cameraMatrix);
-                gl.uniformMatrix4fv(invMVUniform, false, new Float32Array(invMV));
+                var origin = vec4.fromValues(0, 0, 0, 1);
+                var camPos = vec4.create();
+                vec4.transformMat4(camPos, origin, invMV);
+                gl.uniform4fv(camPosUniform, new Float32Array(camPos));
             }
         };
 
@@ -399,7 +413,7 @@ function webglscene(canvas) {
         };
 
         camera.rotate = function (azimuth, altitude) {
-            camera.azimuth = (this.azimuth + azimuth) % Math.PI;
+            camera.azimuth = (this.azimuth + azimuth) % (Math.PI*2);
             camera.altitude += altitude;
             camera.altitude = Math.min(Math.max(camera.altitude, -Math.PI * 0.5), Math.PI * 0.5);
         };
@@ -769,14 +783,14 @@ function webglscene(canvas) {
         var entity = glc.createEntity();
 
         var verts = [
-            [ -10.0, -10.0, -10.0 ],
-            [ 10.0, -10.0, -10.0 ],
-            [ -10.0, 10.0, -10.0 ],
-            [ 10.0, 10.0, -10.0 ],
-            [ -10.0, -10.0, 10.0 ],
-            [ 10.0, -10.0, 10.0 ],
-            [ -10.0, 10.0, 10.0 ],
-            [ 10.0, 10.0, 10.0 ]
+            [ -5.0, -5.0, -5.0 ],
+            [ 5.0, -5.0, -5.0 ],
+            [ -5.0, 5.0, -5.0 ],
+            [ 5.0, 5.0, -5.0 ],
+            [ -5.0, -5.0, 5.0 ],
+            [ 5.0, -5.0, 5.0 ],
+            [ -5.0, 5.0, 5.0 ],
+            [ 5.0, 5.0, 5.0 ]
         ];
         var vert_indices = [
             [4, 0, 2, 6],		// X-neg  --+  ---  -+-  -++
