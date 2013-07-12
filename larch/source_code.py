@@ -17,7 +17,7 @@ from britefury.pres.controls import code_mirror, button
 
 class AbstractSourceCode (object):
 	__language__ = None
-	__codemirror_script_urls__ = []
+	__codemirror_modes__ = []
 
 	def __init__(self, code=None, editable=True):
 		if code is None:
@@ -74,9 +74,9 @@ class AbstractSourceCode (object):
 
 		config = {
 			'mode': {
-			'name': self.__language__,
-			'version': 2,
-			'singleLineStringErrors': False},
+				'name': self.__language__,
+				'version': 2,
+				'singleLineStringErrors': False},
 			'lineNumbers': True,
 			'indentUnit': 4,
 			'tabMode': "shift",
@@ -87,9 +87,7 @@ class AbstractSourceCode (object):
 
 
 
-		code_area = code_mirror.code_mirror(self.__code, config=config, on_edit=on_change, on_focus=self.on_focus, on_blur=self.on_blur)
-		for script in self.__codemirror_script_urls__:
-			code_area = code_area.use_js(script)
+		code_area = code_mirror.code_mirror(self.__code, config=config, on_edit=on_change, on_focus=self.on_focus, on_blur=self.on_blur, modes=self.__codemirror_modes__)
 
 
 		return Html('<div>', code_area, '</div>')
@@ -209,7 +207,7 @@ _stream_style_map = {
 
 class PythonCode (AbstractSourceCode):
 	__language__ = 'python'
-	__codemirror_script_urls__ = ['/codemirror/mode/python/python.js']
+	__codemirror_modes__ = ['python']
 
 
 	def execute_in_module(self, module):
@@ -260,22 +258,22 @@ class PythonCode (AbstractSourceCode):
 
 class HtmlCode (AbstractSourceCode):
 	__language__ = 'htmlembedded'
-	__codemirror_script_urls__ = ['/codemirror/mode/htmlembedded/htmlembedded.js']
+	__codemirror_modes__ = ['htmlembedded']
 
 
 
 class CSSCode (AbstractSourceCode):
 	__language__ = 'css'
-	__codemirror_script_urls__ = ['/codemirror/mode/css/css.js']
+	__codemirror_modes__ = ['css']
 
 
 
 class JSCode (AbstractSourceCode):
 	__language__ = 'javascript'
-	__codemirror_script_urls__ = ['/codemirror/mode/javascript/javascript.js']
+	__codemirror_modes__ = ['javascript']
 
 
 
 class GLSLCode (AbstractSourceCode):
 	__language__ = 'glsl'
-	__codemirror_script_urls__ = ['/codemirror/mode/glsl/glsl.js']
+	__codemirror_modes__ = ['glsl']
