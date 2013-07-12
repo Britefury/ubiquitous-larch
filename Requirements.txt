@@ -1,0 +1,6 @@
+ckEditor
+	plugins:
+		onChange
+		Justify
+		Moono colour theme
+
