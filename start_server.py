@@ -56,7 +56,7 @@ def rsc():
 		response.status=404
 		return 'Resource not found'
 
-@app.route('/<filename:path>')
+@app.route('/static/<filename:path>')
 def serve_static(filename):
 	return static_file(filename, root='static')
 

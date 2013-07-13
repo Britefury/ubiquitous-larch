@@ -22,7 +22,7 @@ def slider(release_fn, slide_fn=None, width=None, options=None):
 	div = div.with_event_handler("slider_change", on_change)
 	if slide_fn is not None:
 		div = div.with_event_handler("slider_slide", on_slide)
-	div = div.use_js('/bridge_jqueryui.js')
+	div = div.use_js('/static/bridge_jqueryui.js')
 	return div
 
 

@@ -258,7 +258,7 @@ Ntp97
 Rp98
 (dp99
 g19
-V# Now, we define a live function that generates the data and a chart\u000a@LiveFunction\u000adef live_chart():\u000a    # Generate the data:\u000a    data = [random.gauss(mean.value, standard_deviation.value)   for i in xrange(33)]\u000a    \u000a    # Generate the chart in the same way that we did in the previous worksheet:\u000a    chart = Html('<svg class="chart" width=660 height=80></svg>')\u000a    chart = chart.js_function_call('init_chart', data, 20, 80)\u000a    chart = chart.use_js(source=bar_chart_js).use_css(source=bar_chart_css)\u000a    chart = chart.use_js('/d3.v3.min.js')\u000a    \u000a    return chart
+V# Now, we define a live function that generates the data and a chart\u000a@LiveFunction\u000adef live_chart():\u000a    # Generate the data:\u000a    data = [random.gauss(mean.value, standard_deviation.value)   for i in xrange(33)]\u000a    \u000a    # Generate the chart in the same way that we did in the previous worksheet:\u000a    chart = Html('<svg class="chart" width=660 height=80></svg>')\u000a    chart = chart.js_function_call('init_chart', data, 20, 80)\u000a    chart = chart.use_js(source=bar_chart_js).use_css(source=bar_chart_css)\u000a    chart = chart.use_js('/static/d3.v3.min.js')\u000a    \u000a    return chart
 p100
 sg25
 I01

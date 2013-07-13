@@ -42,7 +42,7 @@ def save_document(path, content):
 
 
 
-larch_app_css = '/larch_app.css'
+larch_app_css = '/static/larch_app.css'
 
 
 

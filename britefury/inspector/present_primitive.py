@@ -7,7 +7,7 @@ from britefury.pres.html import Html
 
 
 
-GlobalCSS('/python.css')
+GlobalCSS('/static/python.css')
 
 
 def _punct_html(x):

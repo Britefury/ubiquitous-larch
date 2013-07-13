@@ -458,5 +458,5 @@ class Worksheet (object):
 		p = p.with_key_handler([KeyAction(KeyAction.KEY_DOWN, ord('5'), ctrl=True, prevent_default=True)], on_glsl_key)
 		#p = p.with_key_handler([Key(Key.KEY_DOWN, ord('6'), ctrl=True, prevent_default=True)], on_html_key)
 		p = p.with_key_handler([KeyAction(KeyAction.KEY_DOWN, ord('0'), ctrl=True, prevent_default=True)], on_delete_block_key)
-		return p.use_css('/worksheet.css')
+		return p.use_css('/static/worksheet.css')
 

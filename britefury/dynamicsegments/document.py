@@ -21,19 +21,19 @@ _page_content = u"""
 <html>
 	<head>
 		<title>{title}</title>
-		<link rel="stylesheet" type="text/css" href="/jquery/css/ui-lightness/jquery-ui-1.10.2.custom.min.css"/>
-		<link rel="stylesheet" type="text/css" href="/larch.css"/>
+		<link rel="stylesheet" type="text/css" href="/static/jquery/css/ui-lightness/jquery-ui-1.10.2.custom.min.css"/>
+		<link rel="stylesheet" type="text/css" href="/static/larch.css"/>
 
-		<script type="text/javascript" src="/larch_prelude.js"></script>
+		<script type="text/javascript" src="/static/larch_prelude.js"></script>
 		<script type="text/javascript">
 			<!--
 			larch.__session_id="{session_id}";
 			// -->
 		</script>
-		<script type="text/javascript" src="/jquery/js/jquery-1.9.1.js"></script>
-		<script type="text/javascript" src="/jquery/js/jquery-ui-1.10.2.custom.min.js"></script>
-		<script type="text/javascript" src="/json2.js"></script>
-		<script type="text/javascript" src="/larch.js"></script>
+		<script type="text/javascript" src="/static/jquery/js/jquery-1.9.1.js"></script>
+		<script type="text/javascript" src="/static/jquery/js/jquery-ui-1.10.2.custom.min.js"></script>
+		<script type="text/javascript" src="/static/json2.js"></script>
+		<script type="text/javascript" src="/static/larch.js"></script>
 
 		<!--scripts and css introduced by dependencies-->
 		{dependency_tags}
@@ -236,9 +236,9 @@ class DynamicDocument (object):
 		return doc_rsc
 
 
-	def unref_resource(self, rsc):
-		if rsc.unref() == 0:
-			del self.__rsc_id_to_rsc[rsc.id]
+	def unref_resource(self, doc_rsc):
+		if doc_rsc.unref() == 0:
+			del self.__rsc_id_to_rsc[doc_rsc.id]
 
 
 	def _resource_modified(self, rsc):

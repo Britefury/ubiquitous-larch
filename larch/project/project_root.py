@@ -225,7 +225,7 @@ class ProjectRoot (ProjectContainer):
 			super_pres,
 			'</div>',
 		]
-		return Html(*contents).use_css(url="/project.css")
+		return Html(*contents).use_css(url="/static/project.css")
 
 
 

@@ -18,4 +18,4 @@ def menu(items, drop_down=False):
 	options = {}
 	if drop_down:
 		options['position'] = {'my': 'left top', 'at': 'left bottom'}
-	return Html(*['<ul class="popup_box">'] + list(items) + ['</ul>']).js_function_call('larch.controls.initMenu', options).use_js('/bridge_jqueryui.js')
+	return Html(*['<ul class="popup_box">'] + list(items) + ['</ul>']).js_function_call('larch.controls.initMenu', options).use_js('/static/bridge_jqueryui.js')

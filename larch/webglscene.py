@@ -172,4 +172,4 @@ class Scene (JS):
 
 
 def scene_canvas(width, height, scene):
-	return Html('<canvas width="{0}" height="{1}"></canvas>'.format(width, height)).js_eval(scene).use_js(url='/webglscene.js').use_js(url='/gl-matrix-min.js')
+	return Html('<canvas width="{0}" height="{1}"></canvas>'.format(width, height)).js_eval(scene).use_js(url='/static/webglscene.js').use_js(url='/static/gl-matrix-min.js')
