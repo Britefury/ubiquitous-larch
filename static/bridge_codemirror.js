@@ -1,5 +1,4 @@
 larch.controls.initCodeMirror = function(textArea, config, immediate_events) {
-    console.log("Initialising codemirror");
     var c = CodeMirror.fromTextArea(textArea, config);
     if (immediate_events) {
         c.on("change", function(editor, edit) {

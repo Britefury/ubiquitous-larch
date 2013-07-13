@@ -251,7 +251,7 @@ class PythonCode (AbstractSourceCode):
 		except Exception, e:
 			return ExecutionResultException(streams, e, sys.exc_info()[2])
 		finally:
-			sys.stdout, sys.stdin = old_out, old_err
+			sys.stdout, sys.stderr = old_out, old_err
 
 
 
