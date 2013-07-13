@@ -140,7 +140,7 @@ class ImageFromFile (Resource):
 			self.data = ''
 			self.mime_type = ''
 
-		def initialise(self, pres_ctx):
+		def initialise(self, pres_ctx, change_listener):
 			if os.path.exists(self.__filename)  and  os.path.isfile(self.__filename):
 				f = open(self.__filename, 'rb')
 				self.data = f.read()
@@ -199,7 +199,7 @@ class PresResource (Resource):
 			self.mime_type = ''
 
 
-		def initialise(self, pres_ctx):
+		def initialise(self, pres_ctx, change_listener):
 			subj = Subject()
 			subj.add_step(focus=self.__contents, perspective=pres_ctx.perspective, title='Resource')
 			self.data = pres_ctx.fragment_view.service.page(subj)

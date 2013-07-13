@@ -5,6 +5,8 @@
 function webglscene(canvas) {
     var glc = {};
 
+
+
     glc.degToRad = function(deg) {
         return deg * (Math.PI / 180.0);
     };
@@ -22,6 +24,7 @@ function webglscene(canvas) {
         console.log("Caught " + e + " when initialising webgl");
     }
 
+    var __textureUnits = [glc.gl.TEXTURE0, glc.gl.TEXTURE1, glc.gl.TEXTURE2, glc.gl.TEXTURE3, glc.gl.TEXTURE4, glc.gl.TEXTURE5, glc.gl.TEXTURE6, glc.gl.TEXTURE7];
 
 
     // SET CAMERA
@@ -50,9 +53,6 @@ function webglscene(canvas) {
 
         for (var i = 0; i < glc.entities.length; i++) {
             var entity = glc.entities[i];
-            if (glc.camera !== null) {
-                glc.camera.apply(entity.shader);
-            }
             entity.draw();
         }
     };
@@ -126,7 +126,7 @@ function webglscene(canvas) {
         gl.linkProgram(shaderProgram);
 
         if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-            alert("Unable to link the shader program.");
+            alert("Unable to link the shader program." + gl.getProgramInfoLog(shaderProgram));
         }
 
         shader.shaderProgram = shaderProgram;
@@ -134,6 +134,13 @@ function webglscene(canvas) {
 
         shader.use = function() {
             gl.useProgram(shader.shaderProgram);
+        };
+
+        shader.useForRendering = function() {
+            shader.use();
+            if (glc.camera !== null) {
+                glc.camera.apply(shader);
+            }
         };
 
         shader.getUniformLocation = function(name) {
@@ -148,11 +155,143 @@ function webglscene(canvas) {
     };
 
 
-    glc.createPlainWhiteShader = function() {
-        return glc.createShader();
+    glc.createTexture = function() {
+        var texture = {};
+
+        var gl = glc.gl;
+
+        if (gl) {
+            texture.texId = gl.createTexture();
+        }
+
+        texture.attach = function(shader, texNum, samplerName) {
+            throw "Abstract";
+        };
+
+        return texture;
     };
 
 
+    glc.createTexture2D = function(rsc) {
+        var texture = glc.createTexture();
+
+        var gl = glc.gl;
+
+        if (gl) {
+            var img = new Image();
+            img.onload = function() {
+                gl.bindTexture(gl.TEXTURE_2D, texture.texId);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+                gl.generateMipmap(gl.TEXTURE_2D);
+                gl.bindTexture(gl.TEXTURE_2D, null);
+            };
+            img.src = rsc.url;
+
+            texture.image = img;
+
+            texture.attach = function(shader, texNum, samplerName) {
+                gl.activeTexture(__textureUnits[texNum]);
+                gl.bindTexture(gl.TEXTURE_2D, texture.texId);
+                gl.uniform1i(shader.getUniformLocation(samplerName), texNum);
+            };
+        }
+
+        return texture;
+    };
+
+
+    glc.createTextureCube = function(resources) {
+        var texture = glc.createTexture();
+
+        var gl = glc.gl;
+
+        if (gl) {
+            var imgs = [];
+            var count = [0];
+
+            var onloadtex = function() {
+                count[0]++;
+                if (count[0] == 6) {
+                    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture.texId);
+                    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+                    //gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                    //gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                    //gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imgs[0]);
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imgs[1]);
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imgs[2]);
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imgs[3]);
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imgs[4]);
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imgs[5]);
+                    gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+
+                    gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+                    gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+                }
+            };
+
+            for (var i = 0; i < resources.length; i++) {
+                var img = new Image();
+                img.src = resources[i].url;
+                img.onload = onloadtex;
+                imgs.push(img);
+            }
+
+            texture.images = imgs;
+
+            texture.attach = function(shader, texNum, samplerName) {
+                gl.activeTexture(__textureUnits[texNum]);
+                gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture.texId);
+                gl.uniform1i(shader.getUniformLocation(samplerName), texNum);
+            };
+        }
+
+        return texture;
+    };
+
+
+    glc.createMaterial = function(shader, samplerNamesToTextures, useBlending) {
+        var material = {
+            shader: shader,
+            useBlending: useBlending
+        };
+
+
+        var samplerNamesAndTextures = [];
+        for (var samplerName in samplerNamesToTextures) {
+            if (samplerNamesToTextures.hasOwnProperty(samplerName)) {
+                var texture = samplerNamesToTextures[samplerName];
+                var sAndT = [samplerName, texture];
+                samplerNamesAndTextures.push(sAndT);
+            }
+        }
+
+        material.samplerNamesAndTextures = samplerNamesAndTextures;
+
+
+        material.useForRendering = function() {
+            var gl = glc.gl;
+
+            material.shader.useForRendering();
+            for (var i = 0; i < material.samplerNamesAndTextures.length; i++) {
+                var sAndT = material.samplerNamesAndTextures[i];
+                sAndT[1].attach(material.shader, i, sAndT[0]);
+            }
+            if (material.useBlending) {
+                gl.blendFunc(gl.ONE, gl.SRC_ALPHA);
+                gl.enable(gl.BLEND);
+            }
+            else {
+                gl.disable(gl.BLEND);
+            }
+        };
+
+        return material;
+    };
 
 
 
@@ -216,13 +355,22 @@ function webglscene(canvas) {
             //cameraMatrix = mat4.create();
             //mat4.lookAt(cameraMatrix, [0.0, 6.0*Math.sin(glc.degToRad(30.0)), -6.0*Math.cos(glc.degToRad(30.0))], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
 
-            shader.use();
-
             var pUniform = shader.getUniformLocation("projectionMatrix");
             gl.uniformMatrix4fv(pUniform, false, new Float32Array(projectionMatrix));
 
             var mvUniform = shader.getUniformLocation("cameraMatrix");
             gl.uniformMatrix4fv(mvUniform, false, new Float32Array(cameraMatrix));
+
+
+            var camPosUniform = shader.getUniformLocation("camPos");
+            if (camPosUniform != -1) {
+                var invMV = mat4.create();
+                mat4.invert(invMV, cameraMatrix);
+                var origin = vec4.fromValues(0, 0, 0, 1);
+                var camPos = vec4.create();
+                vec4.transformMat4(camPos, origin, invMV);
+                gl.uniform4fv(camPosUniform, new Float32Array(camPos));
+            }
         };
 
         camera._createWorldToCameraMatrix = function () {
@@ -233,11 +381,11 @@ function webglscene(canvas) {
             // Move the world and camera so that the camera lies at the origin
             mat4.translate(cameraMatrix, cameraMatrix, [0.0, 0.0, -camera.orbitalRadius]);
 
-            // Rotate the world so that the camera lies on the forward axis
-            mat4.rotateY(cameraMatrix, cameraMatrix, -camera.azimuth);
-
             // Rotate the world and camera so that the camera rests on the XZ plane
             mat4.rotateX(cameraMatrix, cameraMatrix, camera.altitude);
+
+            // Rotate the world so that the camera lies on the forward axis
+            mat4.rotateY(cameraMatrix, cameraMatrix, -camera.azimuth);
 
             // Move the focal point to the centre of the world
             mat4.translate(cameraMatrix, cameraMatrix, invPos);
@@ -265,7 +413,7 @@ function webglscene(canvas) {
         };
 
         camera.rotate = function (azimuth, altitude) {
-            camera.azimuth = (this.azimuth + azimuth) % Math.PI;
+            camera.azimuth = (this.azimuth + azimuth) % (Math.PI*2);
             camera.altitude += altitude;
             camera.altitude = Math.min(Math.max(camera.altitude, -Math.PI * 0.5), Math.PI * 0.5);
         };
@@ -283,9 +431,8 @@ function webglscene(canvas) {
 
 
 
-    glc.createEntity = function(shader) {
+    glc.createEntity = function() {
         var entity = {
-            shader: shader
         };
 
         entity.draw = function() {
@@ -297,8 +444,9 @@ function webglscene(canvas) {
 
 
 
-    glc.createLiteralMeshEntity = function(shader, vertexAttribNamesSizes, vertices, indexBufferModesData) {
-        var entity = glc.createEntity(shader);
+    glc.createLiteralMeshEntity = function(material, vertexAttribNamesSizes, vertices, indexBufferModesData) {
+        var entity = glc.createEntity();
+        entity.material = material;
 
         var gl = glc.gl;
 
@@ -320,7 +468,7 @@ function webglscene(canvas) {
         var attribSizes = [];
         var attribStride = 0;
         for (var i = 0; i < vertexAttribNamesSizes.length; i++) {
-            var loc = shader.getAttribLocation(vertexAttribNamesSizes[i][0]);
+            var loc = material.shader.getAttribLocation(vertexAttribNamesSizes[i][0]);
             gl.enableVertexAttribArray(loc);
 
             attribLocations.push(loc);
@@ -367,7 +515,7 @@ function webglscene(canvas) {
 
 
         entity.draw = function() {
-            entity.shader.use();
+            entity.material.useForRendering();
             //
             // OBJECT
             //
@@ -389,8 +537,9 @@ function webglscene(canvas) {
     };
 
 
-    glc.createUVMeshEntity = function(shader) {
-        var entity = glc.createEntity(shader);
+    glc.createUVMeshEntity = function(material) {
+        var entity = glc.createEntity();
+        entity.material = material;
 
         var gl = glc.gl;
 
@@ -481,12 +630,12 @@ function webglscene(canvas) {
 
             // Handle position and normal first
 
-            var vertexPosLoc = entity.shader.getAttribLocation("vertexPos");
+            var vertexPosLoc = entity.material.shader.getAttribLocation("vertexPos");
             gl.enableVertexAttribArray(vertexPosLoc);
             attribLocations.push(vertexPosLoc);
             attribSizes.push(3);
 
-            var vertexNrmLoc = entity.shader.getAttribLocation("vertexNrm");
+            var vertexNrmLoc = entity.material.shader.getAttribLocation("vertexNrm");
             gl.enableVertexAttribArray(vertexNrmLoc);
             attribLocations.push(vertexNrmLoc);
             attribSizes.push(3);
@@ -496,7 +645,7 @@ function webglscene(canvas) {
             // Now handle remaining attributes
 
             for (var i = 0; i < vertexAttribsNamesSizesData.length; i++) {
-                var loc = entity.shader.getAttribLocation(vertexAttribsNamesSizesData[i][0]);
+                var loc = entity.material.shader.getAttribLocation(vertexAttribsNamesSizesData[i][0]);
                 gl.enableVertexAttribArray(loc);
 
                 attribLocations.push(loc);
@@ -590,7 +739,7 @@ function webglscene(canvas) {
             var gl = glc.gl;
 
             if (entity.__ready) {
-                entity.shader.use();
+                entity.material.useForRendering();
 
                 //
                 // OBJECT
@@ -627,6 +776,76 @@ function webglscene(canvas) {
 
         return entity;
     };
+
+
+
+    glc.createSkybox = function(materials) {
+        var entity = glc.createEntity();
+
+        var verts = [
+            [ -5.0, -5.0, -5.0 ],
+            [ 5.0, -5.0, -5.0 ],
+            [ -5.0, 5.0, -5.0 ],
+            [ 5.0, 5.0, -5.0 ],
+            [ -5.0, -5.0, 5.0 ],
+            [ 5.0, -5.0, 5.0 ],
+            [ -5.0, 5.0, 5.0 ],
+            [ 5.0, 5.0, 5.0 ]
+        ];
+        var vert_indices = [
+            [4, 0, 2, 6],		// X-neg  --+  ---  -+-  -++
+            [1, 5, 7, 3],		// X-pos  +--  +-+  +++  ++-
+            [4, 5, 1, 0],		// Y-neg  --+  +-+  +--  ---
+            [2, 3, 7, 6],		// Y-pos  -+-  ++-  +++  -++
+            [0, 1, 3, 2],		// Z-neg  ---  +--  ++-  -+-
+            [5, 4, 6, 7]			// Z-pos  +-+  --+  -++  +++
+        ];
+
+        var tex_coords = [
+            [0.0, 1.0],
+            [1.0, 1.0],
+            [1.0, 0.0],
+            [0.0, 0.0]
+        ];
+
+
+        var faces = [];
+
+        for (var faceIndex = 0; faceIndex < 6; faceIndex++) {
+            var faceVerts = [];
+
+            var idxs = vert_indices[faceIndex];
+            for (var faceVertIndex = 0; faceVertIndex < 4; faceVertIndex++) {
+                faceVerts.push(verts[idxs[faceVertIndex]][0]);
+                faceVerts.push(verts[idxs[faceVertIndex]][1]);
+                faceVerts.push(verts[idxs[faceVertIndex]][2]);
+                faceVerts.push(tex_coords[faceVertIndex][0]);
+                faceVerts.push(tex_coords[faceVertIndex][1]);
+            }
+
+            var face =  glc.createLiteralMeshEntity(materials[faceIndex], [['vertexPos', 3], ['vertexTex', 2]], faceVerts, [['triangles', [0, 1, 2, 0, 2, 3]]]);
+            faces.push(face);
+        }
+
+        entity.faces = faces;
+
+        entity.draw = function() {
+            var gl = glc.gl;
+
+            gl.disable(gl.DEPTH_TEST);
+            gl.depthMask(false);
+
+            for (var i = 0; i < entity.faces.length; i++) {
+                entity.faces[i].draw();
+            }
+
+            gl.enable(gl.DEPTH_TEST);
+            gl.depthMask(true);
+        };
+
+        return entity;
+    };
+
 
     return glc;
 }
