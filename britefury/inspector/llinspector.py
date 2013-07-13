@@ -18,15 +18,19 @@ def _field(name, x):
 		return vertical_field(name, value)
 
 def present_python_object(x, fragment_view):
-	attr_names = sorted(x.__dict__.keys())
-	attrs = [_field(name, x)   for name in attr_names]
-	attrs = Html(*attrs)
+	if hasattr(x, '__dict__'):
+		attr_names = sorted(x.__dict__.keys())
+		attrs = [_field(name, x)   for name in attr_names]
+		attrs = Html(*attrs)
 
-	t = Html.div(dropdown_expander(Html('Type'), type(x)))
-	a = Html.div(dropdown_expander(Html('Attributes'), attrs))
-	print repr(x)
-	s = Html.div(dropdown_expander(Html('repr'), present_string(repr(x))))
-	return Html('<div class="pythonobject">', Html(t, a, s), '</div>')
+		t = Html.div(dropdown_expander(Html('Type'), type(x)))
+		a = Html.div(dropdown_expander(Html('Attributes'), attrs))   if attrs is not None  else None
+		s = Html.div(dropdown_expander(Html('repr'), present_string(repr(x))))
+		return Html('<div class="pythonobject">', Html(t, a, s)   if a is not None   else Html(t, s), '</div>')
+	else:
+		t = Html.div(dropdown_expander(Html('Type'), type(x)))
+		s = Html.div(present_string(repr(x)))
+		return Html('<div class="pythonobject">', Html(t, s), '</div>')
 
 
 
