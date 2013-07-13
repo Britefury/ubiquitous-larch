@@ -23,13 +23,9 @@ class ResourceData (object):
 	def dispose(self, context):
 		raise NotImplementedError, 'abstract'
 
-	@property
-	def data(self):
-		raise NotImplementedError, 'abstract'
 
-	@property
-	def mime_type(self):
-		raise NotImplementedError, 'abstract'
+
+
 
 
 
@@ -48,15 +44,20 @@ class ConstResource (Resource):
 			self.mime_type = None
 
 
+	def __init__(self, data, mime_type):
+		super(ConstResource, self).__init__(self._ConstResourceData(data, mime_type))
+
+
+
 class JsonResource (ConstResource):
 	def __init__(self, data):
-		super(JsonResource, self).__init__(self._ConstResourceData(json.dumps(data), 'application/json'))
+		super(JsonResource, self).__init__(json.dumps(data), 'application/json')
 
 
 
 class CSVResource (ConstResource):
 	def __init__(self, data):
-		super(CSVResource, self).__init__(self._ConstResourceData(data, 'text/csv'))
+		super(CSVResource, self).__init__(data, 'text/csv')
 
 
 
@@ -155,6 +156,23 @@ class ImageFromFile (Resource):
 
 	def __init__(self, filename, width=None, height=None):
 		super(ImageFromFile, self).__init__(self._ImageFromFileResourceData(filename))
+		self.__width = width
+		self.__height = height
+
+
+
+	def build(self, pres_ctx):
+		url = self._url(pres_ctx)
+		w = ' width="{0}"'.format(self.__width)   if self.__width is not None   else ''
+		h = ' height="{0}"'.format(self.__height)   if self.__height is not None   else ''
+		return HtmlContent(['<img src="', url, '"{0}{1}>'.format(w, h)])
+
+
+
+
+class ImageFromBinary (ConstResource):
+	def __init__(self, data, mime_type, width=None, height=None):
+		super(ImageFromBinary, self).__init__(data, mime_type)
 		self.__width = width
 		self.__height = height
 

@@ -5,7 +5,7 @@ Access to documentation
 
 
 Django server:
-	CSRF was disabled to allow POST requests to work
-	django_server/settings.py: find line containing 'django.middleware.csrf.CsrfViewMiddleware'
-	Need to make this work.
-	
+	CSRF security feature was disabled to allow POST requests to work
+	django_project/settings.py: find line containing and uncomment:
+		django.middleware.csrf.CsrfViewMiddleware
+	Need to make CSRF work, as it is a security feature.
