@@ -85,6 +85,40 @@ _page_content = u"""
 
 
 
+
+class DynamicDocumentPublicAPI (object):
+	def __init__(self, document):
+		self.__document = document
+
+
+	def doc_js_eval(self, *expr):
+		ex = []
+		for x in expr:
+			if isinstance(x, str)  or  isinstance(x, unicode):
+				ex.append(x)
+			else:
+				ex.append(json.dumps(x))
+
+		script = ''.join(ex)
+		self.__document.queue_js_to_execute(script)
+		# Ensure a refresh gets queued
+		self.__document._notify_document_modified()
+
+
+	def doc_js_function_call(self, js_fn_name, *json_args):
+		call = [
+			js_fn_name + '(',
+			', '.join([json.dumps(a) for a in json_args]),
+			');'
+		]
+
+		script = ''.join(call)
+		self.__document.queue_js_to_execute(script)
+		# Ensure a refresh gets queued
+		self.__document._notify_document_modified()
+
+
+
 class DynamicDocument (object):
 	"""A dynamic web document, composed of segments.
 
@@ -94,14 +128,15 @@ class DynamicDocument (object):
 	"""
 	def __init__(self, service, session_id):
 		self.__service = service
+		self._session_id = session_id
+
+		self.__public_api = DynamicDocumentPublicAPI(self)
+
 		self._table = _SegmentTable(self)
 
 		self.__queued_tasks = deque()
 
 		self.__title = 'Ubiquitous Larch'
-
-		# The session ID
-		self._session_id = session_id
 
 		# Global dependencies
 		self.__global_deps_version = 0
@@ -382,7 +417,7 @@ class DynamicDocument (object):
 		if segment_id is None:
 			for handler_ev_name, handler_fn in self.__doc_event_handlers:
 				if handler_ev_name == event_name:
-					if handler_fn(ev_data):
+					if handler_fn(self.__public_api, ev_data):
 						return True
 			return False
 		else:

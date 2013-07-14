@@ -19,8 +19,8 @@ class Command (object):
 		self.on_invoke = on_invoke
 		self._command_id = 'cmd{0}'.format(id(self))
 
-	def invoke(self):
-		self.on_invoke()
+	def invoke(self, document):
+		self.on_invoke(document)
 
 
 	def js_expr(self):
@@ -40,8 +40,8 @@ class CommandSet (object):
 
 
 
-	def invoke_by_command_id(self, command_id):
-		self._id_to_command[command_id].invoke()
+	def invoke_by_command_id(self, document, command_id):
+		self._id_to_command[command_id].invoke(document)
 
 
 	def __iter__(self):

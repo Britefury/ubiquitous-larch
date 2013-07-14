@@ -9,7 +9,7 @@ larch.__executeJS = function(js_code) {
         eval(js_code);
     }
     catch (e) {
-        console.log("Dynamic JS code execution: caught " + e + " when executing " + code);
+        console.log("Dynamic JS code execution: caught " + e + " when executing " + js_code);
     }
 };
 
@@ -730,7 +730,6 @@ larch.__closeCommandHelpDialog = function() {
 larch.__closeCommandNoty = function() {
     if (larch.__commandNoty !== null) {
         larch.__commandNoty.close();
-        console.log("closed a noty");
         larch.__commandNoty = null;
     }
 };

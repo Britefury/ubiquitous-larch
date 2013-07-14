@@ -307,19 +307,19 @@ class Worksheet (object):
 
 	def __commands__(self):
 		return [
-			command.Command([command.Key(ord('R'))], 'Insert rich text below', lambda: self._insert_block(WorksheetBlockText(self), True)),
-			command.Command([command.Key(ord('P'))], 'Insert Python code below', lambda: self._insert_block(WorksheetBlockCode(self), True)),
-			command.Command([command.Key(ord('J'))], 'Insert Javascript source below', lambda: self._insert_block(WorksheetBlockSource(self, 'js', 'js'), True)),
-			command.Command([command.Key(ord('C'))], 'Insert CSS source below', lambda: self._insert_block(WorksheetBlockSource(self, 'css', 'css'), True)),
-			command.Command([command.Key(ord('G'))], 'Insert GLSL source below', lambda: self._insert_block(WorksheetBlockSource(self, 'glsl', 'glsl'), True)),
+			command.Command([command.Key(ord('R'))], 'Insert rich text below', lambda document: self._insert_block(WorksheetBlockText(self), True)),
+			command.Command([command.Key(ord('P'))], 'Insert Python code below', lambda document: self._insert_block(WorksheetBlockCode(self), True)),
+			command.Command([command.Key(ord('J'))], 'Insert Javascript source below', lambda document: self._insert_block(WorksheetBlockSource(self, 'js', 'js'), True)),
+			command.Command([command.Key(ord('C'))], 'Insert CSS source below', lambda document: self._insert_block(WorksheetBlockSource(self, 'css', 'css'), True)),
+			command.Command([command.Key(ord('G'))], 'Insert GLSL source below', lambda document: self._insert_block(WorksheetBlockSource(self, 'glsl', 'glsl'), True)),
 
-			command.Command([command.Key(ord('A')), command.Key(ord('R'))], 'Insert rich text below', lambda: self._insert_block(WorksheetBlockText(self), False)),
-			command.Command([command.Key(ord('A')), command.Key(ord('P'))], 'Insert Python code below', lambda: self._insert_block(WorksheetBlockCode(self), False)),
-			command.Command([command.Key(ord('A')), command.Key(ord('J'))], 'Insert Javascript source below', lambda: self._insert_block(WorksheetBlockSource(self, 'js', 'js'), False)),
-			command.Command([command.Key(ord('A')), command.Key(ord('C'))], 'Insert CSS source below', lambda: self._insert_block(WorksheetBlockSource(self, 'css', 'css'), False)),
-			command.Command([command.Key(ord('A')), command.Key(ord('G'))], 'Insert GLSL source below', lambda: self._insert_block(WorksheetBlockSource(self, 'glsl', 'glsl'), False)),
+			command.Command([command.Key(ord('A')), command.Key(ord('R'))], 'Insert rich text below', lambda document: self._insert_block(WorksheetBlockText(self), False)),
+			command.Command([command.Key(ord('A')), command.Key(ord('P'))], 'Insert Python code below', lambda document: self._insert_block(WorksheetBlockCode(self), False)),
+			command.Command([command.Key(ord('A')), command.Key(ord('J'))], 'Insert Javascript source below', lambda document: self._insert_block(WorksheetBlockSource(self, 'js', 'js'), False)),
+			command.Command([command.Key(ord('A')), command.Key(ord('C'))], 'Insert CSS source below', lambda document: self._insert_block(WorksheetBlockSource(self, 'css', 'css'), False)),
+			command.Command([command.Key(ord('A')), command.Key(ord('G'))], 'Insert GLSL source below', lambda document: self._insert_block(WorksheetBlockSource(self, 'glsl', 'glsl'), False)),
 
-			command.Command([command.Key(ord('X'))], 'Remove block', lambda: self._delete_block()),
+			command.Command([command.Key(ord('X'))], 'Remove block', lambda document: self._delete_block()),
 		]
 
 

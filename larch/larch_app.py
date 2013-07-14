@@ -159,9 +159,14 @@ class Document (object):
 		return self.content
 
 
+	def __on_save_command(self, document):
+		self.save()
+		document.doc_js_function_call('noty', {'text': 'Saved', 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
+
+
 	def __commands__(self):
 		return [
-			command.Command([command.Key(ord('S'))], 'Save', lambda: self.save()),
+			command.Command([command.Key(ord('S'))], 'Save', self.__on_save_command),
 		]
 
 
