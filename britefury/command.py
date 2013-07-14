@@ -26,7 +26,7 @@ class Command (object):
 	def js_expr(self):
 		key_jsons = [k.__to_json__()   for k in self.key_sequence]
 		key_json_strs = [json.dumps(k)   for k in key_jsons]
-		return 'larch.registerCommand([{0}], "{1}")'.format(', '.join(key_json_strs), self._command_id)
+		return 'larch.registerCommand([{0}], "{1}", "{2}")'.format(', '.join(key_json_strs), self._command_id, self.description)
 
 
 class CommandSet (object):

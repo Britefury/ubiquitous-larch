@@ -40,10 +40,22 @@ class Pres (object):
 		return KeyEventSource(keys_and_handlers, self)
 
 
+	def _js_eval_expr(self, parts):
+		ex = []
+		for p in parts:
+			if isinstance(p, JS):
+				ex.append(p)
+			elif isinstance(p, str)  or  isinstance(p, unicode):
+				ex.append(p)
+			else:
+				ex.append(json.dumps(p))
+		return ex
+
+
 	def __js_fn_call_expr(self, js_fn_name, json_args):
 		call = [js_fn_name + '(node']
 		for a in json_args:
-			if isinstance(a, Resource):
+			if isinstance(a, JS):
 				call.append(', ')
 				call.append(a)
 			else:
@@ -54,14 +66,14 @@ class Pres (object):
 
 
 	def js_eval(self, *expr):
-		return JSInitEval(self, *expr)
+		return JSInitEval(self, *self._js_eval_expr(expr))
 
 	def js_function_call(self, js_fn_name, *json_args):
 		return JSInitEval(self, *self.__js_fn_call_expr(js_fn_name, json_args))
 
 
 	def js_shutdown_eval(self, *expr):
-		return JSShutdownEval(self, *expr)
+		return JSShutdownEval(self, *self._js_eval_expr(expr))
 
 	def js_shutdown_function_call(self, js_fn_name, *json_args):
 		return JSShutdownEval(self, *self.__js_fn_call_expr(js_fn_name, json_args))

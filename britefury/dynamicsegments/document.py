@@ -32,6 +32,20 @@ _page_content = u"""
 		</script>
 		<script type="text/javascript" src="/static/jquery/js/jquery-1.9.1.js"></script>
 		<script type="text/javascript" src="/static/jquery/js/jquery-ui-1.10.2.custom.min.js"></script>
+		<script type="text/javascript" src="/static/noty/jquery.noty.js"></script>
+		<script type="text/javascript" src="/static/noty/layouts/bottom.js"></script>
+		<script type="text/javascript" src="/static/noty/layouts/bottomLeft.js"></script>
+		<script type="text/javascript" src="/static/noty/layouts/bottomCenter.js"></script>
+		<script type="text/javascript" src="/static/noty/layouts/bottomRight.js"></script>
+		<script type="text/javascript" src="/static/noty/layouts/center.js"></script>
+		<script type="text/javascript" src="/static/noty/layouts/centerLeft.js"></script>
+		<script type="text/javascript" src="/static/noty/layouts/centerRight.js"></script>
+		<script type="text/javascript" src="/static/noty/layouts/inline.js"></script>
+		<script type="text/javascript" src="/static/noty/layouts/top.js"></script>
+		<script type="text/javascript" src="/static/noty/layouts/topLeft.js"></script>
+		<script type="text/javascript" src="/static/noty/layouts/topCenter.js"></script>
+		<script type="text/javascript" src="/static/noty/layouts/topRight.js"></script>
+		<script type="text/javascript" src="/static/noty/themes/default.js"></script>
 		<script type="text/javascript" src="/static/json2.js"></script>
 		<script type="text/javascript" src="/static/larch.js"></script>
 

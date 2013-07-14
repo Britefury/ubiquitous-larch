@@ -616,10 +616,20 @@ larch.__userEnteringCommand = false;
 larch.__partialCommandKeySequence = null;
 
 
-larch.registerCommand = function(keySequence, commandId) {
+larch.__invokeCommand = function(cmd) {
+    larch.postDocumentEvent('command', cmd.commandId);
+};
+
+larch.__invokeCommandById = function(commandId) {
+    larch.postDocumentEvent('command', commandId);
+};
+
+
+larch.registerCommand = function(keySequence, commandId, description) {
     var cmd = {
         keySequence: keySequence,
-        commandId: commandId
+        commandId: commandId,
+        description: description
     };
     larch.__commands.push(cmd);
 };
@@ -633,13 +643,10 @@ larch.unregisterCommand = function(commandId) {
     }
 };
 
-larch.__compareKeySequences = function(enteredSequence, commandSequence) {
+larch.__compareKeySequences = function(commandSequence, enteredSequence) {
     if (enteredSequence.length === commandSequence.length) {
         for (var j = 0; j < enteredSequence.length; j++) {
             if (!larch.__matchKeyEvent(enteredSequence[j], commandSequence[j])) {
-                console.log("Failed key " + j)
-                console.log(enteredSequence[j]);
-                console.log(commandSequence[j]);
                 return false;
             }
         }
@@ -648,49 +655,176 @@ larch.__compareKeySequences = function(enteredSequence, commandSequence) {
     return false;
 };
 
+larch.__keySequenceStartsWith = function(commandSequence, enteredSequence) {
+    if (enteredSequence.length <= commandSequence.length) {
+        for (var j = 0; j < enteredSequence.length; j++) {
+            if (!larch.__matchKeyEvent(enteredSequence[j], commandSequence[j])) {
+                return false;
+            }
+        }
+        return true;
+    }
+    return false;
+};
+
+
+
+larch.__commandNoty = null;
+larch.__commandHelpDialog = null;
+
+
+
+larch.__presentKeySequence = function(keySequence) {
+    var htmlSrc = '';
+    for (var j = 0; j < keySequence.length; j++) {
+        var key = keySequence[j];
+        var ch = String.fromCharCode(key.keyCode);
+        htmlSrc += '<span class="command_key">' + ch + '</span>';
+    }
+    return htmlSrc;
+};
+
+larch.__createCommandDialog = function(commands) {
+    var htmlSrc = '';
+
+    var table = $('<table class="command_table"></table>');
+
+    var heading = $('<tr class="command_table_heading_row"><th><span class="command_table_heading">Key sequence</span></th><th><span class="command_table_heading">Description</span></th></tr>');
+    table.append(heading);
+
+    var makeLinkListener = function(cmd) {
+        return function() {
+            larch.__invokeCommand(cmd);
+            larch.__commandFinished();
+            return true;
+        };
+    };
+
+    for (var i = 0; i < commands.length; i++) {
+        var cmd = commands[i];
+        var keys = larch.__presentKeySequence(cmd.keySequence);
+        var cmdSeqQ = $('<td class="command_table command_table_key_seq">' + keys + '</td>');
+        var descriptionLink = $('<span class="command_table_desc">' + cmd.description + '</a>');
+        descriptionLink.on("click", makeLinkListener(cmd));
+        var descriptionQ = $('<td></td>');
+        descriptionQ.append(descriptionLink);
+        var rowQ = $('<tr></tr>').append(cmdSeqQ).append(descriptionQ);
+        table.append(rowQ);
+    }
+    var div = $('<div></div>');
+    div.append('<p>The following commands are available:</p>')
+    div.append(table);
+
+    larch.__commandHelpDialog = $(div).dialog();
+};
+
+larch.__closeCommandHelpDialog = function() {
+    if (larch.__commandHelpDialog !== null) {
+        larch.__commandHelpDialog.dialog("close");
+        larch.__commandHelpDialog = null;
+    }
+};
+
+
+
+larch.__closeCommandNoty = function() {
+    if (larch.__commandNoty !== null) {
+        larch.__commandNoty.close();
+        console.log("closed a noty");
+        larch.__commandNoty = null;
+    }
+};
+
+
+larch.__commandFinished = function() {
+    larch.__userEnteringCommand = false;
+    larch.__partialCommandKeySequence = null;
+
+    larch.__closeCommandNoty();
+    larch.__closeCommandHelpDialog();
+};
+
 larch.__setupCommandListeners = function() {
     document.body.onkeydown = function(event) {
         if (larch.__userEnteringCommand) {
             // Check for Escape
             event.preventDefault();
-            if (event.keyCode == 27) {
-                // Quit the command
-                larch.__userEnteringCommand = false;
-                larch.__partialCommandKeySequence = null;
-                console.log("Terminating command");
+            if (event.keyCode === 27) {
+                // ESC - Quit the command
+                larch.__commandFinished();
+
                 return false;
             }
+            else if (event.keyCode === 72) {
+                // H - Toggle help dialog
+
+                if (larch.__commandHelpDialog !== null) {
+                    larch.__closeCommandHelpDialog();
+                }
+                else {
+                    // Find all matching commands
+                    var matchingCommands = []
+
+                    for (var i = 0; i < larch.__commands.length; i++) {
+                        var match = larch.__commands[i];
+                        if (larch.__keySequenceStartsWith(match.keySequence, larch.__partialCommandKeySequence)) {
+                            matchingCommands.push(match);
+                        }
+                    }
+
+                    larch.__createCommandDialog(matchingCommands);
+                }
+            }
             else {
-                console.log("Command: got a key");
+                // Another key in the sequence
                 var k = larch.__eventToKey(event);
                 var matchingCommand = null;
                 larch.__partialCommandKeySequence.push(k);
 
                 for (var i = 0; i < larch.__commands.length; i++) {
                     var cmd = larch.__commands[i];
-                    if (larch.__compareKeySequences(larch.__partialCommandKeySequence, cmd.keySequence)) {
+                    if (larch.__compareKeySequences(cmd.keySequence, larch.__partialCommandKeySequence)) {
                         matchingCommand = cmd;
                         break;
                     }
                 }
 
                 if (matchingCommand !== null) {
-                    console.log("Command: sending...");
-                    larch.postDocumentEvent('command', cmd.commandId);
-                    larch.__userEnteringCommand = false;
-                    larch.__partialCommandKeySequence = null;
+                    // Found a command
+
+                    // Invoke it
+                    larch.__invokeCommand(matchingCommand);
+
+                    // We are done
+                    larch.__commandFinished();
+
                     return false;
+                }
+
+                // Partial command; update the noty:
+                var notyText = 'Command: ';
+                notyText += larch.__presentKeySequence(larch.__partialCommandKeySequence);
+                notyText += ' - or <span class="command_special_key">ESC</span> to cancel or <span class="command_special_key">H</span> for help';
+
+                if (larch.__commandNoty != null) {
+                    larch.__commandNoty.setText(notyText);
                 }
             }
         }
         else {
-            // Check for CTRL-M
-            if (event.keyCode === 77  &&  event.ctrlKey) {
+            // Check for ESC
+            if (event.keyCode === 27) {
                 event.preventDefault();
                 // We have started a command
                 larch.__userEnteringCommand = true;
                 larch.__partialCommandKeySequence = [];
-                console.log("Beginning command");
+
+                larch.__commandNoty = noty({
+                    text: 'Command started  --  enter key sequence or <span class="command_special_key">ESC</span> to cancel or <span class="command_special_key">H</span> for help',
+                    type: 'information',
+                    layout: 'bottom',
+                    closeWith: ['click']});
+
                 return false;
             }
         }

@@ -564,9 +564,9 @@ class LarchApplication (object):
 			<a class="larch_app_pwr_link" href="http://www.json.org/js.html">json.js</a>,
 			<a class="larch_app_pwr_link" href="http://codemirror.net/">Code Mirror</a>,
 			<a class="larch_app_pwr_link" href="http://ckeditor.com/">ckEditor</a>,
-			<a class="larch_app_pwr_link" href="http://lokeshdhakar.com/projects/lightbox2/">Lightbox 2</a>,
 			<a class="larch_app_pwr_link" href="http://d3js.org/">d3.js</a>, and
 			<a class="larch_app_pwr_link" href="http://bartaz.github.com/impress.js/">impress.js</a></p>
+			<a class="larch_app_pwr_link" href="http://needim.github.io/noty/">noty</a></p>
 			</div>
 			"""]
 		return Html(*contents).use_css(url=larch_app_css)

@@ -159,3 +159,62 @@ h6 {
     color: #505050;
     font-style: italic;
 }
+
+
+.command_key {
+    border: 1px solid #8090a0;
+    border-radius: 5px;
+    background: #e0e0e0;
+    color: #000000;
+    padding: 3px;
+    margin: 0 5px 0 5px;
+}
+
+
+.command_special_key {
+    border: 1px solid #9e8e7e;
+    border-radius: 5px;
+    background: #f0f0b9;
+    color: #000000;
+    padding: 3px;
+    margin: 0 5px 0 5px;
+}
+
+table.command_table {
+    border: 1px solid #a0a0a0;
+    background: #ffffff;
+    color: #000000;
+    margin: 1em 0.5em 1em 0.5em;
+}
+
+tr.command_table:nth-child(odd) {
+    background: #ffffff;
+}
+
+tr.command_table:nth-child(even) {
+    background: #f0f0f0;
+}
+
+.command_table_heading {
+    font-weight: bold;
+    color: #003060;
+    padding: 0 1em 0 0;
+}
+
+.command_table_heading_row {
+    background: #e0e0e0;
+}
+
+.command_table_key_seq {
+    padding: 7px;
+}
+
+span.command_table_desc {
+    color: #0060c0;
+}
+
+span.command_table_desc:hover {
+    color: #0080ff;
+}
+
+

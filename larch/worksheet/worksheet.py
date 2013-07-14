@@ -318,6 +318,8 @@ class Worksheet (object):
 			command.Command([command.Key(ord('A')), command.Key(ord('J'))], 'Insert Javascript source below', lambda: self._insert_block(WorksheetBlockSource(self, 'js', 'js'), False)),
 			command.Command([command.Key(ord('A')), command.Key(ord('C'))], 'Insert CSS source below', lambda: self._insert_block(WorksheetBlockSource(self, 'css', 'css'), False)),
 			command.Command([command.Key(ord('A')), command.Key(ord('G'))], 'Insert GLSL source below', lambda: self._insert_block(WorksheetBlockSource(self, 'glsl', 'glsl'), False)),
+
+			command.Command([command.Key(ord('X'))], 'Remove block', lambda: self._delete_block()),
 		]
 
 
@@ -343,27 +345,6 @@ class Worksheet (object):
 
 		def on_save_key(key):
 			save()
-
-		def on_text_key(key):
-			self._insert_block(WorksheetBlockText(self), True)
-
-		def on_code_key(key):
-			self._insert_block(WorksheetBlockCode(self), True)
-
-		def on_js_key(key):
-			self._insert_block(WorksheetBlockSource(self, 'js', 'js'), True)
-
-		def on_css_key(key):
-			self._insert_block(WorksheetBlockSource(self, 'css', 'css'), True)
-
-		def on_glsl_key(key):
-			self._insert_block(WorksheetBlockSource(self, 'glsl', 'glsl'), True)
-
-		def on_html_key(key):
-			self._insert_block(WorksheetBlockSource(self, 'html', 'html'), True)
-
-		def on_delete_block_key(key):
-			self._delete_block()
 
 
 
@@ -400,21 +381,21 @@ class Worksheet (object):
 		insert_glsl_above = menu.item('Insert GLSL source above', lambda: _insert_glsl(False))
 		insert_html_above = menu.item('Insert HTML source above', lambda: _insert_html(False))
 
-		insert_rich_text_below = menu.item('Insert rich text below (Ctrl-1)', lambda: _insert_rich_text(True))
-		insert_code_below = menu.item('Insert executable Python code below (Ctrl-2)', lambda: _insert_code(True))
-		insert_js_below = menu.item('Insert JS source below (Ctrl-3)', lambda: _insert_js(True))
-		insert_css_below = menu.item('Insert CSS source below (Ctrl-4)', lambda: _insert_css(True))
-		insert_glsl_below = menu.item('Insert GLSL source below (Ctrl-5)', lambda: _insert_glsl(True))
-		insert_html_below = menu.item('Insert HTML source below (Ctrl-6)', lambda: _insert_html(True))
+		insert_rich_text_below = menu.item('Insert rich text below', lambda: _insert_rich_text(True))
+		insert_code_below = menu.item('Insert executable Python code below', lambda: _insert_code(True))
+		insert_js_below = menu.item('Insert JS source below', lambda: _insert_js(True))
+		insert_css_below = menu.item('Insert CSS source below', lambda: _insert_css(True))
+		insert_glsl_below = menu.item('Insert GLSL source below', lambda: _insert_glsl(True))
+		insert_html_below = menu.item('Insert HTML source below', lambda: _insert_html(True))
 
-		remove_block = menu.item('Remove block (Ctrl-0)', lambda: self._delete_block())
+		remove_block = menu.item('Remove block', lambda: self._delete_block())
 		edit_menu = menu.sub_menu('Edit', [
 			insert_rich_text_above,
 			insert_code_above,
 			insert_js_above,
 			insert_css_above,
 			insert_glsl_above,
-			#insert_html_above,
+			insert_html_above,
 
 			menu.item('--------', None),
 			insert_rich_text_below,
@@ -422,7 +403,7 @@ class Worksheet (object):
 			insert_js_below,
 			insert_css_below,
 			insert_glsl_below,
-			#insert_html_below,
+			insert_html_below,
 			menu.item('--------', None),
 			remove_block])
 
@@ -451,12 +432,5 @@ class Worksheet (object):
 		p = Html(*contents)
 		p = p.with_key_handler([KeyAction(KeyAction.KEY_DOWN, 13, ctrl=True)], on_execute_key)
 		p = p.with_key_handler([KeyAction(KeyAction.KEY_DOWN, ord('S'), ctrl=True, prevent_default=True)], on_save_key)
-		p = p.with_key_handler([KeyAction(KeyAction.KEY_DOWN, ord('1'), ctrl=True, prevent_default=True)], on_text_key)
-		p = p.with_key_handler([KeyAction(KeyAction.KEY_DOWN, ord('2'), ctrl=True, prevent_default=True)], on_code_key)
-		p = p.with_key_handler([KeyAction(KeyAction.KEY_DOWN, ord('3'), ctrl=True, prevent_default=True)], on_js_key)
-		p = p.with_key_handler([KeyAction(KeyAction.KEY_DOWN, ord('4'), ctrl=True, prevent_default=True)], on_css_key)
-		p = p.with_key_handler([KeyAction(KeyAction.KEY_DOWN, ord('5'), ctrl=True, prevent_default=True)], on_glsl_key)
-		#p = p.with_key_handler([Key(Key.KEY_DOWN, ord('6'), ctrl=True, prevent_default=True)], on_html_key)
-		p = p.with_key_handler([KeyAction(KeyAction.KEY_DOWN, ord('0'), ctrl=True, prevent_default=True)], on_delete_block_key)
 		return p.use_css('/static/worksheet.css')
 
