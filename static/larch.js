@@ -1,5 +1,5 @@
 //-*************************
-//-* This source code is (C)copyright Geoffrey French 2011-2012.
+//-* This source code is (C)copyright Geoffrey French 2011-2013.
 //-*************************
 larch.controls = {};
 
@@ -434,7 +434,7 @@ larch.__getSegmentIDForEvent = function(src_element) {
     var n = src_element;
     var segment_id = null;
     while (n !== null) {
-        if (n.__lch_seg_id) {
+        if ("__lch_seg_id" in n) {
             // We have a segment ID
             segment_id = n.__lch_seg_id;
             break;

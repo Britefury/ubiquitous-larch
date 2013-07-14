@@ -1,5 +1,5 @@
 ##-*************************
-##-* This source code is (C)copyright Geoffrey French 2011-2012.
+##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 from britefury.dynamicsegments.service import DynamicDocumentService
 from britefury.incremental_view.incremental_view import IncrementalView

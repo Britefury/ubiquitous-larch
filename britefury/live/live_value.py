@@ -1,5 +1,5 @@
 ##-*************************
-##-* This source code is (C)copyright Geoffrey French 2011-2012.
+##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
 from britefury.live.abstract_live import AbstractLive

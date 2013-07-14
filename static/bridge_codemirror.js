@@ -1,3 +1,7 @@
+//-*************************
+//-* This source code is (C)copyright Geoffrey French 2011-2013.
+//-*************************
+
 larch.controls.initCodeMirror = function(textArea, config, immediate_events) {
     var c = CodeMirror.fromTextArea(textArea, config);
     if (immediate_events) {

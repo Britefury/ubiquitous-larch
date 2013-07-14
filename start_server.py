@@ -1,7 +1,7 @@
 ##-*************************
-##-* This source code is (C)copyright Geoffrey French 2011-2012.
+##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-import webbrowser
+#import webbrowser
 
 from bottle import Bottle, run, static_file, request, response
 

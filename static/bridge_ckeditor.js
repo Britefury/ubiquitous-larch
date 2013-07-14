@@ -1,3 +1,7 @@
+//-*************************
+//-* This source code is (C)copyright Geoffrey French 2011-2013.
+//-*************************
+
 larch.controls.initCKEditor = function(textArea, config, immediate_events) {
     var c = CKEDITOR.inline(textArea, config);
     if (immediate_events) {
@@ -19,6 +23,6 @@ larch.controls.initCKEditor = function(textArea, config, immediate_events) {
     c.on("blur", function() {
         larch.postEvent(textArea, "ckeditor_blur", null);
     });
-}
+};
 
 CKEDITOR.disableAutoInline = true;

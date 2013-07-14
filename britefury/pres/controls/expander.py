@@ -1,5 +1,5 @@
 ##-*************************
-##-* This source code is (C)copyright Geoffrey French 2011-2012.
+##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 from britefury.pres.pres import post_event_js_code_for_handler
 from britefury.pres.html import Html

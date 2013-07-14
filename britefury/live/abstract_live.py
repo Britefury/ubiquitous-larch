@@ -1,5 +1,5 @@
 ##-*************************
-##-* This source code is (C)copyright Geoffrey French 2011-2012.
+##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 from britefury.pres.pres import Pres, CompositePres, InnerFragment
 from britefury.pres.obj_pres import error_box
