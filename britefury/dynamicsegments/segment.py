@@ -180,6 +180,11 @@ class SegmentRef (object):
 		return self.__segment
 
 	def _build_html(self, items, ref_resolver=None):
+		"""Generate the HTML source represented by this SegmentRef instance.
+
+		items - the list of strings that is constructed during the build process, they are concatenated to make the HTML source
+		ref_resolver - a function used to resolve segment references
+		"""
 		if ref_resolver is not None:
 			ref_resolver(items, self.__segment)
 		else:
@@ -188,6 +193,8 @@ class SegmentRef (object):
 
 	def _complete_html(self):
 		"""Build the HTML content of the complete segment subtree rooted at the segment pointed to by this reference
+
+		All references are inlined.
 		"""
 		items = []
 		self._build_html(items, self.__resolve_complete)
@@ -218,6 +225,9 @@ class HtmlContent (list):
 
 	def _build_html(self, items, ref_resolver=None):
 		"""Generate the HTML source represented by this HtmlContent instance.
+
+		items - the list of strings that is constructed during the build process, they are concatenated to make the HTML source
+		ref_resolver - a function used to resolve segment references
 		"""
 		for x in self:
 			if isinstance(x, str)  or  isinstance(x, unicode):

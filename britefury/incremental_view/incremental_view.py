@@ -55,7 +55,7 @@ class _FragmentView (object):
 		self.__incr.add_listener(self.__on_incremental_monitor_changed)
 
 		# Segments
-		self.__segment = inc_view.dynamic_document.new_segment(desc='{0}'.format(type(self.__model).__name__))
+		self.__segment = self.__inc_view.dynamic_document.new_segment(desc='{0}'.format(type(self.__model).__name__))
 		self.__sub_segments = []
 
 		# Resources
@@ -73,16 +73,21 @@ class _FragmentView (object):
 
 	#
 	#
-	# Element acquisition
+	# Segment acquisition
 	#
 	#
 
 	@property
-	def segment_reference(self):
+	def __segment_reference(self):
+		"""
+		Get a reference to the segment that corresponds to this fragment
+
+		Called from present_inner_fragment, which is called while conerting an InnerFragment Pres to HtmlContent
+		"""
 		return self.__segment.reference()
 
 	@property
-	def refreshed_segment_reference(self):
+	def _refreshed_segment_reference(self):
 		self.refresh()
 		return self.__segment.reference()
 
@@ -331,10 +336,11 @@ class _FragmentView (object):
 		self.__clear_flag(self._FLAG_DISABLE_INSPECTOR)
 
 		content = None
-		if self.__fragment_factory is not None:
-			content = self.__fragment_factory(self.__inc_view, self, self.__model)   if self.__fragment_factory is not None   else None
-
-		self.__on_compute_node_result_end()
+		try:
+			if self.__fragment_factory is not None:
+				content = self.__fragment_factory.build_html_content_for_fragment(self.__inc_view, self, self.__model)   if self.__fragment_factory is not None   else None
+		finally:
+			self.__on_compute_node_result_end()
 		return content
 
 
@@ -430,7 +436,7 @@ class _FragmentView (object):
 			child_fragment_view.refresh()
 			IncrementalMonitor.unblock_access_tracking(current)
 
-		return HtmlContent([child_fragment_view.segment_reference])
+		return HtmlContent([child_fragment_view.__segment_reference])
 
 
 
@@ -522,7 +528,7 @@ class FragmentFactory (object):
 			return NotImplemented
 
 
-	def __call__(self, inc_view, fragment_view, model):
+	def build_html_content_for_fragment(self, inc_view, fragment_view, model):
 		# Create the view fragment
 		try:
 			fragment_pres = self.__perspective.present_object(model, fragment_view)
@@ -538,6 +544,7 @@ class FragmentFactory (object):
 		try:
 			html_content = self.__pres_to_html_content(fragment_pres, fragment_view)
 		except Exception, e:
+			print 'Caught exception while converting pres -> html in fragment for model of type {0}'.format(fragment_view.model)
 			fragment_pres = _exception_during_presentation(present_exception(e, sys.exc_info()[2]))
 			html_content = self.__pres_to_html_content(fragment_pres, fragment_view)
 
@@ -786,7 +793,7 @@ class IncrementalView (object):
 		# Get the root fragment
 		root_frag_view = self._get_root_fragment_view()
 		# Set the content of the dynamic document to the content of the root fragment
-		self.__dynamic_document.root_segment = root_frag_view.refreshed_segment_reference
+		self.__dynamic_document.root_segment = root_frag_view._refreshed_segment_reference
 
 
 	#

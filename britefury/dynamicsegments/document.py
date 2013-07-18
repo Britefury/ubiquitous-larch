@@ -248,12 +248,12 @@ class DynamicDocument (object):
 		content - an HTMLContent instance that contains the content of the segment that is to be created (or None, in which case you must initialise it by setting the segment's content attribute/property
 		desc - a description string that is appended to the segment's ID. This is passed to the browser in order to allow you to figure out what e.g. seg27 is representing.
 		"""
-		return self._table.new_segment(content, desc)
+		return self._table._new_segment(content, desc)
 
 	def remove_segment(self, segment):
 		"""Remove a segment from the document. You should remove segments when you don't need them anymore.
 		"""
-		self._table.remove_segment(segment)
+		self._table._remove_segment(segment)
 
 
 
@@ -472,9 +472,9 @@ class DynamicDocument (object):
 		# Refresh the document
 
 		# Get the change set
-		changes = self._table.get_recent_changes()
+		changes = self._table._get_recent_changes()
 		# Clear changes
-		self._table.clear_changes()
+		self._table._clear_changes()
 		# Compose the modify document message
 		self.__document_modifications_message = messages.modify_document_message(changes)
 
@@ -499,7 +499,7 @@ class DynamicDocument (object):
 		dependency_tags = '\n'.join([dep.to_html()   for dep in deps_list])
 		self.__dependencies = []
 
-		initialisers = self._table.get_all_initialisers()
+		initialisers = self._table._get_all_initialisers()
 		initialisers_json_str = json.dumps(initialisers)
 
 		if len(self.__js_queue) > 0:
@@ -509,7 +509,7 @@ class DynamicDocument (object):
 		else:
 			js_to_exec = ''
 
-		self._table.clear_changes()
+		self._table._clear_changes()
 
 		return _page_content.format(title=self.__title, session_id=self._session_id, dependency_tags=dependency_tags, content=root_content, init_script=js_to_exec, initialisers=initialisers_json_str)
 
@@ -542,6 +542,7 @@ class _ChangeSet (object):
 		self.initialise_scripts = []
 		self.shutdown_scripts = []
 
+		# Schedule the execution of the shutdown scripts of the segments that are being removed.
 		for seg in removed_segs:
 			shutdown_scripts = seg.get_shutdown_scripts()
 			if shutdown_scripts is not None:
@@ -563,6 +564,15 @@ class _ChangeSet (object):
 			initialise_scripts = seg.get_initialise_scripts()
 			if initialise_scripts is not None:
 				self.initialise_scripts.append((seg.id, initialise_scripts))
+
+
+		if len(self.__added_seg_to_html_bits) > 0:
+			for seg in self.__added_seg_to_html_bits.keys():
+				print 'Orphaned added segment (in HTML form) {0}'.format(seg.id)
+
+		if len(self.__added_segs) > 0:
+			for seg in self.__added_segs:
+				print 'Orphaned added segment {0}'.format(seg.id)
 
 		assert len(self.__added_seg_to_html_bits) == 0
 		assert len(self.__added_segs) == 0
@@ -613,19 +623,19 @@ class _SegmentTable (object):
 
 
 
-	def clear_changes(self):
+	def _clear_changes(self):
 		self.__changes_added = set()
 		self.__changes_removed = set()
 		self.__changes_modified = set()
 
 
-	def get_recent_changes(self):
+	def _get_recent_changes(self):
 		changes = _ChangeSet(copy(self.__changes_added), copy(self.__changes_removed), copy(self.__changes_modified))
 
 		return changes.json()
 
 
-	def get_all_initialisers(self):
+	def _get_all_initialisers(self):
 		initialisers = []
 		for segment in self.__id_to_segment.values():
 			init_scripts = segment.get_initialise_scripts()
@@ -635,7 +645,7 @@ class _SegmentTable (object):
 
 
 
-	def new_segment(self, content=None, desc=None):
+	def _new_segment(self, content=None, desc=None):
 		desc_str = ('_' + desc)   if desc is not None   else ''
 		seg_id = 'seg{0}{1}'.format(self.__id_counter, desc_str)
 		self.__id_counter += 1
@@ -649,7 +659,7 @@ class _SegmentTable (object):
 		return seg
 
 
-	def remove_segment(self, segment):
+	def _remove_segment(self, segment):
 		del self.__id_to_segment[segment.id]
 
 		self.__changes_removed.add(segment)
