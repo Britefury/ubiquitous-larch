@@ -69,7 +69,7 @@ class JSGetProp (JSSimpleExpr):
 		self.__prop_name = prop_name
 
 	def build_js(self, pres_ctx):
-		target_src = _node_to_js_src(self.target, pres_ctx)
+		target_src = _node_to_js_src(self.__target, pres_ctx)
 		return '{0}.{1}'.format(target_src, self.__prop_name)
 
 

@@ -126,7 +126,7 @@ class TextureCube (Texture):
 
 	def __js__(self, pres_ctx, scene_js):
 		resources = '[' + ', '.join([rsc.build_js(pres_ctx)    for rsc in self.resources]) + ']'
-		return scene_js.createTexureCube(js.JSExprSrc(resources))
+		return scene_js.createTextureCube(js.JSExprSrc(resources))
 
 
 class Material (object):
@@ -144,8 +144,8 @@ class Material (object):
 
 	def __js__(self, pres_ctx, scene_js):
 		shader_js = self.shader.__js__(pres_ctx, scene_js)
-		sampler_names_to_textures = '{' + ', '.join(['{0}:{1}'.format(name, texture.__js__(pres_ctx, scene_js))   for name, texture in self.sampler_names_to_textures.items()]) + '}'
-		return scene_js.createMaterial(shader_js, js.JSExprSrc(sampler_names_to_textures), self.use_blending)
+		sampler_names_to_textures_src = '{' + ', '.join(['{0}:{1}'.format(name, texture.__js__(pres_ctx, scene_js).build_js(pres_ctx))   for name, texture in self.sampler_names_to_textures.items()]) + '}'
+		return scene_js.createMaterial(shader_js, js.JSExprSrc(sampler_names_to_textures_src), self.use_blending)
 
 
 	__single_texture_shader = Shader([_single_texture_vshader], [_single_texture_fshader])
@@ -189,9 +189,9 @@ class UVMeshEntity (Entity):
 		self.data_source = data_source
 
 	def __js__(self, pres_ctx, scene_js):
-		material = self.material.__js__(pres_ctx, scene_js)
-		entity = '{0}.createUVMeshEntity({1})'.format(scene_js, material)
-		return self.data_source.__js__(pres_ctx, scene_js, entity)
+		material_js = self.material.__js__(pres_ctx, scene_js)
+		entity_js = scene_js.createUVMeshEntity(material_js)
+		return self.data_source.__js__(pres_ctx, scene_js, entity_js)
 
 
 
@@ -253,7 +253,7 @@ class Skybox (Entity):
 
 	def __js__(self, pres_ctx, scene_js):
 		# fovY, nearFrac, farFrac, focalPoint, orbitalRadius, azimuth, altitude
-		materials_src = '[' + ', '.join([mat.__js__(pres_ctx, scene_js)    for mat in self.materials]) + ']'
+		materials_src = '[' + ', '.join([mat.__js__(pres_ctx, scene_js).build_js(pres_ctx)    for mat in self.materials]) + ']'
 		return scene_js.createSkybox(js.JSExprSrc(materials_src))
 
 
@@ -274,9 +274,10 @@ class Scene (js.JS):
 		"""
 		scene_js = js.JSName('scene')
 		camera_src = self.camera.__js__(pres_ctx, scene_js).build_js(pres_ctx)
-		entities_jss = [scene_js.addEntity(entity_js)   for entity_js in self.entities]
+		entities_jss = [scene_js.addEntity(entity.__js__(pres_ctx, scene_js))   for entity in self.entities]
 		entities_src = ''.join([entity_js.build_js(pres_ctx) + '\n'   for entity_js in entities_jss])
-		return js_src.format(camera_src, entities_src)
+		apply_src = js_src.format(camera_src, entities_src)
+		return apply_src
 
 
 def scene_canvas(width, height, scene):
