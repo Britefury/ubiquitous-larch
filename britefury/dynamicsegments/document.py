@@ -248,7 +248,8 @@ class DynamicDocument (object):
 		content - an HTMLContent instance that contains the content of the segment that is to be created (or None, in which case you must initialise it by setting the segment's content attribute/property
 		desc - a description string that is appended to the segment's ID. This is passed to the browser in order to allow you to figure out what e.g. seg27 is representing.
 		"""
-		return self._table._new_segment(content, desc)
+		segment = self._table._new_segment(content, desc)
+		return segment
 
 	def remove_segment(self, segment):
 		"""Remove a segment from the document. You should remove segments when you don't need them anymore.
@@ -662,7 +663,10 @@ class _SegmentTable (object):
 	def _remove_segment(self, segment):
 		del self.__id_to_segment[segment.id]
 
-		self.__changes_removed.add(segment)
+		if segment in self.__changes_added:
+			self.__changes_added.remove(segment)
+		else:
+			self.__changes_removed.add(segment)
 
 		self.__doc._notify_document_modified()
 

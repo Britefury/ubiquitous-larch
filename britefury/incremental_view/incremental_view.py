@@ -68,6 +68,7 @@ class _FragmentView (object):
 			self.__inc_view.dynamic_document.unref_resource(rsc)
 		for sub_seg in self.__sub_segments:
 			self.__inc_view.dynamic_document.remove_segment(sub_seg)
+		self.__inc_view.dynamic_document.remove_segment(self.__segment)
 
 
 
@@ -315,6 +316,23 @@ class _FragmentView (object):
 
 
 	def __compute_fragment_content(self):
+		# Clear the existing content
+		self._clear_existing_content()
+
+		# Generate new content
+		self.__on_compute_node_result_begin()
+		self.__clear_flag(self._FLAG_DISABLE_INSPECTOR)
+
+		content = None
+		try:
+			if self.__fragment_factory is not None:
+				content = self.__fragment_factory.build_html_content_for_fragment(self.__inc_view, self, self.__model)   if self.__fragment_factory is not None   else None
+		finally:
+			self.__on_compute_node_result_end()
+		return content
+
+
+	def _clear_existing_content(self):
 		# Unregister existing child relationships
 		child = self.__children_head
 		while child is not None:
@@ -331,17 +349,6 @@ class _FragmentView (object):
 		for sub_seg in self.__sub_segments:
 			self.__inc_view.dynamic_document.remove_segment(sub_seg)
 		del self.__sub_segments[:]
-
-		self.__on_compute_node_result_begin()
-		self.__clear_flag(self._FLAG_DISABLE_INSPECTOR)
-
-		content = None
-		try:
-			if self.__fragment_factory is not None:
-				content = self.__fragment_factory.build_html_content_for_fragment(self.__inc_view, self, self.__model)   if self.__fragment_factory is not None   else None
-		finally:
-			self.__on_compute_node_result_end()
-		return content
 
 
 
@@ -544,7 +551,9 @@ class FragmentFactory (object):
 		try:
 			html_content = self.__pres_to_html_content(fragment_pres, fragment_view)
 		except Exception, e:
-			print 'Caught exception while converting pres -> html in fragment for model of type {0}'.format(fragment_view.model)
+			# The HTML content may have been partially built before the exception was raised, in which case fragment view nodes - and
+			# their respective segments - may have been created. They are now orphaned and need to be disposed of
+			fragment_view._clear_existing_content()
 			fragment_pres = _exception_during_presentation(present_exception(e, sys.exc_info()[2]))
 			html_content = self.__pres_to_html_content(fragment_pres, fragment_view)
 
@@ -675,8 +684,7 @@ class IncrementalViewTable (object):
 		while len(unrefed_stack) > 0:
 			fragment_view = unrefed_stack.pop()
 
-			for child in fragment_view.children:
-				unrefed_stack.append(child)
+			# Don't need to visit children; entire sub-trees are 'unrefed' all at once
 
 			try:
 				sub_table = self.__table[id(fragment_view.model)]
@@ -826,6 +834,7 @@ class IncrementalView (object):
 		root_frag = self._get_root_fragment_view()
 		if root_frag is not None:
 			root_frag.refresh()
+		self._node_table.clean()
 		self.__on_view_refresh_end()
 
 
