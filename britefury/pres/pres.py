@@ -7,13 +7,14 @@ from britefury.dynamicsegments.segment import HtmlContent
 from britefury.dynamicsegments import dependencies
 from britefury.pres.presctx import PresentationContext
 from britefury.pres.key_event import KeyAction
+from britefury.pres import js
 
 
 
 _ext_dependencies = {}
 
 
-
+_node_js = js.JSName('node')
 
 class Pres (object):
 	def build(self, pres_ctx):
@@ -40,43 +41,26 @@ class Pres (object):
 		return KeyEventSource(keys_and_handlers, self)
 
 
-	def _js_eval_expr(self, parts):
-		ex = []
-		for p in parts:
-			if isinstance(p, JS):
-				ex.append(p)
-			elif isinstance(p, str)  or  isinstance(p, unicode):
-				ex.append(p)
-			else:
-				ex.append(json.dumps(p))
-		return ex
+	def js_eval(self, expr):
+		if isinstance(expr, str)  or  isinstance(expr, unicode):
+			expr = js.JSExprSrc(expr)
+		elif not isinstance(expr, js.JS):
+			raise TypeError, 'Javascript expression must be a string or a JS object'
+		return JSInitEval(self, expr)
+
+	def js_function_call(self, js_fn_name, *args):
+		return JSInitEval(self, js.JSCall(js_fn_name, (_node_js,) + args))
 
 
-	def __js_fn_call_expr(self, js_fn_name, json_args):
-		call = [js_fn_name + '(node']
-		for a in json_args:
-			if isinstance(a, JS):
-				call.append(', ')
-				call.append(a)
-			else:
-				call.append(', ' + json.dumps(a))
-		call.append(');')
-		return call
+	def js_shutdown_eval(self, expr):
+		if isinstance(expr, str)  or  isinstance(expr, unicode):
+			expr = js.JSExprSrc(expr)
+		elif not isinstance(expr, js.JS):
+			raise TypeError, 'Javascript expression must be a string or a JS object'
+		return JSShutdownEval(self, expr)
 
-
-
-	def js_eval(self, *expr):
-		return JSInitEval(self, *self._js_eval_expr(expr))
-
-	def js_function_call(self, js_fn_name, *json_args):
-		return JSInitEval(self, *self.__js_fn_call_expr(js_fn_name, json_args))
-
-
-	def js_shutdown_eval(self, *expr):
-		return JSShutdownEval(self, *self._js_eval_expr(expr))
-
-	def js_shutdown_function_call(self, js_fn_name, *json_args):
-		return JSShutdownEval(self, *self.__js_fn_call_expr(js_fn_name, json_args))
+	def js_shutdown_function_call(self, js_fn_name, *args):
+		return JSShutdownEval(self, js.JSCall(js_fn_name, (_node_js,) + args))
 
 
 	def use_css(self, url=None, source=None):
@@ -143,14 +127,10 @@ class Pres (object):
 
 
 
-class JS (object):
-	def build_js(self, pres_ctx):
-		raise NotImplementedError, 'abstract'
 
 
 
-
-class Resource (Pres, JS):
+class Resource (Pres, js.JS):
 	def __init__(self, rsc_data):
 		self.__rsc_data = rsc_data
 
@@ -231,9 +211,9 @@ class EventSource (SubSegmentPres):
 
 
 class JSEval (SubSegmentPres):
-	def __init__(self, child, *expr):
+	def __init__(self, child, expr):
 		super(JSEval, self).__init__(child)
-		self.__expr = expr
+		self._expr = expr
 
 
 	def initialise_segment(self, seg, pres_ctx):
@@ -242,34 +222,16 @@ class JSEval (SubSegmentPres):
 
 
 class JSInitEval (JSEval):
-	def __init__(self, child, *expr):
-		super(JSInitEval, self).__init__(child)
-		self.__expr = expr
-
-
 	def initialise_segment(self, seg, pres_ctx):
-		ex = self.__expr
-		if len(ex) == 1  and  not isinstance(ex[0], JS):
-			# Most common case
-			seg.add_initialise_script(ex[0])
-		else:
-			seg.add_initialise_script(''.join([(x.build_js(pres_ctx)   if isinstance(x, JS)   else x)   for x in ex]))
+		expr_src = self._expr.build_js(pres_ctx)
+		seg.add_initialise_script(expr_src)
 
 
 
-class JSShutdownEval (SubSegmentPres):
-	def __init__(self, child, *expr):
-		super(JSShutdownEval, self).__init__(child)
-		self.__expr = expr
-
-
+class JSShutdownEval (JSEval):
 	def initialise_segment(self, seg, pres_ctx):
-		ex = self.__expr
-		if len(ex) == 1  and  not isinstance(ex[0], JS):
-			# Most common case
-			seg.add_shutddown_script(ex[0])
-		else:
-			seg.add_shutddown_script(''.join([(x.build_js(pres_ctx)   if isinstance(x, JS)   else x)   for x in ex]))
+		expr_src = self._expr.build_js(pres_ctx)
+		seg.add_shutddown_script(expr_src)
 
 
 

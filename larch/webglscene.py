@@ -3,7 +3,7 @@
 ##-*************************
 import json
 
-from britefury.pres.pres import JS
+from britefury.pres import js
 from britefury.pres.html import Html
 
 
@@ -102,13 +102,13 @@ class Shader (object):
 		self.fs_sources = fs_sources
 
 
-	def __js__(self, pres_ctx, scene):
-		return '{0}.createShader({1}, {2})'.format(scene, json.dumps(self.vs_sources), json.dumps(self.fs_sources))
+	def __js__(self, pres_ctx, scene_js):
+		return scene_js.createShader(self.vs_sources, self.fs_sources)
 
 
 
 class Texture (object):
-	def __js__(self, pres_ctx, scene):
+	def __js__(self, pres_ctx, scene_js):
 		raise NotImplementedError, 'abstract'
 
 
@@ -116,18 +116,17 @@ class Texture2D (Texture):
 	def __init__(self, resource):
 		self.resource = resource
 
-	def __js__(self, pres_ctx, scene):
-		resource = self.resource.build_js(pres_ctx)
-		return '{0}.createTexture2D({1})'.format(scene, resource)
+	def __js__(self, pres_ctx, scene_js):
+		return scene_js.createTexture2D(self.resource)
 
 
 class TextureCube (Texture):
 	def __init__(self, resources):
 		self.resources = resources
 
-	def __js__(self, pres_ctx, scene):
+	def __js__(self, pres_ctx, scene_js):
 		resources = '[' + ', '.join([rsc.build_js(pres_ctx)    for rsc in self.resources]) + ']'
-		return '{0}.createTextureCube({1})'.format(scene, resources)
+		return scene_js.createTexureCube(js.JSExprSrc(resources))
 
 
 class Material (object):
@@ -143,11 +142,10 @@ class Material (object):
 	def has_textures(self):
 		return len(self.sampler_names_to_textures) > 0
 
-	def __js__(self, pres_ctx, scene):
-		shader = self.shader.__js__(pres_ctx, scene)
-		sampler_names_to_textures = '{' + ', '.join(['{0}:{1}'.format(name, texture.__js__(pres_ctx, scene))   for name, texture in self.sampler_names_to_textures.items()]) + '}'
-		use_blending = json.dumps(self.use_blending)
-		return '{0}.createMaterial({1}, {2}, {3})'.format(scene, shader, sampler_names_to_textures, use_blending)
+	def __js__(self, pres_ctx, scene_js):
+		shader_js = self.shader.__js__(pres_ctx, scene_js)
+		sampler_names_to_textures = '{' + ', '.join(['{0}:{1}'.format(name, texture.__js__(pres_ctx, scene_js))   for name, texture in self.sampler_names_to_textures.items()]) + '}'
+		return scene_js.createMaterial(shader_js, js.JSExprSrc(sampler_names_to_textures), self.use_blending)
 
 
 	__single_texture_shader = Shader([_single_texture_vshader], [_single_texture_fshader])
@@ -163,7 +161,7 @@ Material.plain_white = Material(Shader([_plain_white_vshader], [_plain_white_fsh
 
 
 class Entity (object):
-	def __js__(self, pres_ctx, scene):
+	def __js__(self, pres_ctx, scene_js):
 		raise NotImplementedError, 'abstract'
 
 
@@ -177,12 +175,9 @@ class MeshEntity (Entity):
 		self.vertices =  vertices
 		self.index_buffer_modes_data = index_buffer_modes_data
 
-	def __js__(self, pres_ctx, scene):
-		material = self.material.__js__(pres_ctx, scene)
-		vertex_attrib_names_sizes = json.dumps(self.vertex_attrib_names_sizes)
-		vertices = json.dumps(self.vertices)
-		index_buffer_modes_data = json.dumps(self.index_buffer_modes_data)
-		return '{0}.createLiteralMeshEntity({1}, {2}, {3}, {4})'.format(scene, material, vertex_attrib_names_sizes, vertices, index_buffer_modes_data)
+	def __js__(self, pres_ctx, scene_js):
+		material_js = self.material.__js__(pres_ctx, scene_js)
+		return scene_js.createLiteralMeshEntity(material_js, self.vertex_attrib_names_sizes, self.vertices, self.index_buffer_modes_data)
 
 
 class UVMeshEntity (Entity):
@@ -193,15 +188,15 @@ class UVMeshEntity (Entity):
 		self.material = material
 		self.data_source = data_source
 
-	def __js__(self, pres_ctx, scene):
-		material = self.material.__js__(pres_ctx, scene)
-		entity = '{0}.createUVMeshEntity({1})'.format(scene, material)
-		return self.data_source.__js__(pres_ctx, scene, entity)
+	def __js__(self, pres_ctx, scene_js):
+		material = self.material.__js__(pres_ctx, scene_js)
+		entity = '{0}.createUVMeshEntity({1})'.format(scene_js, material)
+		return self.data_source.__js__(pres_ctx, scene_js, entity)
 
 
 
 class UVMeshDataSource (object):
-	def __js__(self, pres_ctx, scene, entity):
+	def __js__(self, pres_ctx, scene_js, entity_js):
 		raise NotImplementedError, 'abstract'
 
 
@@ -215,15 +210,9 @@ class UVMeshDataLiteral (UVMeshDataSource):
 		self.vertex_positions = vertex_positions
 		self.vertex_attribs_names_sizes_data = vertex_attribs_names_sizes_data
 
-	def __js__(self, pres_ctx, scene, entity):
-		u_segs = json.dumps(self.u_segs)
-		v_segs = json.dumps(self.v_segs)
-		u_closed = json.dumps(self.u_closed)
-		v_closed = json.dumps(self.v_closed)
-		vertex_positions = json.dumps(self.vertex_positions)
-		vertex_attribs_names_sizes_data = json.dumps(self.vertex_attribs_names_sizes_data)
+	def __js__(self, pres_ctx, scene_js, entity_js):
 		#uSegs, vSegs, closedU, closedV, vertexPositions, vertexAttribsNamesSizesData
-		return '{0}.refreshUVMesh({1}, {2}, {3}, {4}, {5}, {6})'.format(entity, u_segs, v_segs, u_closed, v_closed, vertex_positions, vertex_attribs_names_sizes_data)
+		return entity_js.refreshUVMesh(self.u_segs, self.v_segs, self.u_closed, self.v_closed, self.vertex_positions, self.vertex_attribs_names_sizes_data)
 
 
 class UVMeshDataResource (UVMeshDataSource):
@@ -231,13 +220,12 @@ class UVMeshDataResource (UVMeshDataSource):
 		super(UVMeshDataResource, self).__init__()
 		self.resource = resource
 
-	def __js__(self, pres_ctx, scene, entity):
-		resource = self.resource.build_js(pres_ctx)
-		return '{0}.attachResource({1})'.format(entity, resource)
+	def __js__(self, pres_ctx, scene_js, entity_js):
+		return entity_js.attachResournce(self.resource)
 
 
 class Camera (object):
-	def __js__(self, pres_ctx, scene):
+	def __js__(self, pres_ctx, scene_js):
 		raise NotImplementedError, 'abstract'
 
 
@@ -252,16 +240,9 @@ class TurntableCamera (Camera):
 		self.azimuth = azimuth
 		self.altitude = altitude
 
-	def __js__(self, pres_ctx, scene):
+	def __js__(self, pres_ctx, scene_js):
 		# fovY, nearFrac, farFrac, focalPoint, orbitalRadius, azimuth, altitude
-		fov_y = json.dumps(self.fov_y)
-		near_frac = json.dumps(self.near_frac)
-		far_frac = json.dumps(self.far_frac)
-		focal_point = json.dumps(self.focal_point)
-		orbital_radius = json.dumps(self.orbital_radius)
-		azimuth = json.dumps(self.azimuth)
-		altitude = json.dumps(self.altitude)
-		return '{0}.createTurntableCamera({1}, {2}, {3}, {4}, {5}, {6}, {7})'.format(scene, fov_y, near_frac, far_frac, focal_point, orbital_radius, azimuth, altitude)
+		return scene_js.createTurntableCamera(self.fov_y, self.near_frac, self.far_frac, self.focal_point, self.orbital_radius, self.azimuth, self.altitude)
 
 
 class Skybox (Entity):
@@ -270,20 +251,20 @@ class Skybox (Entity):
 		self.materials = materials
 
 
-	def __js__(self, pres_ctx, scene):
+	def __js__(self, pres_ctx, scene_js):
 		# fovY, nearFrac, farFrac, focalPoint, orbitalRadius, azimuth, altitude
-		materials = '[' + ', '.join([mat.__js__(pres_ctx, scene)    for mat in self.materials]) + ']'
-		return '{0}.createSkybox({1})'.format(scene, materials)
+		materials_src = '[' + ', '.join([mat.__js__(pres_ctx, scene_js)    for mat in self.materials]) + ']'
+		return scene_js.createSkybox(js.JSExprSrc(materials_src))
 
 
 
-class Scene (JS):
+class Scene (js.JS):
 	def __init__(self, camera, entities):
 		self.camera = camera
 		self.entities = entities
 
 
-	def __js__(self, pres_ctx):
+	def build_js(self, pres_ctx):
 		js_src = """
 		(function(canvas) {{
 			var scene = webglscene(canvas);
@@ -291,12 +272,11 @@ class Scene (JS):
 			{1}
 		}})(node);
 		"""
-		camera = self.camera.__js__(pres_ctx, 'scene')
-		entities = ['scene.addEntity({0});\n'.format(entity.__js__(pres_ctx, 'scene'))   for entity in self.entities]
-		return js_src.format(camera, ''.join(entities))
-
-	def build_js(self, pres_ctx):
-		return self.__js__(pres_ctx)
+		scene_js = js.JSName('scene')
+		camera_src = self.camera.__js__(pres_ctx, scene_js).build_js(pres_ctx)
+		entities_jss = [scene_js.addEntity(entity_js)   for entity_js in self.entities]
+		entities_src = ''.join([entity_js.build_js(pres_ctx) + '\n'   for entity_js in entities_jss])
+		return js_src.format(camera_src, entities_src)
 
 
 def scene_canvas(width, height, scene):
