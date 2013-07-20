@@ -5,7 +5,27 @@ from britefury.pres.pres import post_event_js_code_for_handler
 from britefury.pres.html import Html
 
 
-def button(button_text, action_fn):
-	p = Html('<button onclick="{0}">{1}</button>'.format(post_event_js_code_for_handler('clicked'), button_text)).js_function_call('larch.controls.initButton')
-	p = p.with_event_handler('clicked', lambda event_name, ev_data: action_fn()).use_js('/static/bridge_jqueryui.js')
+def button(text=None, action_fn=None, primary_icon=None, secondary_icon=None, disabled=False):
+	def on_click(event_nane, ev_data):
+		if action_fn is not None:
+			action_fn()
+
+	options = {}
+	if disabled is not False:
+		options['disabled'] = True
+
+	if primary_icon is not None  or  secondary_icon is not None:
+		icons = {}
+		if primary_icon is not None:
+			icons['primary'] = primary_icon
+		if secondary_icon is not None:
+			icons['secondary'] = secondary_icon
+		options['icons'] = icons
+
+	if text is not None:
+		p = Html('<button onclick="{0}">'.format(post_event_js_code_for_handler('clicked')), text, '</button>').js_function_call('larch.controls.initButton', options)
+	else:
+		options['text'] = False
+		p = Html('<button onclick="{0}"></button>').js_function_call('larch.controls.initButton', options)
+	p = p.with_event_handler('clicked', on_click).use_js('/static/bridge_jqueryui.js')
 	return p

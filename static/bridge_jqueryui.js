@@ -8,9 +8,9 @@
 //
 //
 
-larch.controls.initButton = function(node) {
-    $(node).button();
-}
+larch.controls.initButton = function(node, options) {
+    $(node).button(options);
+};
 
 larch.controls.initSlider = function(node, respondToSlide, options) {
     var q = $(node);
@@ -23,7 +23,20 @@ larch.controls.initSlider = function(node, respondToSlide, options) {
         };
     }
     $(node).slider(options);
-}
+};
+
+larch.controls.initRangeSlider = function(node, respondToSlide, options) {
+    var q = $(node);
+    options.change = function(event, ui) {
+        larch.postEvent(node, "slider_change", ui.values)
+    };
+    if (respondToSlide) {
+        options.slide = function(event, ui) {
+            larch.postEvent(node, "slider_slide", ui.values)
+        };
+    }
+    $(node).slider(options);
+};
 
 larch.controls.initSpinner = function(node) {
     var q = $(node);
@@ -32,7 +45,7 @@ larch.controls.initSpinner = function(node) {
             larch.postEvent(node, "spinner_change", ui.value)
         }
     });
-}
+};
 
 larch.controls.initMenu = function(node, options) {
     options.select = function(event, ui) {
@@ -40,21 +53,21 @@ larch.controls.initMenu = function(node, options) {
         larch.postEvent(node, "menu_select", null);
     };
     $(node).menu(options);
-}
+};
 
 larch.controls.initDialog = function(node, options) {
     $(node).dialog(options);
-}
+};
 
 larch.controls.initTextEntry = function(node) {
     node.oninput = function() {
         larch.postEvent(node, "text_entry_edit", node.value);
     };
-}
+};
 
 larch.controls.initSelect = function(node) {
     node.onchange = function() {
         larch.postEvent(node, "select_choose", node.value);
     };
-}
+};
 
