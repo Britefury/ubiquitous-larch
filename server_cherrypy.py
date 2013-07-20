@@ -19,7 +19,7 @@ config = {'/static/':
 
 
 
-class WebCombinatorServer (object):
+class LarchServer (object):
 	def __init__(self):
 		self.service = larch_app.create_service()
 
@@ -68,6 +68,6 @@ class WebCombinatorServer (object):
 
 if __name__ == '__main__':
 	print 'Point your browser at http://127.0.0.1:5000/ to try The Ubiquitous Larch'
-	root = WebCombinatorServer()
+	root = LarchServer()
 	cherrypy.server.socket_port = 5000
 	cherrypy.quickstart(root, config=config)

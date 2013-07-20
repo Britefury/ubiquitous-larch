@@ -116,6 +116,10 @@ class _FragmentView (object):
 		return self.__inc_view
 
 	@property
+	def document(self):
+		return self.__inc_view.dynamic_document.public_api
+
+	@property
 	def parent(self):
 		return self.__parent
 

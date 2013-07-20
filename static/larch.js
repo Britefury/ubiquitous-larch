@@ -337,6 +337,20 @@ larch.__handleMessageFromServer = function(message) {
             larch.__destroyResource(resource_ids[i]);
         }
     }
+    else if (msg_type === "invalid_page") {
+        noty({
+            text: '<p class="invalid_page_style">Connection to page lost. Click to reload.</p>',
+            layout: "center",
+            type: "error",
+            modal: true,
+            closeWith: ["click"],
+            callback: {
+                onClose: function() {
+                    location.reload();
+                }
+            }
+        });
+    }
     else {
         // Unreckognised message
         throw ('Larch: unrecognised message" + message');

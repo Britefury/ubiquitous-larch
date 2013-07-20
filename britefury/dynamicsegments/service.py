@@ -4,6 +4,7 @@
 import json
 import traceback
 from britefury.dynamicsegments.document import DynamicDocument
+from britefury.dynamicsegments import messages
 
 __author__ = 'Geoff'
 
@@ -55,7 +56,12 @@ class DynamicDocumentService (object):
 		try:
 			session = self.__sessions[session_id]
 		except KeyError:
-			return '[]'
+			msg = messages.invalid_page_message()
+			client_messages = [msg]
+			result = json.dumps(client_messages)
+			return result
+
+
 
 		dynamic_document = session.dynamic_document
 

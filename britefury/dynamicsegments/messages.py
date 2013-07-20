@@ -21,3 +21,7 @@ def resources_modified_message(resource_ids):
 
 def resources_disposed_message(resource_ids):
 	return {'msgtype': 'resources_disposed', 'resource_ids': list(resource_ids)}
+
+
+def invalid_page_message():
+	return {'msgtype': 'invalid_page'}

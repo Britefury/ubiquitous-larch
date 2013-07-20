@@ -217,4 +217,6 @@ span.command_table_desc:hover {
     color: #0080ff;
 }
 
-
+.invalid_page_style {
+    color: #ffffff;
+}

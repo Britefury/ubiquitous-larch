@@ -6,6 +6,12 @@ from britefury.pres.html import Html
 __code_mirror_theme = None
 
 def set_code_mirror_theme(theme):
+	"""
+	Set the global code mirror theme
+
+	:param theme: the name of the theme
+	:return: None
+	"""
 	global __code_mirror_theme
 	__code_mirror_theme = theme
 
@@ -53,6 +59,17 @@ __addon_css = [
 ]
 
 def code_mirror(text, immediate_events=False, config=None, on_edit=None, on_focus=None, on_blur=None, modes=None):
+	"""
+	Create a CodeMirror based code editor control
+	:param text: the initial text to display in the control
+	:param immediate_events: if True, an event will be emitted each time the text is edited (on each keypress)
+	:param config: configuration options (see CodeMirror documentation)
+	:param on_edit: a callback invoked in response to edits, of the form function(modified_text)
+	:param on_focus: a callback invoked when the editor receives focus; of the form function()
+	:param on_blur: a callback invoked when the editor loses focus; of the form function()
+	:param modes: a list of names of language plugins to load (e.g. 'python', 'javascript', 'glsl', etc; see CodeMirror documentation)
+	:return: the editor conrol
+	"""
 	if config is None:
 		config = {}
 	if modes is None:

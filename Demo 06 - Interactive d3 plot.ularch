@@ -289,7 +289,7 @@ Ntp108
 Rp109
 (dp110
 g19
-V# We need the slider control\u000afrom britefury.pres.controls.slider import live_slider\u000a\u000a# Create the sliders\u000amean_slider = live_slider(mean, True, options={'min': 10.0, 'max': 90.0})\u000astdev_slider = live_slider(standard_deviation, True, options={'min': 0.0, 'max': 30.0})\u000a\u000a# Put them in a table\u000asliders = Html('<table><tr><td>Mean:</td><td width="400">', mean_slider, '</td><tr><td>Standard deviation:</td><td width="400">', stdev_slider, '</td></tr></table>')
+V# We need the slider control\u000afrom britefury.pres.controls.slider import live_slider\u000a\u000a# Create the sliders\u000amean_slider = live_slider(mean, True, min=10.0, max=90.0, step=0.1, width=400)\u000astdev_slider = live_slider(standard_deviation, True, min=0.0, max=50.0, step=0.1, width=400)\u000a\u000a# Put them in a table\u000asliders = Html('<table><tr><td>Mean:</td><td>', mean_slider, '</td><tr><td>Standard deviation:</td><td>', stdev_slider, '</td></tr></table>')
 p111
 sg25
 I01

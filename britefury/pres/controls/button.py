@@ -6,6 +6,15 @@ from britefury.pres.html import Html
 
 
 def button(text=None, action_fn=None, primary_icon=None, secondary_icon=None, disabled=False):
+	"""
+	Create a JQuery UI button
+	:param text: the button content (can include HTML)
+	:param action_fn: a callback that is invoked when the button is pressed
+	:param primary_icon: primary icon (see JQuery UI icon classes)
+	:param secondary_icon: secondary icon (see JQuery UI icon classes)
+	:param disabled: disable the button
+	:return: the button control
+	"""
 	def on_click(event_nane, ev_data):
 		if action_fn is not None:
 			action_fn()

@@ -114,14 +114,17 @@ class ProjectRoot (ProjectContainer):
 
 	@python_package_name.setter
 	def python_package_name(self, name):
-		oldName = self.__python_package_name
-		self.__python_package_name = name
+		self.__set_python_package_name_no_incr_change(name)
 		self._incr.on_changed()
+
+	def __set_python_package_name_no_incr_change(self, name):
+		old_name = self.__python_package_name
+		self.__python_package_name = name
 		if self.__change_history__ is not None:
 			def _apply():
 				self.python_package_name = name
 			def _revert():
-				self.python_package_name = oldName
+				self.python_package_name = old_name
 			self.__change_history__.addChange(_apply, _revert, 'Project root set python package name' )
 
 
@@ -213,7 +216,7 @@ class ProjectRoot (ProjectContainer):
 		super_pres = super(ProjectRoot, self).__present__(fragment)
 
 		def _on_set_package_name(name):
-			self.python_package_name = name
+			self.__set_python_package_name_no_incr_change(name)
 
 		python_package_name = self.python_package_name
 		python_package_name = python_package_name   if python_package_name is not None  else ''

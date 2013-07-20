@@ -8,16 +8,17 @@ def slider(release_fn=None, slide_fn=None, width=None, value=None, min=None, max
 	"""
 	Create a JQuery UI slider
 
-	:release_fn: a function to be invoked when the user releases the slider, of the form function(value)
-	:slide_fn: a function to be invoked when the user drags the slider, of the form function(value)
-	:width: the width of the slider, specified as a CSS value e.g. 200px (200 pixels) or 50%, or as an integer value that will be converted to pixels
-	:value: the initial value
-	:min: the minimum value
-	:max: the maximum value
-	:step: the size of steps between positions on the slider
-	:orientation: either 'horizontal' or 'vertical'
-	:animate: if True, or if a numeric value in milliseconds specifying the animation length, this will cause the slider to animate when the user clicks to position it directly
-	:disabled: if True, causes the slider to appear disabled
+	:param release_fn: a function to be invoked when the user releases the slider, of the form function(value)
+	:param slide_fn: a function to be invoked when the user drags the slider, of the form function(value)
+	:param width: the width of the slider, specified as a CSS value e.g. 200px (200 pixels) or 50%, or as an integer value that will be converted to pixels
+	:param value: the initial value
+	:param min: the minimum value
+	:param max: the maximum value
+	:param step: the size of steps between positions on the slider
+	:param orientation: either 'horizontal' or 'vertical'
+	:param animate: if True, or if a numeric value in milliseconds specifying the animation length, this will cause the slider to animate when the user clicks to position it directly
+	:param disabled: if True, causes the slider to appear disabled
+	:return: the slider control
 	"""
 	def on_change(event_name, ev_data):
 		if release_fn is not None:
@@ -61,16 +62,17 @@ def range_slider(release_fn=None, slide_fn=None, width=None, values=None, min=No
 	"""
 	Create a JQuery UI slider - with the range option enabled
 
-	:release_fn: a function to be invoked when the user releases the slider, of the form function(value)
-	:slide_fn: a function to be invoked when the user drags the slider, of the form function(value)
-	:width: the width of the slider, specified as a CSS value e.g. 200px (200 pixels) or 50%, or as an integer value that will be converted to pixels
-	:values: a pair of values representing the lower and upper bound
-	:min: the minimum value
-	:max: the maximum value
-	:step: the size of steps between positions on the slider
-	:orientation: either 'horizontal' or 'vertical'
-	:animate: if True, or if a numeric value in milliseconds specifying the animation length, this will cause the slider to animate when the user clicks to position it directly
-	:disabled: if True, causes the slider to appear disabled
+	:param release_fn: a function to be invoked when the user releases the slider, of the form function(value)
+	:param slide_fn: a function to be invoked when the user drags the slider, of the form function(value)
+	:param width: the width of the slider, specified as a CSS value e.g. 200px (200 pixels) or 50%, or as an integer value that will be converted to pixels
+	:param values: a pair of values representing the lower and upper bound
+	:param min: the minimum value
+	:param max: the maximum value
+	:param step: the size of steps between positions on the slider
+	:param orientation: either 'horizontal' or 'vertical'
+	:param animate: if True, or if a numeric value in milliseconds specifying the animation length, this will cause the slider to animate when the user clicks to position it directly
+	:param disabled: if True, causes the slider to appear disabled
+	:return: the slider control
 	"""
 	def on_change(event_name, ev_data):
 		if release_fn is not None:
@@ -115,15 +117,16 @@ def live_slider(live, update_on_slide=False, width=None, min=None, max=None, ste
 	"""
 	Create a JQuery UI slider that edits a live value
 
-	:live: the live value to edit
-	:update_on_slide: if True, the live value is updated in response to the user dragging, otherwise it only updates when the user lets the slider go
-	:width: the width of the slider, specified as a CSS value e.g. 200px (200 pixels) or 50%, or as an integer value that will be converted to pixels
-	:min: the minimum value
-	:max: the maximum value
-	:step: the size of steps between positions on the slider
-	:orientation: either 'horizontal' or 'vertical'
-	:animate: if True, or if a numeric value in milliseconds specifying the animation length, this will cause the slider to animate when the user clicks to position it directly
-	:disabled: if True, causes the slider to appear disabled
+	:param live: the live value to edit
+	:param update_on_slide: if True, the live value is updated in response to the user dragging, otherwise it only updates when the user lets the slider go
+	:param width: the width of the slider, specified as a CSS value e.g. 200px (200 pixels) or 50%, or as an integer value that will be converted to pixels
+	:param min: the minimum value
+	:param max: the maximum value
+	:param step: the size of steps between positions on the slider
+	:param orientation: either 'horizontal' or 'vertical'
+	:param animate: if True, or if a numeric value in milliseconds specifying the animation length, this will cause the slider to animate when the user clicks to position it directly
+	:param disabled: if True, causes the slider to appear disabled
+	:return: the slider control
 	"""
 	def on_slide(value):
 		live.value = value
@@ -136,15 +139,16 @@ def live_range_slider(live, update_on_slide=False, width=None, min=None, max=Non
 	"""
 	Create a JQuery UI range slider that edits a live value
 
-	:live: the live value to edit
-	:update_on_slide: if True, the live value is updated in response to the user dragging, otherwise it only updates when the user lets the slider go
-	:width: the width of the slider, specified as a CSS value e.g. 200px (200 pixels) or 50%, or as an integer value that will be converted to pixels
-	:min: the minimum value
-	:max: the maximum value
-	:step: the size of steps between positions on the slider
-	:orientation: either 'horizontal' or 'vertical'
-	:animate: if True, or if a numeric value in milliseconds specifying the animation length, this will cause the slider to animate when the user clicks to position it directly
-	:disabled: if True, causes the slider to appear disabled
+	:param live: the live value to edit
+	:param update_on_slide: if True, the live value is updated in response to the user dragging, otherwise it only updates when the user lets the slider go
+	:param width: the width of the slider, specified as a CSS value e.g. 200px (200 pixels) or 50%, or as an integer value that will be converted to pixels
+	:param min: the minimum value
+	:param max: the maximum value
+	:param step: the size of steps between positions on the slider
+	:param orientation: either 'horizontal' or 'vertical'
+	:param animate: if True, or if a numeric value in milliseconds specifying the animation length, this will cause the slider to animate when the user clicks to position it directly
+	:param disabled: if True, causes the slider to appear disabled
+	:return: the slider control
 	"""
 	def on_slide(value):
 		live.value = value

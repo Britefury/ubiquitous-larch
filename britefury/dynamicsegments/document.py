@@ -178,6 +178,11 @@ class DynamicDocument (object):
 		return self.__service
 
 
+	@property
+	def public_api(self):
+		return self.__public_api
+
+
 
 	@property
 	def title(self):
