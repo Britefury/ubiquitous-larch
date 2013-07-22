@@ -3,8 +3,10 @@
 ##-*************************
 import json
 import traceback
-from britefury.dynamicsegments.document import DynamicDocument
+import sys
+from britefury.dynamicsegments.document import DynamicDocument, EventHandleError
 from britefury.dynamicsegments import messages
+from britefury.inspector import present_exception
 
 __author__ = 'Geoff'
 
@@ -62,7 +64,6 @@ class DynamicDocumentService (object):
 			return result
 
 
-
 		dynamic_document = session.dynamic_document
 
 		dynamic_document.lock()
@@ -70,15 +71,30 @@ class DynamicDocumentService (object):
 		# Get the event messages
 		events_json = json.loads(event_data)
 
+		error_messages = []
+
 		# Handle the events
 		for ev_json in events_json:
-			dynamic_document.handle_event(ev_json['segment_id'], ev_json['event_name'], ev_json['ev_data'])
+			event_handle_result = dynamic_document.handle_event(ev_json['segment_id'], ev_json['event_name'], ev_json['ev_data'])
+			if isinstance(event_handle_result, EventHandleError):
+				# Catch internal server error
+				err_html = present_exception.exception_to_html_src(event_handle_result.exception, event_handle_result.traceback)
+				msg = messages.error_during_update_message(err_html)
+				error_messages.append(msg)
+
 
 		# Synchronise the view
-		client_messages = dynamic_document.synchronize()
+		try:
+			client_messages = dynamic_document.synchronize()
+		except Exception, e:
+			# Catch internal server error
+			err_html = present_exception.exception_to_html_src(e, sys.exc_info()[2])
+			msg = messages.error_during_update_message(err_html)
+			error_messages.append(msg)
+			client_messages = []
 
 		# Send messages to the client
-		result = json.dumps(client_messages)
+		result = json.dumps(client_messages + error_messages)
 
 		dynamic_document.unlock()
 

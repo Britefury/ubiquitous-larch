@@ -2,6 +2,7 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 import threading
+import sys
 
 from collections import deque
 
@@ -14,6 +15,7 @@ from britefury.incremental.incremental_function_monitor import IncrementalFuncti
 from britefury.dynamicsegments.segment import DynamicSegment, SegmentRef
 from britefury.dynamicsegments import messages, dependencies
 from britefury.dynamicsegments import global_dependencies
+from britefury.inspector import present_exception
 
 
 _page_content = u"""
@@ -83,6 +85,29 @@ _page_content = u"""
 </html>
 """
 
+
+
+class EventHandleError (object):
+	def __init__(self, event_name, event_seg_id, event_model_type_name, handler_seg_id, handler_model_type_name, exception, traceback):
+		self.event_name = event_name
+		self.event_seg_id = event_seg_id
+		self.event_model_type_name = event_model_type_name
+		self.handler_seg_id = handler_seg_id
+		self.handler_model_type_name = handler_model_type_name
+		self.exception = exception
+		self.traceback = traceback
+
+
+	def to_message(self):
+		err_html = present_exception.exception_to_html_src(self.exception, self.traceback)
+		return messages.error_hangling_event_message(err_html, self.event_name, self.event_seg_id, self.event_model_type_name, self.handler_seg_id, self.handler_model_type_name)
+
+
+
+class UnusedSegmentsError (Exception):
+	def __init__(self, unused_segment_ids):
+		super(UnusedSegmentsError, self).__init__('Segments created but not used: {0}'.format(unused_segment_ids))
+		self.unused_segment_ids = unused_segment_ids
 
 
 
@@ -247,14 +272,16 @@ class DynamicDocument (object):
 	#
 
 
-	def new_segment(self, content=None, desc=None):
-		"""Create a new segment
-
-		content - an HTMLContent instance that contains the content of the segment that is to be created (or None, in which case you must initialise it by setting the segment's content attribute/property
-		desc - a description string that is appended to the segment's ID. This is passed to the browser in order to allow you to figure out what e.g. seg27 is representing.
+	def new_segment(self, content=None, desc=None, owner=None):
 		"""
-		segment = self._table._new_segment(content, desc)
-		return segment
+		Create a new segment
+
+		:param content: an HTMLContent instance that contains the content of the segment that is to be created (or None, in which case you must initialise it by setting the segment's content attribute/property
+		:param desc: a description string that is appended to the segment's ID. This is passed to the browser in order to allow you to figure out what e.g. seg27 is representing.
+		:param owner: the owner of the segment
+		:return: the new segment
+		"""
+		return self._table._new_segment(content, desc, owner)
 
 	def remove_segment(self, segment):
 		"""Remove a segment from the document. You should remove segments when you don't need them anymore.
@@ -423,18 +450,26 @@ class DynamicDocument (object):
 		if segment_id is None:
 			for handler_ev_name, handler_fn in self.__doc_event_handlers:
 				if handler_ev_name == event_name:
-					if handler_fn(self.__public_api, ev_data):
-						return True
+					try:
+						if handler_fn(self.__public_api, ev_data):
+							return True
+					except Exception, e:
+						return EventHandleError(event_name, None, None, None, None, e, sys.exc_info()[2])
 			return False
 		else:
 			try:
-				segment = self._table[segment_id]
+				event_segment = self._table[segment_id]
 			except KeyError:
 				return False
 
+			segment = event_segment
+
 			while segment is not None:
-				if segment._handle_event(event_name, ev_data):
-					return True
+				try:
+					if segment._handle_event(event_name, ev_data):
+						return True
+				except Exception, e:
+					return EventHandleError(event_name, segment_id, type(event_segment.owner.model).__name__, segment.id, type(segment.owner.model).__name__, e, sys.exc_info()[2])
 				segment = segment.parent
 			return False
 
@@ -478,11 +513,11 @@ class DynamicDocument (object):
 		# Refresh the document
 
 		# Get the change set
-		changes = self._table._get_recent_changes()
+		change_set = self._table._get_recent_changes()
 		# Clear changes
 		self._table._clear_changes()
 		# Compose the modify document message
-		self.__document_modifications_message = messages.modify_document_message(changes)
+		self.__document_modifications_message = messages.modify_document_message(change_set.json())
 
 		# Build the execute JS message
 		if len(self.__js_queue) > 0:
@@ -572,16 +607,8 @@ class _ChangeSet (object):
 				self.initialise_scripts.append((seg.id, initialise_scripts))
 
 
-		if len(self.__added_seg_to_html_bits) > 0:
-			for seg in self.__added_seg_to_html_bits.keys():
-				print 'Orphaned added segment (in HTML form) {0}'.format(seg.id)
-
-		if len(self.__added_segs) > 0:
-			for seg in self.__added_segs:
-				print 'Orphaned added segment {0}'.format(seg.id)
-
-		assert len(self.__added_seg_to_html_bits) == 0
-		assert len(self.__added_segs) == 0
+		if len(self.__added_seg_to_html_bits) > 0  or  len(self.__added_segs) > 0:
+			raise UnusedSegmentsError, set(self.__added_seg_to_html_bits.keys()).union(set(self.__added_segs))
 
 		print 'CHANGES TO SEND: {0} removed, {1} modified, {2} initialise scripts, {3} shutdown scripts'.format(len(self.removed), len(self.modified), len(self.initialise_scripts), len(self.shutdown_scripts))
 
@@ -636,9 +663,7 @@ class _SegmentTable (object):
 
 
 	def _get_recent_changes(self):
-		changes = _ChangeSet(copy(self.__changes_added), copy(self.__changes_removed), copy(self.__changes_modified))
-
-		return changes.json()
+		return _ChangeSet(copy(self.__changes_added), copy(self.__changes_removed), copy(self.__changes_modified))
 
 
 	def _get_all_initialisers(self):
@@ -651,11 +676,11 @@ class _SegmentTable (object):
 
 
 
-	def _new_segment(self, content=None, desc=None):
+	def _new_segment(self, content=None, desc=None, owner=None):
 		desc_str = ('_' + desc)   if desc is not None   else ''
 		seg_id = 'seg{0}{1}'.format(self.__id_counter, desc_str)
 		self.__id_counter += 1
-		seg = DynamicSegment(self.__doc, seg_id, content)
+		seg = DynamicSegment(self.__doc, seg_id, content, owner)
 		self.__id_to_segment[seg_id] = seg
 
 		self.__changes_added.add(seg)

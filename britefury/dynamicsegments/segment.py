@@ -12,11 +12,12 @@ class DynamicSegment (object):
 
 	Segments can be nested via references; create a reference using the reference() method and put it into the content of a parent segment to nest this within a parent segment.
 	"""
-	def __init__(self, doc, seg_id, content=None):
+	def __init__(self, doc, seg_id, content=None, owner=none):
 		self.__doc = doc
 		self.__id = seg_id
 		assert content is None  or  isinstance(content, HtmlContent)
 		self.__content = content
+		self.__owner = owner
 		self.__parent = None
 		self.__event_handlers = None
 		self.__initialise_scripts = None
@@ -26,19 +27,33 @@ class DynamicSegment (object):
 
 	@property
 	def id(self):
-		"""The segment ID
+		"""
+		The segment ID
 		"""
 		return self.__id
 
 	@property
 	def parent(self):
-		"""The parent segment
+		"""
+		The parent segment
 		"""
 		return self.__parent
 
 
 	@property
+	def owner(self):
+		"""
+		The owner
+		:return: The segment owner
+		"""
+		return self.__owner
+
+	@property
 	def document(self):
+		"""
+		The document
+		:return: the document
+		"""
 		return self.__doc
 
 
@@ -50,6 +65,11 @@ class DynamicSegment (object):
 
 	@content.setter
 	def content(self, x):
+		"""
+		Set the content of the segment
+		:param x: new content
+		:return: None
+		"""
 		if x is not None  and not  isinstance(x, HtmlContent):
 			raise TypeError, 'Content should be either None or an HtmlContent instance'
 		self.__disconnect_children()

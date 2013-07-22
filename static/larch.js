@@ -351,6 +351,15 @@ larch.__handleMessageFromServer = function(message) {
             }
         });
     }
+    else if (msg_type === "error_during_update") {
+        noty({
+            text: message.err_html,
+            layout: "center",
+            type: "alert",
+            modal: true,
+            closeWith: ["click"]
+        });
+    }
     else {
         // Unreckognised message
         throw ('Larch: unrecognised message" + message');
