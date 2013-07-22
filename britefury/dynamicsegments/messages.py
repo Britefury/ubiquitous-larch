@@ -32,8 +32,8 @@ def invalid_page_message():
 	return {'msgtype': 'invalid_page'}
 
 
-def error_hangling_event_message(err_html, event_name, event_seg_id, event_model_type_name, handler_seg_id, handler_model_type_name):
-	return {'msgtype': 'error_during_update',
+def error_handling_event_message(err_html, event_name, event_seg_id, event_model_type_name, handler_seg_id, handler_model_type_name):
+	return {'msgtype': 'error_handling_event',
 		'err_html': err_html,
 		'event_name': event_name,
 		'event_seg_id': event_seg_id,

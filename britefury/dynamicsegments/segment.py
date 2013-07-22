@@ -12,7 +12,7 @@ class DynamicSegment (object):
 
 	Segments can be nested via references; create a reference using the reference() method and put it into the content of a parent segment to nest this within a parent segment.
 	"""
-	def __init__(self, doc, seg_id, content=None, owner=none):
+	def __init__(self, doc, seg_id, content=None, owner=None):
 		self.__doc = doc
 		self.__id = seg_id
 		assert content is None  or  isinstance(content, HtmlContent)

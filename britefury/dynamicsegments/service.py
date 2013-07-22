@@ -77,9 +77,7 @@ class DynamicDocumentService (object):
 		for ev_json in events_json:
 			event_handle_result = dynamic_document.handle_event(ev_json['segment_id'], ev_json['event_name'], ev_json['ev_data'])
 			if isinstance(event_handle_result, EventHandleError):
-				# Catch internal server error
-				err_html = present_exception.exception_to_html_src(event_handle_result.exception, event_handle_result.traceback)
-				msg = messages.error_during_update_message(err_html)
+				msg = event_handle_result.to_message()
 				error_messages.append(msg)
 
 

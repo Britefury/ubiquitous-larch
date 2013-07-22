@@ -58,7 +58,7 @@ class _FragmentView (object):
 		self.__incr.add_listener(self.__on_incremental_monitor_changed)
 
 		# Segments
-		self.__segment = self.__inc_view.dynamic_document.new_segment(desc='{0}'.format(type(self.__model).__name__), self)
+		self.__segment = self.__inc_view.dynamic_document.new_segment(desc='{0}'.format(type(self.__model).__name__), owner=self)
 		self.__sub_segments = []
 
 		# Resources
@@ -181,7 +181,7 @@ class _FragmentView (object):
 	#
 
 	def create_sub_segment(self, content):
-		sub_seg = self.__inc_view.dynamic_document.new_segment(content, desc='subseg_{0}'.format(type(self.__model).__name__), self)
+		sub_seg = self.__inc_view.dynamic_document.new_segment(content, desc='subseg_{0}'.format(type(self.__model).__name__), owner=self)
 		self.__sub_segments.append(sub_seg)
 		return sub_seg
 

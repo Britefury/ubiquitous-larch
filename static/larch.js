@@ -309,35 +309,61 @@ larch.__applyChanges = function(changes) {
     }
 };
 
-larch.__handleMessageFromServer = function(message) {
-    var msg_type = message.msgtype;
-    if (msg_type === "modify_document") {
-        var changes = message.changes;
-        larch.__applyChanges(changes);
+larch.__highlightSegment = function(segment_id) {
+    var segment_table = larch.__segment_table;
+    var state = segment_table[segment_id];
+    if (state === undefined) {
+        throw "Cannot get segment " + segment_id
     }
-    else if (msg_type === "execute_js") {
-        var js_code = message.js_code;
-        larch.__executeJS(js_code);
+    var nodes = larch.__getNodesInActiveSegment(state);
+    for (var j = 1; j < nodes.length - 1; j++) {
+        $(nodes[j]).addClass("segment_highlight");
     }
-    else if (msg_type === "add_dependencies") {
+};
+
+larch.__unhighlightSegment = function(segment_id) {
+    var segment_table = larch.__segment_table;
+    var state = segment_table[segment_id];
+    if (state === undefined) {
+        throw "Cannot get segment " + segment_id
+    }
+    var nodes = larch.__getNodesInActiveSegment(state);
+    for (var j = 1; j < nodes.length - 1; j++) {
+        $(nodes[j]).removeClass("segment_highlight");
+    }
+};
+
+larch.__messageHandlers = {
+    modify_document: function(message) {
+        larch.__applyChanges(message.changes);
+    },
+
+    execute_js: function(message) {
+        larch.__executeJS(message.js_code);
+    },
+
+    add_dependencies: function(message) {
         var deps = message.deps;
         for (var i = 0; i < deps.length; i++) {
             larch.__addDependency(deps[i]);
         }
-    }
-    else if (msg_type === "resources_modified") {
+    },
+
+    resources_modified: function(message) {
         var resource_ids = message.resource_ids;
         for (var i = 0; i < resource_ids.length; i++) {
             larch.__resourceModified(resource_ids[i]);
         }
-    }
-    else if (msg_type === "resources_disposed") {
+    },
+
+    resources_disposed: function(message) {
         var resource_ids = message.resource_ids;
         for (var i = 0; i < resource_ids.length; i++) {
             larch.__destroyResource(resource_ids[i]);
         }
-    }
-    else if (msg_type === "invalid_page") {
+    },
+
+    invalid_page: function(message) {
         noty({
             text: '<p class="invalid_page_style">Connection to page lost. Click to reload.</p>',
             layout: "center",
@@ -350,25 +376,54 @@ larch.__handleMessageFromServer = function(message) {
                 }
             }
         });
-    }
-    else if (msg_type === "error_during_update") {
+    },
+
+    error_handling_event: function(message) {
+        var eventName = '<span class="event_error_event_name">' + message.event_name + '</span>';
+        var headerHtml;
+        if (message.event_seg_id !== null) {
+            var srcSegment = '<span class="event_error_segment" onmouseover="larch.__highlightSegment(\'' + message.event_seg_id + '\');" onmouseout="larch.__unhighlightSegment(\'' + message.event_seg_id + '\');">segment</span>';
+            var hdlSegment = '<span class="event_error_segment" onmouseover="larch.__highlightSegment(\'' + message.handler_seg_id + '\');" onmouseout="larch.__unhighlightSegment(\'' + message.handler_seg_id + '\');">segment</span>';
+            var sentFrom = 'sent from a ' + srcSegment + ' belonging to an instance of <span class="event_error_model_type">' + message.event_model_type_name + '</span>, ';
+            var handledAt = 'handled at a ' + hdlSegment + ' belonging to an instance of <span class="event_error_model_type">' + message.handler_model_type_name + '</span>';
+
+            headerHtml = '<div class="event_error_header">Error handling event ' + eventName + ', ' + sentFrom + handledAt + '</div>';
+        }
+        else {
+            headerHtml = '<div class="event_error_header">Error handling page event ' + eventName + '</div>';
+        }
+
         noty({
-            text: message.err_html,
-            layout: "center",
+            text: headerHtml + message.err_html,
+            layout: "bottom",
+            type: "alert",
+            modal: true,
+            closeWith: ["click"]
+        });
+    },
+
+    error_during_update: function(message) {
+        var headerHtml = '<div class="event_error_header">Error while updating after handling events</div>';
+        noty({
+            text: headerHtml + message.err_html,
+            layout: "bottom",
             type: "alert",
             modal: true,
             closeWith: ["click"]
         });
     }
-    else {
-        // Unreckognised message
-        throw ('Larch: unrecognised message" + message');
-    }
 };
 
 larch.__handleMessagesFromServer = function(messages) {
     for (var i = 0; i < messages.length; i++) {
-        larch.__handleMessageFromServer(messages[i]);
+        var msg = messages[i];
+        var handler = larch.__messageHandlers[msg.msgtype];
+        if (handler !== undefined) {
+            handler(msg);
+        }
+        else {
+            throw ('Larch: unrecognised message: ' + msg.msgtype);
+        }
     }
 };
 

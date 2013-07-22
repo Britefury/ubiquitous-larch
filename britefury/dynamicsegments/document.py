@@ -94,13 +94,11 @@ class EventHandleError (object):
 		self.event_model_type_name = event_model_type_name
 		self.handler_seg_id = handler_seg_id
 		self.handler_model_type_name = handler_model_type_name
-		self.exception = exception
-		self.traceback = traceback
+		self.err_html = present_exception.exception_to_html_src(exception, traceback)
 
 
 	def to_message(self):
-		err_html = present_exception.exception_to_html_src(self.exception, self.traceback)
-		return messages.error_hangling_event_message(err_html, self.event_name, self.event_seg_id, self.event_model_type_name, self.handler_seg_id, self.handler_model_type_name)
+		return messages.error_handling_event_message(self.err_html, self.event_name, self.event_seg_id, self.event_model_type_name, self.handler_seg_id, self.handler_model_type_name)
 
 
 

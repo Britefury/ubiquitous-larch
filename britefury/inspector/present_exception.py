@@ -30,5 +30,5 @@ def exc_box_to_html_src(caption, contents_str):
 
 def exception_to_html_src(exc, tb):
 	traceback_str = '<br>\n'.join(traceback.format_exc(tb).split('\n'))
-	content = '<span class="exception_name">{0}</span><br><span class="exception_message">{0}</span><br><div class="exception_traceback">{0}</div>'.format(type(exc).__name__, exc.message, traceback_str)
+	content = '<span class="exception_name">{0}</span><br><span class="exception_message">{1}</span><br><div class="exception_traceback">{2}</div>'.format(type(exc).__name__, exc.message, traceback_str)
 	return exc_box_to_html_src('Exception', content)
