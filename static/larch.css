@@ -139,6 +139,49 @@ h6 {
     color: #800000;
 }
 
+.event_error_header {
+    border: 1px solid #ff8080;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.event_error_event_name {
+    color: #0080ff;
+}
+
+.event_error_segment {
+    color: #008000;
+    border: 1px solid #00ff00;
+    border-radius: 5px;
+    padding: 2px;
+    background: #f0fff0;
+    margin: 3px;
+}
+
+.event_error_segment:hover {
+    color: #004000;
+    border: 1px solid #008000;
+    border-radius: 5px;
+    padding: 2px;
+    background: #e0ffe0;
+    margin: 3px;
+    text-decoration: underline;
+}
+
+.event_error_model_type {
+    color: #408000;
+    font-family: monospace;
+}
+
+.exception_in_noty {
+    text-align: left;
+}
+
+.segment_highlight {
+    border: 1px solid #c0c000;
+    background: #e8e8ff;
+}
+
 .exception_during_presentation {
     margin: 2px 0;
     border: 1px solid #a00000;

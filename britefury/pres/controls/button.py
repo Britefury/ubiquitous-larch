@@ -15,7 +15,7 @@ def button(text=None, action_fn=None, primary_icon=None, secondary_icon=None, di
 	:param disabled: disable the button
 	:return: the button control
 	"""
-	def on_click(event_nane, ev_data):
+	def on_click(event_name, ev_data):
 		if action_fn is not None:
 			action_fn()
 

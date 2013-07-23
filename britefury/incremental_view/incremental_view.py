@@ -19,6 +19,9 @@ from britefury.dynamicsegments.segment import  HtmlContent
 def _exception_during_presentation(exc_pres):
 	return Html('<div class="exception_during_presentation"><span class="exception_during_pres_title">Exception during presentation</span>', exc_pres, '</div>')
 
+def _exception_during_presentation_to_html(exc_pres):
+	return Html('<div class="exception_during_presentation"><span class="exception_during_pres_title">Exception while converting presentation to HTML</span>', exc_pres, '</div>')
+
 
 
 class _FragmentView (object):
@@ -55,7 +58,7 @@ class _FragmentView (object):
 		self.__incr.add_listener(self.__on_incremental_monitor_changed)
 
 		# Segments
-		self.__segment = self.__inc_view.dynamic_document.new_segment(desc='{0}'.format(type(self.__model).__name__))
+		self.__segment = self.__inc_view.dynamic_document.new_segment(desc='{0}'.format(type(self.__model).__name__), owner=self)
 		self.__sub_segments = []
 
 		# Resources
@@ -178,7 +181,7 @@ class _FragmentView (object):
 	#
 
 	def create_sub_segment(self, content):
-		sub_seg = self.__inc_view.dynamic_document.new_segment(content, desc='subseg_{0}'.format(type(self.__model).__name__))
+		sub_seg = self.__inc_view.dynamic_document.new_segment(content, desc='subseg_{0}'.format(type(self.__model).__name__), owner=self)
 		self.__sub_segments.append(sub_seg)
 		return sub_seg
 
@@ -558,7 +561,7 @@ class FragmentFactory (object):
 			# The HTML content may have been partially built before the exception was raised, in which case fragment view nodes - and
 			# their respective segments - may have been created. They are now orphaned and need to be disposed of
 			fragment_view._clear_existing_content()
-			fragment_pres = _exception_during_presentation(present_exception(e, sys.exc_info()[2]))
+			fragment_pres = _exception_during_presentation_to_html(present_exception(e, sys.exc_info()[2]))
 			html_content = self.__pres_to_html_content(fragment_pres, fragment_view)
 
 		return html_content
