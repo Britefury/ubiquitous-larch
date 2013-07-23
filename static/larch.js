@@ -394,10 +394,9 @@ larch.__messageHandlers = {
         }
 
         noty({
-            text: headerHtml + message.err_html,
+            text: '<div class="exception_in_noty">' + headerHtml + message.err_html + '</div>',
             layout: "bottom",
             type: "alert",
-            modal: true,
             closeWith: ["click"]
         });
     },
@@ -405,7 +404,7 @@ larch.__messageHandlers = {
     error_during_update: function(message) {
         var headerHtml = '<div class="event_error_header">Error while updating after handling events</div>';
         noty({
-            text: headerHtml + message.err_html,
+            text: '<div class="exception_in_noty">' + headerHtml + message.err_html + '</div>',
             layout: "bottom",
             type: "alert",
             modal: true,

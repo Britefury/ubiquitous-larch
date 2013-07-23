@@ -173,6 +173,10 @@ h6 {
     font-family: monospace;
 }
 
+.exception_in_noty {
+    text-align: left;
+}
+
 .segment_highlight {
     border: 1px solid #c0c000;
     background: #e8e8ff;

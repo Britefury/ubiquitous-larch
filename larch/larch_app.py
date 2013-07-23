@@ -160,8 +160,8 @@ class Document (object):
 
 
 	def __on_save_command(self, document):
-		self.save()
-		document.doc_js_function_call('noty', {'text': 'Saved', 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
+		name = self.save()
+		document.doc_js_function_call('noty', {'text': 'Saved <span class="emph">{0}</emph>'.format(name), 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
 
 
 	def __commands__(self):
@@ -171,9 +171,9 @@ class Document (object):
 
 
 	def save(self):
-		print 'SAVED {0}'.format(self.__filename)
 		file_path = os.path.join(self.__doc_list.path, self.__filename + _EXTENSION)
 		save_document(file_path, self.__content)
+		return self.__filename
 
 
 	def presentation_table_row(self):

@@ -340,12 +340,12 @@ class Worksheet (object):
 				print 'WARNING: Could not save; method unavailable'
 				raise
 			else:
-				save()
-			return True
+				return save()
+			return None
 
 		def on_save_key(key):
-			save()
-			fragment.document.doc_js_function_call('noty', {'text': 'Saved', 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
+			save_name = save()
+			fragment.document.doc_js_function_call('noty', {'text': 'Saved <span class="emph">{0}</span>'.format(save_name), 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
 
 
 
