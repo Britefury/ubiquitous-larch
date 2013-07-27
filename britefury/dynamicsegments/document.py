@@ -26,12 +26,6 @@ _page_content = u"""
 		<link rel="stylesheet" type="text/css" href="/static/jquery/css/ui-lightness/jquery-ui-1.10.2.custom.min.css"/>
 		<link rel="stylesheet" type="text/css" href="/static/larch.css"/>
 
-		<script type="text/javascript" src="/static/larch_prelude.js"></script>
-		<script type="text/javascript">
-			<!--
-			larch.__session_id="{session_id}";
-			// -->
-		</script>
 		<script type="text/javascript" src="/static/jquery/js/jquery-1.9.1.js"></script>
 		<script type="text/javascript" src="/static/jquery/js/jquery-ui-1.10.2.custom.min.js"></script>
 		<script type="text/javascript" src="/static/noty/jquery.noty.js"></script>
@@ -50,6 +44,11 @@ _page_content = u"""
 		<script type="text/javascript" src="/static/noty/themes/default.js"></script>
 		<script type="text/javascript" src="/static/json2.js"></script>
 		<script type="text/javascript" src="/static/larch.js"></script>
+		<script type="text/javascript">
+			<!--
+			larch.__session_id="{session_id}";
+			// -->
+		</script>
 
 		<!--scripts and css introduced by dependencies-->
 		{dependency_tags}
