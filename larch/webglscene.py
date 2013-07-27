@@ -221,7 +221,7 @@ class UVMeshDataResource (UVMeshDataSource):
 		self.resource = resource
 
 	def __js__(self, pres_ctx, scene_js, entity_js):
-		return entity_js.attachResournce(self.resource)
+		return entity_js.attachResource(self.resource)
 
 
 class Camera (object):

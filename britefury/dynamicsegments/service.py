@@ -69,7 +69,8 @@ class DynamicDocumentService (object):
 		dynamic_document.lock()
 
 		# Get the event messages
-		events_json = json.loads(event_data)
+		block_json = json.loads(event_data)
+		events_json = block_json['messages']
 
 		error_messages = []
 
@@ -93,6 +94,8 @@ class DynamicDocumentService (object):
 
 		# Send messages to the client
 		result = json.dumps(client_messages + error_messages)
+
+		#print 'EVENT {0}: in {1} events, out {2} messages'.format(block_json['id'], len(events_json), len(client_messages))
 
 		dynamic_document.unlock()
 

@@ -4,14 +4,26 @@
 larch.controls = {};
 
 
-larch.__executeJS = function(js_code) {
-    try {
-        eval(js_code);
+larch.__getElementsOfClass = function(className, tagName) {
+    if (document.getElementsByClassName) {
+        return document.getElementsByClassName(className);
     }
-    catch (e) {
-        console.log("Dynamic JS code execution: caught " + e + " when executing " + js_code);
+    else {
+        // IE does not support getElementsByClassName
+        var els = document.getElementsByTagName(tagName);
+        var i = 0;
+        var elem = null;
+        var placeHolders = [];
+        while (elem = els[i++]) {
+            if (elem.className === className) {
+                placeHolders.push(elem);
+            }
+        }
+        return placeHolders;
     }
 };
+
+
 
 larch.__addDependency = function(dep) {
     $(dep).appendTo("head");
@@ -19,6 +31,26 @@ larch.__addDependency = function(dep) {
 
 
 
+//
+//
+// SEGMENT MANAGEMENT
+//
+//
+
+larch.__getSegmentIDForEvent = function(src_element) {
+    var n = src_element;
+    var segment_id = null;
+    while (n !== null) {
+        if ("__lch_seg_id" in n) {
+            // We have a segment ID
+            segment_id = n.__lch_seg_id;
+            break;
+        }
+        n = n.parentNode;
+    }
+
+    return segment_id;
+};
 
 larch.__buildConnectivity = function(segment) {
     // The state consists of the start and end nodes of a segment.
@@ -88,7 +120,6 @@ larch.__getNodesInInactiveSegment = function(segment) {
 
 
 
-
 larch.__replaceSegment = function(oldSegmentState, newSegmentState) {
     var first = oldSegmentState.start;
     var parent = first.parentNode;
@@ -130,25 +161,6 @@ larch.__createSegmentContentNodesFromSource = function(content) {
 
 
 
-larch.__getElementsOfClass = function(className, tagName) {
-    if (document.getElementsByClassName) {
-        return document.getElementsByClassName(className);
-    }
-    else {
-        // IE does not support getElementsByClassName
-        var els = document.getElementsByTagName(tagName);
-        var i = 0;
-        var elem = null;
-        var placeHolders = [];
-        while (elem = els[i++]) {
-            if (elem.className === className) {
-                placeHolders.push(elem);
-            }
-        }
-        return placeHolders;
-    }
-};
-
 larch.__getPlaceHolderNodes = function() {
     return larch.__getElementsOfClass("__lch_seg_placeholder", "span");
 };
@@ -157,28 +169,8 @@ larch.__getSegmentBeginNodes = function() {
     return larch.__getElementsOfClass("__lch_seg_begin", "span");
 };
 
-larch.__executeNodeScripts = function(node_scripts) {
-    var segment_table = larch.__segment_table;
-    for (var i = 0; i < node_scripts.length; i++) {
-        var node_scipt = node_scripts[i];
-        var segment_id = node_scipt[0];
-        var script = node_scipt[1];
-        //console.log("Executing initialisers for " + segment_id);
-        var state = segment_table[segment_id];
-        if (state === undefined) {
-            throw "Cannot get segment " + segment_id
-        }
-        var nodes = larch.__getNodesInActiveSegment(state);
-        var exceptions = null;
-        for (var j = 1; j < nodes.length - 1; j++) {
-            // The 'unused' variable node is referenced by the source code contained in the initialiser; it is needed by eval()
-            var node = nodes[j];        // <<-- DO NOT DELETE
-            for (var k = 0; k < script.length; k++) {
-                eval(script[k]);
-            }
-        }
-    }
-};
+
+
 
 larch.__register_segments = function() {
     var segment_table = larch.__segment_table;
@@ -224,6 +216,57 @@ larch.__register_segments = function() {
     }
 };
 
+
+
+
+
+
+//
+//
+// SCRIPT EXECUTION
+//
+//
+
+larch.__executeJS = function(js_code) {
+    try {
+        eval(js_code);
+    }
+    catch (e) {
+        console.log("Dynamic JS code execution: caught " + e + " when executing " + js_code);
+    }
+};
+
+
+larch.__executeNodeScripts = function(node_scripts) {
+    var segment_table = larch.__segment_table;
+    for (var i = 0; i < node_scripts.length; i++) {
+        var node_scipt = node_scripts[i];
+        var segment_id = node_scipt[0];
+        var script = node_scipt[1];
+        //console.log("Executing initialisers for " + segment_id);
+        var state = segment_table[segment_id];
+        if (state === undefined) {
+            throw "Cannot get segment " + segment_id
+        }
+        var nodes = larch.__getNodesInActiveSegment(state);
+        var exceptions = null;
+        for (var j = 1; j < nodes.length - 1; j++) {
+            // The 'unused' variable node is referenced by the source code contained in the initialiser; it is needed by eval()
+            var node = nodes[j];        // <<-- DO NOT DELETE
+            for (var k = 0; k < script.length; k++) {
+                eval(script[k]);
+            }
+        }
+    }
+};
+
+
+
+//
+//
+// PAGE UPDATES
+//
+//
 
 
 larch.__applyChanges = function(changes) {
@@ -309,6 +352,17 @@ larch.__applyChanges = function(changes) {
     }
 };
 
+
+
+
+
+//
+//
+// HIGHLIGHT SEGMENTS
+//
+//
+
+
 larch.__highlightSegment = function(segment_id) {
     var segment_table = larch.__segment_table;
     var state = segment_table[segment_id];
@@ -333,98 +387,15 @@ larch.__unhighlightSegment = function(segment_id) {
     }
 };
 
-larch.__messageHandlers = {
-    modify_document: function(message) {
-        larch.__applyChanges(message.changes);
-    },
 
-    execute_js: function(message) {
-        larch.__executeJS(message.js_code);
-    },
 
-    add_dependencies: function(message) {
-        var deps = message.deps;
-        for (var i = 0; i < deps.length; i++) {
-            larch.__addDependency(deps[i]);
-        }
-    },
 
-    resources_modified: function(message) {
-        var resource_ids = message.resource_ids;
-        for (var i = 0; i < resource_ids.length; i++) {
-            larch.__resourceModified(resource_ids[i]);
-        }
-    },
 
-    resources_disposed: function(message) {
-        var resource_ids = message.resource_ids;
-        for (var i = 0; i < resource_ids.length; i++) {
-            larch.__destroyResource(resource_ids[i]);
-        }
-    },
-
-    invalid_page: function(message) {
-        noty({
-            text: '<p class="invalid_page_style">Connection to page lost. Click to reload.</p>',
-            layout: "center",
-            type: "error",
-            modal: true,
-            closeWith: ["click"],
-            callback: {
-                onClose: function() {
-                    location.reload();
-                }
-            }
-        });
-    },
-
-    error_handling_event: function(message) {
-        var eventName = '<span class="event_error_event_name">' + message.event_name + '</span>';
-        var headerHtml;
-        if (message.event_seg_id !== null) {
-            var srcSegment = '<span class="event_error_segment" onmouseover="larch.__highlightSegment(\'' + message.event_seg_id + '\');" onmouseout="larch.__unhighlightSegment(\'' + message.event_seg_id + '\');">segment</span>';
-            var hdlSegment = '<span class="event_error_segment" onmouseover="larch.__highlightSegment(\'' + message.handler_seg_id + '\');" onmouseout="larch.__unhighlightSegment(\'' + message.handler_seg_id + '\');">segment</span>';
-            var sentFrom = 'sent from a ' + srcSegment + ' belonging to an instance of <span class="event_error_model_type">' + message.event_model_type_name + '</span>, ';
-            var handledAt = 'handled at a ' + hdlSegment + ' belonging to an instance of <span class="event_error_model_type">' + message.handler_model_type_name + '</span>';
-
-            headerHtml = '<div class="event_error_header">Error handling event ' + eventName + ', ' + sentFrom + handledAt + '</div>';
-        }
-        else {
-            headerHtml = '<div class="event_error_header">Error handling page event ' + eventName + '</div>';
-        }
-
-        noty({
-            text: '<div class="exception_in_noty">' + headerHtml + message.err_html + '</div>',
-            layout: "bottom",
-            type: "alert",
-            closeWith: ["click"]
-        });
-    },
-
-    error_during_update: function(message) {
-        var headerHtml = '<div class="event_error_header">Error while updating after handling events</div>';
-        noty({
-            text: '<div class="exception_in_noty">' + headerHtml + message.err_html + '</div>',
-            layout: "bottom",
-            type: "alert",
-            modal: true,
-            closeWith: ["click"]
-        });
-    }
-};
-
-larch.__handleMessagesFromServer = function(messages) {
-    for (var i = 0; i < messages.length; i++) {
-        var msg = messages[i];
-        var handler = larch.__messageHandlers[msg.msgtype];
-        if (handler !== undefined) {
-            handler(msg);
-        }
-        else {
-            throw ('Larch: unrecognised message: ' + msg.msgtype);
-        }
-    }
-};
+//
+//
+// KEY EVENT PROCESSING
+//
+//
 
 
 
@@ -507,20 +478,112 @@ larch.__onkeypress = function(event, keys) {
 
 
 
-larch.__getSegmentIDForEvent = function(src_element) {
-    var n = src_element;
-    var segment_id = null;
-    while (n !== null) {
-        if ("__lch_seg_id" in n) {
-            // We have a segment ID
-            segment_id = n.__lch_seg_id;
-            break;
-        }
-        n = n.parentNode;
-    }
 
-    return segment_id;
+//
+//
+// CLIENT-SERVER MESSAGING
+//
+//
+
+larch.__connectionToPageLost = false;
+
+larch.__messageHandlers = {
+    modify_document: function(message) {
+        larch.__applyChanges(message.changes);
+    },
+
+    execute_js: function(message) {
+        larch.__executeJS(message.js_code);
+    },
+
+    add_dependencies: function(message) {
+        var deps = message.deps;
+        for (var i = 0; i < deps.length; i++) {
+            larch.__addDependency(deps[i]);
+        }
+    },
+
+    resources_modified: function(message) {
+        var resource_ids = message.resource_ids;
+        for (var i = 0; i < resource_ids.length; i++) {
+            larch.__resourceModified(resource_ids[i]);
+        }
+    },
+
+    resources_disposed: function(message) {
+        var resource_ids = message.resource_ids;
+        for (var i = 0; i < resource_ids.length; i++) {
+            larch.__destroyResource(resource_ids[i]);
+        }
+    },
+
+    invalid_page: function(message) {
+        if (!larch.__connectionToPageLost) {
+            larch.__connectionToPageLost = true;
+            noty({
+                text: '<p class="invalid_page_style">Connection to page lost. Click to reload.</p>',
+                layout: "center",
+                type: "error",
+                modal: true,
+                closeWith: ["click"],
+                callback: {
+                    onClose: function() {
+                        location.reload();
+                    }
+                }
+            });
+        }
+    },
+
+    error_handling_event: function(message) {
+        var eventName = '<span class="event_error_event_name">' + message.event_name + '</span>';
+        var headerHtml;
+        if (message.event_seg_id !== null) {
+            var srcSegment = '<span class="event_error_segment" onmouseover="larch.__highlightSegment(\'' + message.event_seg_id + '\');" onmouseout="larch.__unhighlightSegment(\'' + message.event_seg_id + '\');">segment</span>';
+            var hdlSegment = '<span class="event_error_segment" onmouseover="larch.__highlightSegment(\'' + message.handler_seg_id + '\');" onmouseout="larch.__unhighlightSegment(\'' + message.handler_seg_id + '\');">segment</span>';
+            var sentFrom = 'sent from a ' + srcSegment + ' belonging to an instance of <span class="event_error_model_type">' + message.event_model_type_name + '</span>, ';
+            var handledAt = 'handled at a ' + hdlSegment + ' belonging to an instance of <span class="event_error_model_type">' + message.handler_model_type_name + '</span>';
+
+            headerHtml = '<div class="event_error_header">Error handling event ' + eventName + ', ' + sentFrom + handledAt + '</div>';
+        }
+        else {
+            headerHtml = '<div class="event_error_header">Error handling page event ' + eventName + '</div>';
+        }
+
+        noty({
+            text: '<div class="exception_in_noty">' + headerHtml + message.err_html + '</div>',
+            layout: "bottom",
+            type: "alert",
+            closeWith: ["click"]
+        });
+    },
+
+    error_during_update: function(message) {
+        var headerHtml = '<div class="event_error_header">Error while updating after handling events</div>';
+        noty({
+            text: '<div class="exception_in_noty">' + headerHtml + message.err_html + '</div>',
+            layout: "bottom",
+            type: "alert",
+            modal: true,
+            closeWith: ["click"]
+        });
+    }
 };
+
+larch.__handleMessagesFromServer = function(messages) {
+    for (var i = 0; i < messages.length; i++) {
+        var msg = messages[i];
+        var handler = larch.__messageHandlers[msg.msgtype];
+        if (handler !== undefined) {
+            handler(msg);
+        }
+        else {
+            throw ('Larch: unrecognised message: ' + msg.msgtype);
+        }
+    }
+};
+
+
 
 larch.__buildElementEventMessage = function(segment_id, event_name, event_data) {
     return {
@@ -532,24 +595,63 @@ larch.__buildElementEventMessage = function(segment_id, event_name, event_data) 
 };
 
 
+larch.__messageBlockCount = 0;
+larch.__messageBuffer = [];
+larch.__waitingForResponse = false;
 
+// Messages are handled in a synchronous manner....
+// This does violate the normal way of interacting with web servers but....
+// The normal async approach is to fire off a request and handle it when the response comes.
+// We do much the same thing here, except that while we are awaiting a response, new requests will be buffered until the response arrives.
+// Once the response has been received, a request can pass through.
+//
+// When handling messages asynchronously, it is quite trivial to create a situation where responding to an event could would involve a few
+// seconds of server-side computation.
+// If the client posts these requests fast enough (e.g. 10 per second, by dragging a slider control) you can build up a few minutes worth of
+// server-side work. The server will process each message block in turn, taking a few seconds each time. It will respond to each one with some
+// changes, which will gradually arrive at the client over the next few minutes, making the application unresponsive during this time.
+// Building up a back-log of server-side work is VERY easy to do, and makes the application feel more laggy in these instances
+// than if we buffer messages until we KNOW that the server is ready to work on them.
 larch.__sendEventMessagesToServer = function(ev_messages) {
-    var ev_json = JSON.stringify(ev_messages);
+    if (larch.__waitingForResponse) {
+        // The last event has not yet received a response, buffer the messages
+        larch.__messageBuffer = larch.__messageBuffer.concat(ev_messages);
+    }
+    else {
+        // Generate a message block index
+        var block_id = larch.__messageBlockCount;
+        larch.__messageBlockCount++;
 
-    var ev_data = {
-        session_id: larch.__session_id,
-        event_data: ev_json
-    };
+        // Join the message buffer with the messages that are to be sent
+        var messages = larch.__messageBuffer.concat(ev_messages);
+        larch.__messageBuffer = [];
 
-    $.ajax({
-        type: 'POST',
-        url: '/event',
-        data: ev_data,
-        success: function(msg) {
-            larch.__handleMessagesFromServer(msg);
-        },
-        dataType: 'json'
-    });
+        // Create the message block and serialise
+        var block = {id: block_id, messages: messages};
+        var block_json = JSON.stringify(block);
+
+        // Create the POST data
+        var post_data = {
+            session_id: larch.__session_id,
+            event_data: block_json
+        };
+
+        //console.log('EVENT ' + block_id + ': sent ' + ev_messages.length);
+        // Set the waiting for response flag
+        larch.__waitingForResponse = true;
+        $.ajax({
+            type: 'POST',
+            url: '/event',
+            data: post_data,
+            success: function(msg) {
+                //console.log('EVENT ' + block_id + ': received ' + msg.length);
+                // We have a response; we are not waiting any more
+                larch.__waitingForResponse = false;
+                larch.__handleMessagesFromServer(msg);
+            },
+            dataType: 'json'
+        });
+    }
 };
 
 larch.__postEventMessage = function(ev_msg) {
@@ -622,7 +724,16 @@ larch.hasQueuedEventFactory = function(src_element, event_name) {
 };
 
 
+
+
+//
+//
+// RESOURCES
+//
+//
+
 larch.__resourceIdToResource = {};
+larch.__rscFetchCount = 0;
 
 larch.__createResource = function(rscId, rscUrl) {
     var rsc = {};
@@ -631,20 +742,23 @@ larch.__createResource = function(rscId, rscUrl) {
     rsc.__listeners = [];
 
     rsc.fetchString = function(handlerFn) {
+        var x = larch.__rscFetchCount;
+        larch.__rscFetchCount++;
+        //console.log('Getting resource ');
         $.ajax({
             type: 'GET',
-            url: rsc.url,
-            //data: ev_data,
+            url: rsc.url + '&_idx=' + x,        // Append an index to the URL; this seems to prevent the server from ignoring (!) the request. Why? don't know yet.... The server ignores _idx, so its not like it does anything...
             success: handlerFn
-            //dataType: 'json'
         });
     };
 
     rsc.fetchJSON = function(handlerFn) {
+        var x = larch.__rscFetchCount;
+        larch.__rscFetchCount++;
+        //console.log('Getting JSON resource ' + x);
         $.ajax({
             type: 'GET',
-            url: rsc.url,
-            //data: ev_data,
+            url: rsc.url + '&_idx=' + x,        // Append an index to the URL; this seems to prevent the server from ignoring (!) the request. Why? don't know yet.... The server ignores _idx, so its not like it does anything...
             success: handlerFn,
             dataType: 'json'
         });
@@ -687,6 +801,11 @@ larch.__resourceModified = function(rscId) {
 
 
 
+//
+//
+// COMMANDS
+//
+//
 
 larch.__commands = [];
 larch.__userEnteringCommand = false;
@@ -908,6 +1027,15 @@ larch.__setupCommandListeners = function() {
         return true;
     };
 };
+
+
+
+
+//
+//
+// ON DOCUMENT READY
+//
+//
 
 larch.__onDocumentReady = function(initialisers) {
     larch.__register_segments();
