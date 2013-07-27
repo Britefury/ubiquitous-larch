@@ -226,7 +226,6 @@ class ProjectRoot (ProjectContainer):
 			'<div class="larch_app_title_bar"><h1 class="page_title">Project</h1></div>',
 			'<p class="project_root_package_name">Root package name: ', entry, '<br><span class="notes_text">(this is the base name from which the contents of this project will be importable)</span></p>',
 			super_pres,
-			'</div>',
 		]
 		return Html(*contents).use_css(url="/static/project.css")
 

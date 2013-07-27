@@ -50,9 +50,10 @@
 }
 
 .worksheet_code_block {
-    margin: 0.5em 0;
+    margin: 0.5em 0em 1.0em 0em;
     border: 1px solid #c9c9d1;
     border-radius: 5px;
+    box-shadow: 0 7px 5px #dcdcdc;
 }
 
 .worksheet_python_code_header {

@@ -106,7 +106,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
   position: relative;
   overflow: hidden;
   /*background: white;*/
-  background-image: url('code_background.png');
+  background-image: url('/static/speckle.png');
 
   color: black;
 }

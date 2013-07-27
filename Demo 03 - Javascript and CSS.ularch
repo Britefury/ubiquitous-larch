@@ -85,7 +85,7 @@ Ntp35
 Rp36
 (dp37
 g19
-V.test_border {\u000a	font-family: "Open Sans", sans-serif;\u000a	color: #2080a0;\u000a	border: 1px solid #2080a0;\u000a	background: #defeff;\u000a	border-radius: 20px;\u000a	padding: 20px;\u000a}
+V.test_border {\u000a	font-family: "Open Sans", sans-serif;\u000a	color: #2080a0;\u000a	border: 1px solid #2080a0;\u000a	background-image: url('/static/speckle.png');\u000a    box-shadow: 0 7px 5px #aaa;\u000a    margin: 0 0.5em 1.5em 0.5em;\u000a	border-radius: 20px;\u000a	padding: 20px;\u000a}
 p38
 sg25
 I01
@@ -109,7 +109,7 @@ Ntp44
 Rp45
 (dp46
 g19
-Vy = Html('<div class="test_border">Some more text in a different border, this time with the CSS source provided directly to the API.</div>')\u000ay = y.use_css(source=css_source)\u000ay
+Vy = Html('<div class="test_border">Some more text in a different border, with a drop shadow. This time, the CSS source provided directly to the API.</div>')\u000ay = y.use_css(source=css_source)\u000ay
 p47
 sg25
 I01
@@ -142,7 +142,7 @@ Ntp56
 Rp57
 (dp58
 g19
-Vfunction open_a_dialog() {\u000a	// Build the contents; just a paragraph with a greeting\u000a	var dialogContents = $('<p>Hello world</p>');\u000a\u000a	// Append to the document\u000a	$(document.body).append(dialogContents);\u000a\u000a	// Use JQuery to convert to a dialog\u000a	$(dialogContents).dialog();\u000a}
+Vfunction open_a_dialog() {\u000a	// Build the contents; just a paragraph with a greeting\u000a	var dialogContents = $('<p>This dialog was created using Javascript, running on the client, with the code provided via the Python API.</p>');\u000a\u000a	// Append to the document\u000a	$(document.body).append(dialogContents);\u000a\u000a	// Use JQuery to convert to a dialog\u000a	$(dialogContents).dialog();\u000a}
 p59
 sg25
 I01

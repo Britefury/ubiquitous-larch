@@ -1024,7 +1024,14 @@ larch.__setupCommandListeners = function() {
                     text: 'Command started  --  enter key sequence or <span class="command_special_key">ESC</span> to cancel or <span class="command_special_key">H</span> for help',
                     type: 'information',
                     layout: 'bottom',
-                    closeWith: ['click']});
+                    closeWith: ['click'],
+                    callback: {
+                        onClose: function() {
+                            larch.__userEnteringCommand = false;
+                            larch.__partialCommandKeySequence = null;
+                        }
+                    }
+                });
 
                 return false;
             }
