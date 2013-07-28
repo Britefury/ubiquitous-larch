@@ -53,7 +53,7 @@ _page_content = u"""
 		<!--scripts and css introduced by dependencies-->
 		{dependency_tags}
 
-		<!--initialisers; expressions that must be executed to initialise elements or the document-->
+		<!--initialisers; expressions that must be executed to initialise elements or the page-->
 		<script type="text/javascript">
 			<!--
 			$(document).ready(function(){{larch.__onDocumentReady({initialisers});}});
@@ -168,7 +168,7 @@ class DynamicPage (object):
 
 	Create segments by calling the new_segment method. Remove them with remove_segment when you are done.
 
-	You must create and set the root segment before using the document. Create using new_segment, then set the root_segment attribute.
+	You must create and set the root segment before using the page. Create using new_segment, then set the root_segment attribute.
 	"""
 	def __init__(self, service, session_id):
 		self.__service = service
@@ -186,16 +186,16 @@ class DynamicPage (object):
 		self.__global_deps_version = 0
 		self.__global_deps = set()
 
-		# Document event handlers
-		self.__doc_event_handlers = []
+		# Page event handlers
+		self.__page_event_handlers = []
 
 		# Dependencies
 		self.__dependencies = []
 		self.__all_dependencies = set()
 
-		# Document modification message and flag
-		self.__document_modifications_message = None
-		self.__document_modified = False
+		# Page modification message and flag
+		self.__page_modifications_message = None
+		self.__page_modified = False
 
 		# Queue of JS expressions that must be executed; will be put on the client in one batch later
 		self.__js_queue = []
@@ -303,7 +303,7 @@ class DynamicPage (object):
 		return self._table._new_segment(content, desc, owner)
 
 	def remove_segment(self, segment):
-		"""Remove a segment from the document. You should remove segments when you don't need them anymore.
+		"""Remove a segment from the page. You should remove segments when you don't need them anymore.
 		"""
 		self._table._remove_segment(segment)
 
@@ -325,21 +325,21 @@ class DynamicPage (object):
 			data and mime_type attributes/properties: the data and its MIME type
 		context - context data, used by the resource data object at initialisation and disposal time
 		"""
-		doc_rsc = self.__rsc_content_to_rsc.get(rsc_data)
-		if doc_rsc is None:
+		page_rsc = self.__rsc_content_to_rsc.get(rsc_data)
+		if page_rsc is None:
 			rsc_id = 'rsc{0}'.format(self.__rsc_id_counter)
 			self.__rsc_id_counter += 1
-			doc_rsc = DynamicResource(self, rsc_id, rsc_data)
-			self.__rsc_id_to_rsc[rsc_id] = doc_rsc
+			page_rsc = DynamicResource(self, rsc_id, rsc_data)
+			self.__rsc_id_to_rsc[rsc_id] = page_rsc
 
-		doc_rsc.ref(context)
+		page_rsc.ref(context)
 
-		return doc_rsc
+		return page_rsc
 
 
-	def unref_resource(self, doc_rsc):
-		if doc_rsc.unref() == 0:
-			del self.__rsc_id_to_rsc[doc_rsc.id]
+	def unref_resource(self, page_rsc):
+		if page_rsc.unref() == 0:
+			del self.__rsc_id_to_rsc[page_rsc.id]
 
 
 	def _resource_modified(self, rsc):
@@ -385,7 +385,7 @@ class DynamicPage (object):
 	@property
 	def root_segment(self):
 		"""The root segment
-		Defaults to None. You must set this before using the document.
+		Defaults to None. You must set this before using the page.
 		"""
 		return self.__root_segment
 
@@ -432,9 +432,9 @@ class DynamicPage (object):
 			msg_list.append(msg)
 
 		# Document modifications message
-		if self.__document_modifications_message is not None:
-			msg_list.append(self.__document_modifications_message)
-			self.__document_modifications_message = None
+		if self.__page_modifications_message is not None:
+			msg_list.append(self.__page_modifications_message)
+			self.__page_modifications_message = None
 
 		# Execute JS message
 		if self.__execute_js_message is not None:
@@ -467,7 +467,7 @@ class DynamicPage (object):
 	# Event handling
 	def handle_event(self, segment_id, event_name, ev_data):
 		if segment_id is None:
-			for handler_ev_name, handler_fn in self.__doc_event_handlers:
+			for handler_ev_name, handler_fn in self.__page_event_handlers:
 				if handler_ev_name == event_name:
 					try:
 						if handler_fn(self.__public_api, ev_data):
@@ -494,7 +494,7 @@ class DynamicPage (object):
 
 
 	def add_page_event_handler(self, event_name, event_response_function):
-		self.__doc_event_handlers.append((event_name, event_response_function))
+		self.__page_event_handlers.append((event_name, event_response_function))
 
 
 	# Resource retrieval
@@ -523,27 +523,27 @@ class DynamicPage (object):
 
 	def _notify_page_modified(self):
 		# Segment changes notification. Called by _HtmlSegment.
-		if not self.__document_modified:
-			self.__document_modified = True
+		if not self.__page_modified:
+			self.__page_modified = True
 			self.queue_task(self.__refresh_page)
 
 
 	def __refresh_page(self):
-		# Refresh the document
+		# Refresh the page
 
 		# Get the change set
 		change_set = self._table._get_recent_changes()
 		# Clear changes
 		self._table._clear_changes()
-		# Compose the modify document message
-		self.__document_modifications_message = messages.modify_page_message(change_set.json())
+		# Compose the modify page message
+		self.__page_modifications_message = messages.modify_page_message(change_set.json())
 
 		# Build the execute JS message
 		if len(self.__js_queue) > 0:
 			self.__execute_js_message = messages.execute_js_message('\n'.join(self.__js_queue))
 			self.__js_queue = []
 
-		self.__document_modified = False
+		self.__page_modified = False
 
 
 	def page_html(self):

@@ -58,7 +58,7 @@ class _FragmentView (object):
 		self.__incr.add_listener(self.__on_incremental_monitor_changed)
 
 		# Segments
-		self.__segment = self.__inc_view.dynamic_document.new_segment(desc='{0}'.format(type(self.__model).__name__), owner=self)
+		self.__segment = self.__inc_view.dynamic_page.new_segment(desc='{0}'.format(type(self.__model).__name__), owner=self)
 		self.__sub_segments = []
 
 		# Resources
@@ -68,10 +68,10 @@ class _FragmentView (object):
 	def _dispose(self):
 		self.__incr.remove_listener(self.__on_incremental_monitor_changed)
 		for rsc in self.__resources:
-			self.__inc_view.dynamic_document.unref_resource(rsc)
+			self.__inc_view.dynamic_page.unref_resource(rsc)
 		for sub_seg in self.__sub_segments:
-			self.__inc_view.dynamic_document.remove_segment(sub_seg)
-		self.__inc_view.dynamic_document.remove_segment(self.__segment)
+			self.__inc_view.dynamic_page.remove_segment(sub_seg)
+		self.__inc_view.dynamic_page.remove_segment(self.__segment)
 
 
 
@@ -119,8 +119,8 @@ class _FragmentView (object):
 		return self.__inc_view
 
 	@property
-	def document(self):
-		return self.__inc_view.dynamic_document.public_api
+	def page(self):
+		return self.__inc_view.dynamic_page.public_api
 
 	@property
 	def parent(self):
@@ -153,8 +153,8 @@ class _FragmentView (object):
 	#
 
 	@property
-	def dynamic_document(self):
-		return self.__inc_view.dynamic_document
+	def dynamic_page(self):
+		return self.__inc_view.dynamic_page
 
 	@property
 	def service(self):
@@ -181,16 +181,16 @@ class _FragmentView (object):
 	#
 
 	def create_sub_segment(self, content):
-		sub_seg = self.__inc_view.dynamic_document.new_segment(content, desc='subseg_{0}'.format(type(self.__model).__name__), owner=self)
+		sub_seg = self.__inc_view.dynamic_page.new_segment(content, desc='subseg_{0}'.format(type(self.__model).__name__), owner=self)
 		self.__sub_segments.append(sub_seg)
 		return sub_seg
 
 
 
 	def create_resource(self, rsc_data, context):
-		doc_rsc = self.__inc_view.dynamic_document.resource_for(rsc_data, context)
-		self.__resources.append(doc_rsc)
-		return doc_rsc
+		page_rsc = self.__inc_view.dynamic_page.resource_for(rsc_data, context)
+		self.__resources.append(page_rsc)
+		return page_rsc
 
 
 
@@ -354,7 +354,7 @@ class _FragmentView (object):
 
 		# Remove sub segments
 		for sub_seg in self.__sub_segments:
-			self.__inc_view.dynamic_document.remove_segment(sub_seg)
+			self.__inc_view.dynamic_page.remove_segment(sub_seg)
 		del self.__sub_segments[:]
 
 
@@ -740,7 +740,7 @@ class IncrementalViewTable (object):
 
 
 class IncrementalView (object):
-	def __init__(self, subject, dynamic_document):
+	def __init__(self, subject, dynamic_page):
 		self.__subject = subject
 
 		self.__root_model = subject.focus
@@ -754,10 +754,10 @@ class IncrementalView (object):
 
 		self.__unique_fragment_factories = {}
 
-		self.__dynamic_document = dynamic_document
+		self.__dynamic_page = dynamic_page
 		title = subject.title
 		if title is not None:
-			self.__dynamic_document.title = title
+			self.__dynamic_page.title = title
 
 		self.__lock = None
 
@@ -781,12 +781,12 @@ class IncrementalView (object):
 		return self.__subject
 
 	@property
-	def dynamic_document(self):
-		return self.__dynamic_document
+	def dynamic_page(self):
+		return self.__dynamic_page
 
 	@property
 	def service(self):
-		return self.__dynamic_document.service
+		return self.__dynamic_page.service
 
 
 
@@ -807,8 +807,8 @@ class IncrementalView (object):
 
 		# Get the root fragment
 		root_frag_view = self._get_root_fragment_view()
-		# Set the content of the dynamic document to the content of the root fragment
-		self.__dynamic_document.root_segment = root_frag_view._refreshed_segment_reference
+		# Set the content of the dynamic page to the content of the root fragment
+		self.__dynamic_page.root_segment = root_frag_view._refreshed_segment_reference
 
 
 	#
@@ -826,7 +826,7 @@ class IncrementalView (object):
 	def _queue_refresh(self):
 		if not self.__refresh_required:
 			self.__refresh_required = True
-			self.__dynamic_document.queue_task(self._refresh)
+			self.__dynamic_page.queue_task(self._refresh)
 
 
 

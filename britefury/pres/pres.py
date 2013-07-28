@@ -139,12 +139,12 @@ class Resource (Pres, js.JS):
 		return HtmlContent([self._url(pres_ctx)])
 
 	def build_js(self, pres_ctx):
-		doc_rsc = pres_ctx.fragment_view.create_resource(self.__rsc_data, pres_ctx)
-		return doc_rsc.client_side_js()
+		page_rsc = pres_ctx.fragment_view.create_resource(self.__rsc_data, pres_ctx)
+		return page_rsc.client_side_js()
 
 	def _url(self, pres_ctx):
-		doc_rsc = pres_ctx.fragment_view.create_resource(self.__rsc_data, pres_ctx)
-		return doc_rsc.url
+		page_rsc = pres_ctx.fragment_view.create_resource(self.__rsc_data, pres_ctx)
+		return page_rsc.url
 
 
 

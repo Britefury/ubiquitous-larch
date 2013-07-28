@@ -19,8 +19,8 @@ class Command (object):
 		self.on_invoke = on_invoke
 		self._command_id = 'cmd{0}'.format(id(self))
 
-	def invoke(self, document):
-		self.on_invoke(document)
+	def invoke(self, page):
+		self.on_invoke(page)
 
 
 	def js_expr(self):
@@ -40,18 +40,18 @@ class CommandSet (object):
 
 
 
-	def invoke_by_command_id(self, document, command_id):
-		self._id_to_command[command_id].invoke(document)
+	def invoke_by_command_id(self, page, command_id):
+		self._id_to_command[command_id].invoke(page)
 
 
 	def __iter__(self):
 		return iter(self.commands)
 
 
-	def attach_to_document(self, dynamic_document):
+	def attach_to_page(self, dynamic_page):
 		for command in self.commands:
-			dynamic_document.queue_js_to_execute(command.js_expr())
-		dynamic_document.add_page_event_handler('command', self.invoke_by_command_id)
+			dynamic_page.queue_js_to_execute(command.js_expr())
+		dynamic_page.add_page_event_handler('command', self.invoke_by_command_id)
 
 
 

@@ -27,9 +27,9 @@ class ProjectionService (DynamicPageService):
 		self.__front_page_model = front_page_model
 
 
-	def initialise_session(self, dynamic_page, location):
+	def initialise_page(self, dynamic_page, location):
 		"""
-		Initialise the session
+		Initialise the page
 		:param dynamic_page: The page that will display the required content
 		:param location: The location which we must resolve to find the content to display
 		:return: an IncrementalView
@@ -51,7 +51,7 @@ class ProjectionService (DynamicPageService):
 				cmds.extend(method())
 
 		command_set = command.CommandSet(cmds)
-		command_set.attach_to_document(dynamic_page)
+		command_set.attach_to_page(dynamic_page)
 
 		# Create the incremental view
 		return IncrementalView(subject, dynamic_page)
