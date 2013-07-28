@@ -18,7 +18,7 @@ larch.__getElementsOfClass = function(className, tagName) {
         // IE does not support getElementsByClassName
         var els = document.getElementsByTagName(tagName);
         var i = 0;
-        var elem = null;
+        var elem;
         var placeHolders = [];
         while (elem = els[i++]) {
             if (elem.className === className) {
@@ -255,10 +255,9 @@ larch.__executeNodeScripts = function(node_scripts) {
             throw "Cannot get segment " + segment_id
         }
         var nodes = larch.__getNodesInActiveSegment(state);
-        var exceptions = null;
         for (var j = 1; j < nodes.length - 1; j++) {
             // The 'unused' variable node is referenced by the source code contained in the initialiser; it is needed by eval()
-            var node = nodes[j];        // <<-- DO NOT DELETE
+            var node = nodes[j];        // <<-- DO NOT DELETE; needed by code executed by eval
             for (var k = 0; k < script.length; k++) {
                 eval(script[k]);
             }
@@ -494,7 +493,7 @@ larch.__onkeypress = function(event, keys) {
 larch.__connectionToPageLost = false;
 
 larch.__messageHandlers = {
-    modify_document: function(message) {
+    modify_page: function(message) {
         larch.__applyChanges(message.changes);
     },
 
@@ -887,8 +886,6 @@ larch.__presentKeySequence = function(keySequence) {
 };
 
 larch.__createCommandDialog = function(commands) {
-    var htmlSrc = '';
-
     var table = $('<table class="command_table"></table>');
 
     var heading = $('<tr class="command_table_heading_row"><th><span class="command_table_heading">Key sequence</span></th><th><span class="command_table_heading">Description</span></th></tr>');
@@ -914,7 +911,7 @@ larch.__createCommandDialog = function(commands) {
         table.append(rowQ);
     }
     var div = $('<div></div>');
-    div.append('<p>The following commands are available:</p>')
+    div.append('<p>The following commands are available:</p>');
     div.append(table);
 
     larch.__commandHelpDialog = $(div).dialog();
@@ -964,7 +961,7 @@ larch.__setupCommandListeners = function() {
                 }
                 else {
                     // Find all matching commands
-                    var matchingCommands = []
+                    var matchingCommands = [];
 
                     for (var i = 0; i < larch.__commands.length; i++) {
                         var match = larch.__commands[i];

@@ -3,7 +3,7 @@
 ##-*************************
 import json
 
-from britefury.pres.key_event import Key
+from britefury.pres.key_event import Key		# Leave this in so that Key can be imported from command
 
 
 class Command (object):

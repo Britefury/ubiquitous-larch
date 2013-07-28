@@ -9,7 +9,7 @@ def dependency_message(deps):
 
 
 def modify_page_message(changes):
-	return {'msgtype' : 'modify_document',
+	return {'msgtype' : 'modify_page',
 		'changes' : changes}
 
 

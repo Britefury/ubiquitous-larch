@@ -1,16 +1,14 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-import imp
 import _ast
 import sys
 from collections import namedtuple
 from britefury.incremental import IncrementalValueMonitor
 from britefury.inspector.present_exception import present_exception
 from britefury.pres.html import Html
-from britefury.pres.key_event import KeyAction
 from britefury.pres.pres import Pres
-from britefury.pres.controls import code_mirror, button
+from britefury.pres.controls import code_mirror
 
 
 

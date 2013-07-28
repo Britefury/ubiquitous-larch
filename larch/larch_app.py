@@ -16,7 +16,7 @@ from larch.worksheet import worksheet
 from larch.project import project_root
 
 from britefury.pres.html import Html
-from britefury.pres.controls import menu, button, dialog, text_entry
+from britefury.pres.controls import menu, button, text_entry
 
 
 

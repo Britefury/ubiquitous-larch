@@ -13,7 +13,6 @@ larch.controls.initButton = function(node, options) {
 };
 
 larch.controls.initSlider = function(node, respondToSlide, options) {
-    var q = $(node);
     options.change = function(event, ui) {
         larch.postEvent(node, "slider_change", ui.value)
     };
@@ -26,7 +25,6 @@ larch.controls.initSlider = function(node, respondToSlide, options) {
 };
 
 larch.controls.initRangeSlider = function(node, respondToSlide, options) {
-    var q = $(node);
     options.change = function(event, ui) {
         larch.postEvent(node, "slider_change", ui.values)
     };
@@ -39,7 +37,6 @@ larch.controls.initRangeSlider = function(node, respondToSlide, options) {
 };
 
 larch.controls.initSpinner = function(node) {
-    var q = $(node);
     $(node).spinner({
         change: function(event, ui) {
             larch.postEvent(node, "spinner_change", ui.value)

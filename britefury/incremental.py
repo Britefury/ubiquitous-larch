@@ -273,13 +273,10 @@ class Test_IncrementalMonitor (unittest.TestCase):
 
 	@staticmethod
 	def _get_listeners(inc):
-		ls =  []
 		if inc._listeners is not None:
-			for r in inc._listeners:
-				l = r()
-				if l is not None:
-					ls.append(l)
-		return ls
+			return inc._listeners
+		else:
+			return []
 
 
 	def test_listener_refs(self):
@@ -296,36 +293,28 @@ class Test_IncrementalMonitor (unittest.TestCase):
 		inc.add_listener(l3)
 		inc.add_listener(l4)
 
-		del l4
-		gc.collect()
-		self.assertEqual(set([l1, l2, l3]), set(self._get_listeners(inc)))
+		self.assertEqual({l1, l2, l3, l4}, set(self._get_listeners(inc)))
 
-		del l3
-		gc.collect()
-		self.assertEqual(set([l1, l2]), set(self._get_listeners(inc)))
+		inc.remove_listener(l4)
+		self.assertEqual({l1, l2, l3}, set(self._get_listeners(inc)))
+
+		inc.remove_listener(l3)
+		self.assertEqual({l1, l2}, set(self._get_listeners(inc)))
 
 		l3 = self.signal_counter()
 		inc.add_listener(l3)
 		inc.add_listener(l3)
-		self.assertEqual(set([l1, l2, l3]), set(self._get_listeners(inc)))
+		self.assertEqual({l1, l2, l3}, set(self._get_listeners(inc)))
 
-		del l3
-		gc.collect()
+		inc.remove_listener(l3)
 		inc.remove_listener(l2)
-		self.assertEqual(set([l1]), set(self._get_listeners(inc)))
+		self.assertEqual({l1}, set(self._get_listeners(inc)))
 		self.assertTrue(inc.has_listeners)
 
 		inc.remove_listener(l1)
 		self.assertEqual(set(), set(self._get_listeners(inc)))
 		self.assertFalse(inc.has_listeners)
 
-
-		inc.add_listener(l1)
-		inc.add_listener(l2)
-		del l2
-		gc.collect()
-		inc._notify_changed()
-		self.assertEqual(set([l1]), set(self._get_listeners(inc)))
 
 
 
@@ -403,22 +392,22 @@ class Test_IncrementalFunctionMonitor (Test_IncrementalMonitor):
 		inc1.on_access()
 		inc2.on_refresh_end( rs2 )
 
-		self.assertEqual( set([inc2]), inc1.outgoing_dependences )
-		self.assertEqual( set([inc1]), inc2.incoming_dependencies )
+		self.assertEqual({inc2}, inc1.outgoing_dependences )
+		self.assertEqual({inc1}, inc2.incoming_dependencies )
 
 		rs3 = inc3.on_refresh_begin()
 		inc2.on_access()
 		inc3.on_refresh_end( rs3 )
 
-		self.assertEqual( set([inc3]), inc2.outgoing_dependences )
-		self.assertEqual( set([inc2]), inc3.incoming_dependencies )
+		self.assertEqual({inc3}, inc2.outgoing_dependences )
+		self.assertEqual({inc2}, inc3.incoming_dependencies )
 
 		rs4 = inc4.on_refresh_begin()
 		inc2.on_access()
 		inc4.on_refresh_end( rs4 )
 
-		self.assertEqual( set([inc3, inc4]), inc2.outgoing_dependences )
-		self.assertEqual( set([inc2]), inc4.incoming_dependencies )
+		self.assertEqual({inc3, inc4}, inc2.outgoing_dependences )
+		self.assertEqual({inc2}, inc4.incoming_dependencies )
 
 
 		inc1.on_changed()
@@ -447,14 +436,14 @@ class Test_IncrementalFunctionMonitor (Test_IncrementalMonitor):
 		inc2.on_access()
 		inc3.on_refresh_end( rs3 )
 
-		self.assertEqual( set([inc2]), inc1.outgoing_dependences )
-		self.assertEqual( set([inc3, inc4]), inc2.outgoing_dependences )
+		self.assertEqual({inc2}, inc1.outgoing_dependences )
+		self.assertEqual({inc3, inc4}, inc2.outgoing_dependences )
 		self.assertEqual( set(), inc3.outgoing_dependences )
 		self.assertEqual( set(), inc4.outgoing_dependences )
 		self.assertEqual( set(),  inc1.incoming_dependencies )
-		self.assertEqual( set([inc1]), inc2.incoming_dependencies )
-		self.assertEqual( set([inc2]), inc3.incoming_dependencies )
-		self.assertEqual( set([inc2]), inc4.incoming_dependencies )
+		self.assertEqual({inc1}, inc2.incoming_dependencies )
+		self.assertEqual({inc2}, inc3.incoming_dependencies )
+		self.assertEqual({inc2}, inc4.incoming_dependencies )
 
 		inc1.on_changed()
 		self.assertEqual( 4, l1.count )
@@ -494,14 +483,14 @@ class Test_IncrementalFunctionMonitor (Test_IncrementalMonitor):
 		IncrementalMonitor.unblock_access_tracking( f )
 		inc3.on_refresh_end( rs3 )
 
-		self.assertEqual(set([inc2]), inc1.outgoing_dependences )
-		self.assertEqual(set([inc4]), inc2.outgoing_dependences )
+		self.assertEqual({inc2}, inc1.outgoing_dependences )
+		self.assertEqual({inc4}, inc2.outgoing_dependences )
 		self.assertEqual(set(), inc3.outgoing_dependences )
 		self.assertEqual(set(), inc4.outgoing_dependences )
 		self.assertEqual(set(), inc1.incoming_dependencies )
-		self.assertEqual(set([inc1]), inc2.incoming_dependencies )
+		self.assertEqual({inc1}, inc2.incoming_dependencies )
 		self.assertEqual(set(), inc3.incoming_dependencies )
-		self.assertEqual(set([inc2]), inc4.incoming_dependencies )
+		self.assertEqual({inc2}, inc4.incoming_dependencies )
 
 		inc1.on_changed()
 		self.assertEqual(1, l1.count )
@@ -557,26 +546,26 @@ class Test_IncrementalFunctionMonitor (Test_IncrementalMonitor):
 		inc4.on_refresh_end( rs4 )
 
 
-		self.assertEqual(set([inc2]), inc1.outgoing_dependences )
-		self.assertEqual(set([inc3]), inc2.outgoing_dependences )
-		self.assertEqual(set([inc4]), inc3.outgoing_dependences )
+		self.assertEqual({inc2}, inc1.outgoing_dependences )
+		self.assertEqual({inc3}, inc2.outgoing_dependences )
+		self.assertEqual({inc4}, inc3.outgoing_dependences )
 		self.assertEqual(set(), inc4.outgoing_dependences )
 		self.assertEqual(set(), inc1.incoming_dependencies )
-		self.assertEqual(set([inc1]), inc2.incoming_dependencies )
-		self.assertEqual(set([inc2]), inc3.incoming_dependencies )
-		self.assertEqual(set([inc3]), inc4.incoming_dependencies )
+		self.assertEqual({inc1}, inc2.incoming_dependencies )
+		self.assertEqual({inc2}, inc3.incoming_dependencies )
+		self.assertEqual({inc3}, inc4.incoming_dependencies )
 
 		inc4.on_changed()
 		rs4 = inc4.on_refresh_begin()
 		inc4.on_refresh_end( rs4 )
 
-		self.assertEqual(set([inc2]), inc1.outgoing_dependences )
-		self.assertEqual(set([inc3]), inc2.outgoing_dependences )
+		self.assertEqual({inc2}, inc1.outgoing_dependences )
+		self.assertEqual({inc3}, inc2.outgoing_dependences )
 		self.assertEqual(set(), inc3.outgoing_dependences )
 		self.assertEqual(set(), inc4.outgoing_dependences )
 		self.assertEqual(set(), inc1.incoming_dependencies )
-		self.assertEqual(set([inc1]), inc2.incoming_dependencies )
-		self.assertEqual(set([inc2]), inc3.incoming_dependencies )
+		self.assertEqual({inc1}, inc2.incoming_dependencies )
+		self.assertEqual({inc2}, inc3.incoming_dependencies )
 		self.assertEqual(set(), inc4.incoming_dependencies )
 
 		del inc4
@@ -586,10 +575,10 @@ class Test_IncrementalFunctionMonitor (Test_IncrementalMonitor):
 		del rs1
 		gc.collect()
 
-		self.assertEqual(set([inc2]), inc1.outgoing_dependences )
-		self.assertEqual(set([inc3]), inc2.outgoing_dependences )
+		self.assertEqual({inc2}, inc1.outgoing_dependences )
+		self.assertEqual({inc3}, inc2.outgoing_dependences )
 		self.assertEqual(set(), inc3.outgoing_dependences )
 		self.assertEqual(set(), inc1.incoming_dependencies )
-		self.assertEqual(set([inc1]), inc2.incoming_dependencies )
-		self.assertEqual(set([inc2]), inc3.incoming_dependencies )
+		self.assertEqual({inc1}, inc2.incoming_dependencies )
+		self.assertEqual({inc2}, inc3.incoming_dependencies )
 

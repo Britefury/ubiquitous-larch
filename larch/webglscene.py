@@ -1,8 +1,6 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-import json
-
 from britefury.pres import js
 from britefury.pres.html import Html
 

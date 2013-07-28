@@ -156,7 +156,7 @@ def _on_tracked_list_set_contents(changeHistory, ls, oldContents, newContents, d
 	if changeHistory is not None:
 		for x in oldContents:
 			changeHistory.stop_tracking( x )
-		changeHistory.add_fn_change( lambda: ls._setContents( newContents ), lambda: ls._setContents( oldContents ), description )
+		changeHistory.add_fn_change( lambda: ls._set_contents( newContents ), lambda: ls._set_contents( oldContents ), description )
 		for x in newContents:
 			changeHistory.track( x )
 
@@ -334,18 +334,18 @@ class TrackedLiveList (object):
 		if isinstance( index, int )  or  isinstance( index, long ):
 			oldX = self._items[index]
 			if self.__change_listener is not None:
-				oldContents = self._items[:]
+				old_contents = self._items[:]
 			self._items[index] = x
 			_on_tracked_list_set_item( self.__change_history__, self, index, oldX, x, 'Live list set item' )
 			if self.__change_listener is not None:
-				self.__change_listener( oldContents, self._items[:] )
+				self.__change_listener( old_contents, self._items[:] )
 		else:
-			oldContents = self._items[:]
+			old_contents = self._items[:]
 			self._items[index] = x
 			newContents = self._items[:]
-			_on_tracked_list_set_contents( self.__change_history__, self, oldContents, newContents, 'Live list set item' )
+			_on_tracked_list_set_contents( self.__change_history__, self, old_contents, newContents, 'Live list set item' )
 			if self.__change_listener is not None:
-				self.__change_listener( oldContents, newContents )
+				self.__change_listener( old_contents, newContents )
 		self._incr.on_changed()
 
 	def __delitem__(self, index):
@@ -359,76 +359,76 @@ class TrackedLiveList (object):
 
 	def append(self, x):
 		if self.__change_listener is not None:
-			oldContents = self._items[:]
+			old_contents = self._items[:]
 		self._items.append( x )
 		_on_tracked_list_append( self.__change_history__, self, x, 'Live list append' )
 		if self.__change_listener is not None:
-			self.__change_listener( oldContents, self._items[:] )
+			self.__change_listener( old_contents, self._items[:] )
 		self._incr.on_changed()
 
 	def extend(self, xs):
 		if self.__change_listener is not None:
-			oldContents = self._items[:]
+			old_contents = self._items[:]
 		self._items.extend( xs )
 		_on_tracked_list_extend( self.__change_history__, self, xs, 'Live list extend' )
 		if self.__change_listener is not None:
-			self.__change_listener( oldContents, self._items[:] )
+			self.__change_listener( old_contents, self._items[:] )
 		self._incr.on_changed()
 
 	def insert(self, i, x):
 		if self.__change_listener is not None:
-			oldContents = self._items[:]
+			old_contents = self._items[:]
 		self._items.insert( i, x )
 		_on_tracked_list_insert( self.__change_history__, self, i, x, 'Live list insert' )
 		if self.__change_listener is not None:
-			self.__change_listener( oldContents, self._items[:] )
+			self.__change_listener( old_contents, self._items[:] )
 		self._incr.on_changed()
 
 	def pop(self):
 		if self.__change_listener is not None:
-			oldContents = self._items[:]
+			old_contents = self._items[:]
 		x = self._items.pop()
 		_on_tracked_list_pop( self.__change_history__, self, x, 'Live list pop' )
 		if self.__change_listener is not None:
-			self.__change_listener( oldContents, self._items[:] )
+			self.__change_listener( old_contents, self._items[:] )
 		self._incr.on_changed()
 		return x
 
 	def remove(self, x):
 		if self.__change_listener is not None:
-			oldContents = self._items[:]
+			old_contents = self._items[:]
 		i = self._items.index( x )
 		xFromList = self._items[i]
 		del self._items[i]
 		_on_tracked_list_remove( self.__change_history__, self, i, xFromList, 'Live list remove' )
 		if self.__change_listener is not None:
-			self.__change_listener( oldContents, self._items[:] )
+			self.__change_listener( old_contents, self._items[:] )
 		self._incr.on_changed()
 
 	def reverse(self):
 		if self.__change_listener is not None:
-			oldContents = self._items[:]
+			old_contents = self._items[:]
 		self._items.reverse()
 		_on_tracked_list_reverse( self.__change_history__, self, 'Live list reverse' )
 		if self.__change_listener is not None:
-			self.__change_listener( oldContents, self._items[:] )
+			self.__change_listener( old_contents, self._items[:] )
 		self._incr.on_changed()
 
-	def sort(self, cmp=None, key=None, reverse=False):
-		oldContents = self._items[:]
-		self._items.sort( cmp=cmp, key=key, reverse=reverse )
+	def sort(self, cmp_fn=None, key=None, reverse=False):
+		old_contents = self._items[:]
+		self._items.sort( cmp=cmp_fn, key=key, reverse=reverse )
 		newContents = self._items[:]
-		_on_tracked_list_set_contents( self.__change_history__, self, oldContents, newContents, 'Live list sort' )
+		_on_tracked_list_set_contents( self.__change_history__, self, old_contents, newContents, 'Live list sort' )
 		if self.__change_listener is not None:
-			self.__change_listener( oldContents, newContents )
+			self.__change_listener( old_contents, newContents )
 		self._incr.on_changed()
 
-	def _setContents(self, xs):
-		oldContents = self._items[:]
+	def _set_contents(self, xs):
+		old_contents = self._items[:]
 		self._items[:] = xs
-		_on_tracked_list_set_contents( self.__change_history__, self, oldContents, xs, 'Live list set contents' )
+		_on_tracked_list_set_contents( self.__change_history__, self, old_contents, xs, 'Live list set contents' )
 		if self.__change_listener is not None:
-			self.__change_listener( oldContents, self._items[:] )
+			self.__change_listener( old_contents, self._items[:] )
 		self._incr.on_changed()
 
 
@@ -489,14 +489,14 @@ class Test_TrackedLiveList (unittest.TestCase):
 		self.newxs = None
 
 
-	def _onChanged(self, oldContents, newContents):
-		self.prevxs = oldContents
-		self.newxs = newContents
+	def _onChanged(self, old_contents, new_contents):
+		self.prevxs = old_contents
+		self.newxs = new_contents
 
 
-	def _test_changes(self, expectedOldContents, expectedNewContents):
-		self.assertEqual(self.prevxs, expectedOldContents)
-		self.assertEqual(self.newxs, expectedNewContents)
+	def _test_changes(self, expected_old_contents, expected_new_contents):
+		self.assertEqual(self.prevxs, expected_old_contents)
+		self.assertEqual(self.newxs, expected_new_contents)
 		self.prevxs = None
 		self.newxs = None
 
@@ -517,7 +517,7 @@ class Test_TrackedLiveList (unittest.TestCase):
 		self.assertTrue( _one.is_tracked() )
 		self._test_changes( [ _two ], [ _one ] )
 
-		_rng = [ Test_TrackedLiveList._Value( x )   for x in xrange( 0, 5 ) ]
+		_rng = [ Test_TrackedLiveList._Value( x )   for x in xrange( 5 ) ]
 		self.ls[1:] = _rng
 		self.assertEqual( self.ls[:], [ _one ] + _rng )
 		self.assertFalse( _two.is_tracked() )
@@ -566,7 +566,7 @@ class Test_TrackedLiveList (unittest.TestCase):
 	def test_delitem(self):
 		self.assertEqual( self.ls[:], [] )
 
-		_rng = [ Test_TrackedLiveList._Value( x )   for x in xrange( 0, 5 ) ]
+		_rng = [ Test_TrackedLiveList._Value( x )   for x in xrange( 5 ) ]
 		self.ls[:] = _rng
 		self.assertEqual( self.ls[:], _rng )
 		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ True, True, True, True, True ] )
@@ -633,7 +633,7 @@ class Test_TrackedLiveList (unittest.TestCase):
 
 
 	def test_extend(self):
-		_rng = [ Test_TrackedLiveList._Value( x )   for x in xrange( 0, 5 ) ]
+		_rng = [ Test_TrackedLiveList._Value( x )   for x in xrange( 5 ) ]
 		self.assertEqual( self.ls[:], [] )
 		self.assertEqual( [ x.is_tracked() for x in _rng ],  [ False, False, False, False, False ] )
 
@@ -656,7 +656,7 @@ class Test_TrackedLiveList (unittest.TestCase):
 
 	def test_insert(self):
 		v = Test_TrackedLiveList._Value( 20 )
-		_rng = [ Test_TrackedLiveList._Value( x )   for x in xrange( 0, 5 ) ]
+		_rng = [ Test_TrackedLiveList._Value( x )   for x in xrange( 5 ) ]
 
 		self.ls[:] = _rng
 		self.assertEqual( self.ls[:], _rng )
@@ -685,7 +685,7 @@ class Test_TrackedLiveList (unittest.TestCase):
 
 
 	def test_pop(self):
-		_rng = [ Test_TrackedLiveList._Value( x )   for x in xrange( 0, 5 ) ]
+		_rng = [ Test_TrackedLiveList._Value( x )   for x in xrange( 5 ) ]
 
 		self.ls[:] = _rng
 		self.assertEqual( self.ls[:], _rng )
@@ -711,7 +711,7 @@ class Test_TrackedLiveList (unittest.TestCase):
 
 
 	def test_remove(self):
-		_rng = [ Test_TrackedLiveList._Value( x )   for x in xrange( 0, 5 ) ]
+		_rng = [ Test_TrackedLiveList._Value( x )   for x in xrange( 5 ) ]
 
 		self.ls[:] = _rng
 		self.assertEqual( self.ls[:], _rng )
@@ -736,7 +736,7 @@ class Test_TrackedLiveList (unittest.TestCase):
 
 
 	def test_reverse(self):
-		_rng = [ Test_TrackedLiveList._Value( x )   for x in xrange( 0, 5 ) ]
+		_rng = [ Test_TrackedLiveList._Value( x )   for x in xrange( 5 ) ]
 		_rev = _rng[:]
 		_rev.reverse()
 
@@ -763,7 +763,7 @@ class Test_TrackedLiveList (unittest.TestCase):
 
 
 	def test_sort(self):
-		_rng = [ Test_TrackedLiveList._Value( x )   for x in xrange( 0, 5 ) ]
+		_rng = [ Test_TrackedLiveList._Value( x )   for x in xrange( 5 ) ]
 
 		_shuf = _rng[:]
 		r = random.Random( 12345 )
