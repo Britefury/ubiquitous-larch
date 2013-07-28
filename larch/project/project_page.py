@@ -3,8 +3,7 @@
 ##-*************************
 import os
 from copy import deepcopy
-
-from britefury.live.live_value import LiveValue
+from britefury.live import LiveValue
 
 from britefury.pres.controls import menu
 

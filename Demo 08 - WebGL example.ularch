@@ -240,7 +240,7 @@ Ntp100
 Rp101
 (dp102
 g45
-Vimport math\u000a\u000afrom britefury.live.live_function import LiveFunction\u000afrom britefury.live.live_value import LiveValue\u000afrom britefury.pres.resource import JsonLiveFnResource\u000afrom britefury.pres.controls import slider\u000afrom britefury.pres.html import Html\u000a\u000afrom larch import webglscene
+Vimport math\u000a\u000afrom britefury.live import LiveFunction, LiveValue\u000afrom britefury.pres.resource import JsonLiveFnResource\u000afrom britefury.pres.controls import slider\u000afrom britefury.pres.html import Html\u000a\u000afrom larch import webglscene
 p103
 sg51
 I01
@@ -477,7 +477,7 @@ Ntp185
 Rp186
 (dp187
 g45
-Vimport math\u000a\u000afrom britefury.live.live_function import LiveFunction\u000afrom britefury.live.live_value import LiveValue\u000afrom britefury.pres.resource import JsonLiveFnResource\u000afrom britefury.pres.controls import slider\u000afrom britefury.pres.html import Html\u000a\u000afrom larch import webglscene
+Vimport math\u000a\u000afrom britefury.live import LiveFunction, LiveValue\u000afrom britefury.pres.resource import JsonLiveFnResource\u000afrom britefury.pres.controls import slider\u000afrom britefury.pres.html import Html\u000a\u000afrom larch import webglscene
 p188
 sg51
 I01

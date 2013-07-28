@@ -5,11 +5,11 @@ import imp
 import sys
 
 from britefury.incremental import IncrementalValueMonitor
+from britefury.live import LiveValue
 from britefury.pres.html import Html
 from britefury.pres.key_event import KeyAction
 from britefury.pres.controls import ckeditor, menu, button, text_entry
 from britefury.projection.subject import Subject
-from britefury.live.live_value import LiveValue
 from britefury import command
 from larch import source_code
 

@@ -3,7 +3,152 @@
 ##-*************************
 from copy import deepcopy
 
-from britefury.incremental import IncrementalValueMonitor
+from britefury.incremental import IncrementalValueMonitor, IncrementalFunctionMonitor
+from britefury.pres.pres import Pres, CompositePres, InnerFragment
+from britefury.pres.obj_pres import error_box
+from britefury.inspector import present_primitive, present_exception
+
+
+class AbstractLive (CompositePres):
+	class __ValuePres (Pres):
+		def __init__(self, live):
+			self.__live = live
+
+		def build(self, pres_ctx):
+			value = None
+			pres_ctx.fragment_view.disable_inspector()
+			try:
+				value = self.__live.value
+			except Exception, e:
+				exception_view = present_exception.present_exception_no_traceback(e)
+				return error_box('Exception during live evaluation', exception_view)
+
+			if value is not None:
+				return Pres.coerce(value).build(pres_ctx)
+			else:
+				return present_primitive.present_none().build(pres_ctx)
+
+
+	@property
+	def incremental_monitor(self):
+		raise NotImplementedError, 'abstract'
+
+	def add_listener(self, listener):
+		self.incremental_monitor.add_listener(listener)
+
+	def remove_listener(self, listener):
+		self.incremental_monitor.remove_listener(listener)
+
+
+
+	@property
+	def value(self):
+		raise NotImplementedError, 'abstract'
+
+	@value.setter
+	def value(self, v):
+		raise NotImplementedError, 'abstract'
+
+	@property
+	def static_value(self):
+		raise NotImplementedError, 'abstract'
+
+
+
+	def __call__(self):
+		return self.value
+
+
+	def pres(self, pres_ctx):
+		return InnerFragment(self.__ValuePres(self))
+
+
+
+
+
+
+class LiveValue (AbstractLive):
+	def __init__(self, value=None):
+		self.__incr = IncrementalValueMonitor(self)
+		self.__value = value
+
+
+
+	@property
+	def incremental_monitor(self):
+		return self.__incr
+
+
+	@property
+	def value(self):
+		self.__incr.on_access()
+		return self.__value
+
+	@value.setter
+	def value(self, v):
+		self.__value = v
+		self.__incr.on_changed()
+
+	@property
+	def static_value(self):
+		return self.__value
+
+
+class LiveFunction (AbstractLive):
+	def __init__(self, fn):
+		self.__incr = IncrementalFunctionMonitor(self)
+		self.__fn = fn
+		self.__value_cache = None
+
+
+
+	@property
+	def function(self):
+		return self.__fn
+
+	@function.setter
+	def function(self, f):
+		self.__fn = f
+		self.__incr.on_changed()
+
+
+
+
+	@property
+	def incremental_monitor(self):
+		return self.__incr
+
+
+	@property
+	def value(self):
+		try:
+			self.__refresh_value()
+		finally:
+			self.__incr.on_access()
+		return self.__value_cache
+
+	@value.setter
+	def value(self, v):
+		self.function = lambda: v
+
+	@property
+	def static_value(self):
+		self.__refresh_value()
+		return self.__value_cache
+
+
+
+	def __refresh_value(self):
+		refresh_state = self.__incr.on_refresh_begin()
+		try:
+			if refresh_state is not None:
+				self.__value_cache = self.__fn()
+		finally:
+			self.__incr.on_refresh_end(refresh_state)
+
+
+
+
 
 
 
@@ -59,12 +204,12 @@ def _on_tracked_list_reverse(changeHistory, ls, description):
 
 class _LiveListIter (object):
 	__slots__ = [ '_it', '_incr' ]
-	
+
 	def __init__(self, it, incr):
 		self._it = it
 		self._incr = incr
-	
-	
+
+
 	def __iter__(self):
 		return self
 
@@ -75,7 +220,7 @@ class _LiveListIter (object):
 
 class TrackedLiveList (object):
 	__slots__ = [ '__change_history__', '_items', '_incr', '__change_listener']
-	
+
 	def __init__(self, xs=None):
 		self._items = []
 		if xs is not None:
@@ -92,8 +237,8 @@ class TrackedLiveList (object):
 	@change_listener.setter
 	def change_listener(self, x):
 		self.__change_listener = x
-	
-		
+
+
 	def __getstate__(self):
 		self._incr.on_access()
 		return { 'items' : self._items }
@@ -108,7 +253,7 @@ class TrackedLiveList (object):
 		self._incr.on_access()
 		t = type( self )
 		return t( self._items )
-	
+
 	def __deepcopy__(self, memo):
 		self._incr.on_access()
 		t = type( self )
@@ -119,7 +264,7 @@ class TrackedLiveList (object):
 		if isinstance( other, TrackedLiveList ):
 			other = other._items
 		return self._items == other
-	
+
 	def __ne__(self, other):
 		if isinstance( other, TrackedLiveList ):
 			other = other._items
@@ -142,36 +287,36 @@ class TrackedLiveList (object):
 		t = type( self )
 		return t( [ memo.copy( x )   for x in self ] )
 
-	
-	
+
+
 	def __iter__(self):
 		self._incr.on_access()
 		return _LiveListIter( iter( self._items ), self._incr )
-	
+
 	def __contains__(self, x):
 		self._incr.on_access()
 		return x in self._items
-	
+
 	def __add__(self, xs):
 		self._incr.on_access()
 		return self._items + xs
-	
+
 	def __mul__(self, x):
 		self._incr.on_access()
 		return self._items * x
-	
+
 	def __rmul__(self, x):
 		self._incr.on_access()
 		return x * self._items
-	
+
 	def __getitem__(self, index):
 		self._incr.on_access()
 		return self._items[index]
-	
+
 	def __len__(self):
 		self._incr.on_access()
 		return len( self._items )
-	
+
 	def index(self, x, i=None, j=None):
 		self._incr.on_access()
 		if i is None:
@@ -184,7 +329,7 @@ class TrackedLiveList (object):
 	def count(self, x):
 		self._incr.on_access()
 		return self._items.count( x )
-	
+
 	def __setitem__(self, index, x):
 		if isinstance( index, int )  or  isinstance( index, long ):
 			oldX = self._items[index]
@@ -202,7 +347,7 @@ class TrackedLiveList (object):
 			if self.__change_listener is not None:
 				self.__change_listener( oldContents, newContents )
 		self._incr.on_changed()
-	
+
 	def __delitem__(self, index):
 		oldContents = self._items[:]
 		del self._items[index]
@@ -211,7 +356,7 @@ class TrackedLiveList (object):
 		if self.__change_listener is not None:
 			self.__change_listener( oldContents, newContents )
 		self._incr.on_changed()
-		
+
 	def append(self, x):
 		if self.__change_listener is not None:
 			oldContents = self._items[:]
@@ -229,7 +374,7 @@ class TrackedLiveList (object):
 		if self.__change_listener is not None:
 			self.__change_listener( oldContents, self._items[:] )
 		self._incr.on_changed()
-	
+
 	def insert(self, i, x):
 		if self.__change_listener is not None:
 			oldContents = self._items[:]
@@ -248,7 +393,7 @@ class TrackedLiveList (object):
 			self.__change_listener( oldContents, self._items[:] )
 		self._incr.on_changed()
 		return x
-		
+
 	def remove(self, x):
 		if self.__change_listener is not None:
 			oldContents = self._items[:]
@@ -259,7 +404,7 @@ class TrackedLiveList (object):
 		if self.__change_listener is not None:
 			self.__change_listener( oldContents, self._items[:] )
 		self._incr.on_changed()
-		
+
 	def reverse(self):
 		if self.__change_listener is not None:
 			oldContents = self._items[:]
@@ -268,7 +413,7 @@ class TrackedLiveList (object):
 		if self.__change_listener is not None:
 			self.__change_listener( oldContents, self._items[:] )
 		self._incr.on_changed()
-	
+
 	def sort(self, cmp=None, key=None, reverse=False):
 		oldContents = self._items[:]
 		self._items.sort( cmp=cmp, key=key, reverse=reverse )
@@ -277,7 +422,7 @@ class TrackedLiveList (object):
 		if self.__change_listener is not None:
 			self.__change_listener( oldContents, newContents )
 		self._incr.on_changed()
-	
+
 	def _setContents(self, xs):
 		oldContents = self._items[:]
 		self._items[:] = xs
@@ -302,29 +447,29 @@ class Test_TrackedLiveList (unittest.TestCase):
 		def __init__(self, x):
 			self.__change_history__ = None
 			self.x = x
-	
-	
+
+
 		def __trackable_contents__(self):
 			return [ self.x ]
-	
-	
+
+
 		def is_tracked(self):
 			return self.__change_history__ is not None
-	
-	
+
+
 		def __eq__(self, x):
 			return isinstance( x, Test_TrackedLiveList._Value )  and  self.x == x.x
-	
+
 		def __str__(self):
 			return 'Value( %s )'  %  str( self.x )
-	
+
 		def __repr__(self):
 			return 'Value( %s )'  %  str( self.x )
-	
+
 		def __cmp__(self, x):
 			return cmp( self.x, x.x )
-	
-	
+
+
 
 
 	def setUp(self):

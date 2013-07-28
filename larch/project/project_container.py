@@ -2,10 +2,9 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 import sys
+from britefury.live import LiveValue, LiveFunction
 
-from britefury.live.live_value import LiveValue
-from britefury.live.live_function import LiveFunction
-from britefury.live.tracked_live_list import TrackedLiveList
+from britefury.live import TrackedLiveList
 
 from britefury.pres.html import Html
 from britefury.pres.controls import menu, text_entry, button

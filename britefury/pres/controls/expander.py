@@ -1,11 +1,9 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
+from britefury.live import AbstractLive, LiveValue, LiveFunction
 from britefury.pres.pres import post_event_js_code_for_handler
 from britefury.pres.html import Html
-from britefury.live.abstract_live import AbstractLive
-from britefury.live.live_value import LiveValue
-from britefury.live.live_function import LiveFunction
 from britefury.pres.controls import button
 
 def dropdown_expander(header, content, state=None, on_expand=None):

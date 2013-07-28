@@ -49,7 +49,7 @@ Ntp21
 Rp22
 (dp23
 g19
-V# First, we need to import LiveValue and LiveFunction\u000afrom britefury.live.live_value import LiveValue\u000afrom britefury.live.live_function import LiveFunction\u000a\u000a\u000a# A quick test:\u000a# Create a live value containing the value 0\u000ax = LiveValue(0)\u000a\u000a# Display it\u000ax
+V# First, we need to import LiveValue and LiveFunction\u000afrom britefury.live import LiveValue, LiveFunction\u000a\u000a\u000a# A quick test:\u000a# Create a live value containing the value 0\u000ax = LiveValue(0)\u000a\u000a# Display it\u000ax
 p24
 sS'editable'
 p25

@@ -2,8 +2,7 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 from britefury.incremental import IncrementalValueMonitor
-
-from britefury.live.live_value import LiveValue
+from britefury.live import LiveValue
 
 from britefury.pres.html import Html
 from britefury.pres.controls import menu, text_entry, button
