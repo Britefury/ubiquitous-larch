@@ -84,7 +84,6 @@ class Subject (object):
 
 
 
-
 	def add_step(self, **attributes):
 		"""
 		Add a step to the subject
@@ -98,6 +97,7 @@ class Subject (object):
 		"""Get a named attribute
 
 		:param item: - the name of the attribute
+		:raises AttributeError: if no attribute named :param item: can be found
 		"""
 		for step in reversed(self.__steps):
 			try:
@@ -116,7 +116,7 @@ class Subject (object):
 
 
 	def reduce(self, item, reduce_fn, initial_value=__NoInitialValue.instance):
-		"""Accumulate values of a named attribute by reduction
+		"""Accumulate values of a named attribute by reduction, from last to first step
 
 		:param item: - the name of the attribute
 		:param reduce_fn: - a reduction function of the form function(cumulative_value, value) -> cumulative_value

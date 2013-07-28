@@ -19,6 +19,17 @@ class ProjectionService (DynamicPageService):
 
 	A dynamic page service that uses the projection system to display objects and resolves locations to
 	subjects.
+
+	Commands:
+	For each focus object on the subject path from the root to the final subject:
+		each focus that defines a __command__ should have it return a list of commands.
+		These lists are concatenated and are made available
+
+	Augmenting the page
+	It can be desirable to have a containing object be able to place a frame around pages of child objects.
+	To do so, add an augment_page attribute to the subject with add_step. This function will be called,
+	with the subject as a parameter. It should return a new object that will present as the augmented
+	page. A new step will be added to the subject with the focus attribute set to the newly augmented page.
 	"""
 
 
@@ -40,6 +51,15 @@ class ProjectionService (DynamicPageService):
 			subject = location
 		else:
 			subject = self.__resolve_location(location, focus_steps)
+
+		# Augment page
+		try:
+			augment_page_fn = subject.augment_page
+		except AttributeError:
+			pass
+		else:
+			augmented_page = augment_page_fn(subject)
+			subject.add_step(focus=augmented_page)
 
 		cmds = []
 		for f in reversed(focus_steps):

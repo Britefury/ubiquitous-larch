@@ -7,19 +7,6 @@
     margin: 1em 0;
 }
 
-.worksheet_buttons {
-    margin: 0 5em;
-}
-
-.worksheet_menu {
-    position: absolute;
-    width: 15em;
-    margin: 0 25em;
-}
-
-.worksheet_menu_bar {
-}
-
 .worksheet_exec_state_init {
     font-weight: bold;
     color: #c03000;

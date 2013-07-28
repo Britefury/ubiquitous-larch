@@ -63,15 +63,7 @@ _page_content = u"""
 	</head>
 
 	<body>
-	<div class="__larch_page_header">
-		Press ESC for command bar.
-	</div>
-
-	<img src="/static/1px_transparent.png">
-
-	<div class="__larch_page_content">
-		{content}
-	</div>
+	{content}
 
 	<!-- refresh on back button, adapted from http://www.webdeveloper.com/forum/showthread.php?137518-How-to-refresh-page-after-clicking-quot-Back-quot-button -->
 	<input type="hidden" id="__larch_refreshed" value="0">

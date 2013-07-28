@@ -305,6 +305,20 @@ class Worksheet (object):
 		return mod
 
 
+
+	def _save_containing_document(self, fragment):
+		subject = fragment.subject
+		try:
+			save = subject.document.save
+		except AttributeError:
+			print 'WARNING: Could not save; method unavailable'
+			raise
+		else:
+			return save()
+
+
+
+
 	def __commands__(self):
 		return [
 			command.Command([command.Key(ord('R'))], 'Insert rich text below', lambda page: self._insert_block(WorksheetBlockText(self), True)),
@@ -322,36 +336,25 @@ class Worksheet (object):
 			command.Command([command.Key(ord('X'))], 'Remove block', lambda page: self._delete_block()),
 		]
 
+	def __menu_bar_contents__(self, fragment):
+		#
+		# File menu
+		#
 
-
-	def __present__(self, fragment):
-		def on_execute():
-			self.execute()
-
-		def on_execute_key(key):
-			self.execute()
-			return True
-
-		def save():
-			subject = fragment.subject
-			try:
-				save = subject.document.save
-			except AttributeError:
-				print 'WARNING: Could not save; method unavailable'
-				raise
-			else:
-				return save()
-			return None
-
-		def on_save_key(key):
-			save_name = save()
+		def on_save():
+			save_name = self._save_containing_document()
 			fragment.page.page_js_function_call('noty', {'text': 'Saved <span class="emph">{0}</span>'.format(save_name), 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
 
 
+		save_item = menu.item('Save (Ctrl+S)', lambda: on_save)
+		file_menu_contents = menu.sub_menu('File', [save_item])
+		file_menu = menu.menu([file_menu_contents], drop_down=True)
 
-		self.__incr.on_access()
 
 
+		#
+		# Edit menu
+		#
 
 		def _insert_rich_text(below):
 			self._insert_block(WorksheetBlockText(self), below)
@@ -371,10 +374,6 @@ class Worksheet (object):
 		def _insert_html(below):
 			self._insert_block(WorksheetBlockSource(self, 'html', 'html'), below)
 
-
-		save_button = button.button('Save (Ctrl-S)', save)
-
-
 		insert_rich_text_above = menu.item('Insert rich text above', lambda: _insert_rich_text(False))
 		insert_code_above = menu.item('Insert executable Python code above', lambda: _insert_code(False))
 		insert_js_above = menu.item('Insert JS source above', lambda: _insert_js(False))
@@ -390,7 +389,7 @@ class Worksheet (object):
 		insert_html_below = menu.item('Insert HTML source below', lambda: _insert_html(True))
 
 		remove_block = menu.item('Remove block', lambda: self._delete_block())
-		edit_menu = menu.sub_menu('Edit', [
+		edit_menu_contents = menu.sub_menu('Edit', [
 			insert_rich_text_above,
 			insert_code_above,
 			insert_js_above,
@@ -408,18 +407,33 @@ class Worksheet (object):
 			menu.item('--------', None),
 			remove_block])
 
-		page_menu = menu.menu([edit_menu], drop_down=True)
+		edit_menu = menu.menu([edit_menu_contents], drop_down=True)
 
 		exec_button = button.button('Execute (Ctrl-Enter)', self.execute)
+
+		return [file_menu, edit_menu, exec_button]
+
+
+
+	def __present__(self, fragment):
+		def on_execute_key(key):
+			self.execute()
+			return True
+
+		def on_save_key(key):
+			save_name = self._save_containing_document()
+			fragment.page.page_js_function_call('noty', {'text': 'Saved <span class="emph">{0}</span>'.format(save_name), 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
+
+
+
+		self.__incr.on_access()
+
+
 
 		doc = Html('<div class="worksheet_documentation">The blocks within a worksheet are editable; place the cursor within them to edit them. Save with Ctrl-S, execute code with Ctrl-Enter.' + \
 			'The Edit menu contains options for adding and removing blocks.</div>')
 
 		header = Html('<div class="worksheet_header">',
-			      '<div class="worksheet_menu_bar">',
-			      '<div class="worksheet_menu">', page_menu, '</div>',
-			      '<div class="worksheet_buttons">', save_button, exec_button,'</div>',
-			      '</div>',
 			      self.__execution_state,
 			      doc,
 			      '</div>')

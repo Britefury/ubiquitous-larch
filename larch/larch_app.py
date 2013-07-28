@@ -15,6 +15,7 @@ from larch.console import console
 from larch.worksheet import worksheet
 from larch.project import project_root
 
+from britefury.pres.pres import CompositePres
 from britefury.pres.html import Html
 from britefury.pres.controls import menu, button, text_entry
 
@@ -55,6 +56,64 @@ def _sanitise_filename_char(x):
 
 def _sanitise_filename(name):
 	return ''.join([_sanitise_filename_char(x)  for x in name])
+
+
+
+class PageFrame (CompositePres):
+	def __init__(self, subject):
+		self.__page = subject.focus
+		self.__focii = subject.reduce('focus', lambda cumulative, t: [t] + cumulative, [])
+
+
+
+	def pres(self, pres_ctx):
+		fragment = pres_ctx.fragment_view
+
+		# Build the menu bar contents by iterating through the focii, accumulating them as we go by concatenating the results of calling the __menu_bar_cumulative_contents__ method
+		menu_bar_contents = []
+		for f in self.__focii:
+			try:
+				method = f.__menu_bar_cumulative_contents__
+			except AttributeError:
+				pass
+			else:
+				menu_bar_contents.extend(method(fragment))
+
+		# Add the result of calling __menu_bar_contents__ on the final focus
+		try:
+			method = self.__page.__menu_bar_contents__
+		except AttributeError:
+			pass
+		else:
+			menu_bar_contents.extend(method(fragment))
+
+		# Generate the menu bar
+		if len(menu_bar_contents) > 0:
+			contents = ['<table><tr>']
+			for x in menu_bar_contents:
+				print 'ADDING ', x
+				contents.extend(['<td class="__larch_app_frame_menu_bar">', x, '</td>'])
+			contents.append('</tr></table>')
+			menu_bar = Html(*contents)
+		else:
+			menu_bar = Html()
+
+		return Html(
+			'<div class="__larch_app_frame_page_header">',
+			'<span class="__larch_esc_notification">Press ESC for command bar.</span>',
+			menu_bar,
+			'</div>',
+			'<img src="/static/1px_transparent.png">',
+			'<div class="__larch_app_frame_page_content">',
+			self.__page,
+			'</div>'
+		).use_css(url='/static/larch_app_frame.css')
+
+
+
+def _apply_page_frame(subject):
+	return PageFrame(subject)
+
 
 
 
@@ -517,7 +576,7 @@ class LarchApplication (object):
 
 
 	def __resolve_self__(self, subject):
-		subject.add_step(title='The Ubiquitous Larch')
+		subject.add_step(title='The Ubiquitous Larch', augment_page=_apply_page_frame)
 		return self
 
 

@@ -261,31 +261,3 @@ span.command_table_desc:hover {
 .invalid_page_style {
     color: #ffffff;
 }
-
-body {
-    margin: 0;
-}
-
-.__larch_page_header {
-    /*
-    Place a 1x1px transparent image just below this div, in order to prevent it from being positioned over the next item, which will have a margin and therefore offset it
-    */
-    position: fixed;
-    width: 100%;
-    z-index: 1000;
-
-    margin: 0 0 5px 0;
-    padding: 3px 2em 2px 0;
-
-    background: #f0f0f0;
-    border-bottom: 1px solid #a0a0a0;
-    box-shadow: 0 2px 3px #d0d0d0;
-
-    text-align: right;
-    font-size: 0.75em;
-    font-family: "Palatino linotype", "Book Antiqua", serif;
-}
-
-.__larch_page_content {
-    margin: 2em 8px 0 8px;
-}
