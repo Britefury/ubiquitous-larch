@@ -10,12 +10,12 @@ import json
 
 from copy import copy
 
-from britefury.incremental.incremental_function_monitor import IncrementalFunctionMonitor
-
 from britefury.dynamicsegments.segment import DynamicSegment, SegmentRef
 from britefury.dynamicsegments import messages, dependencies
 from britefury.dynamicsegments import global_dependencies
 from britefury.inspector import present_exception
+
+from britefury.pres import js
 
 
 _page_content = u"""
@@ -116,41 +116,55 @@ class UnusedSegmentsError (Exception):
 
 
 
-class DynamicDocumentPublicAPI (object):
-	def __init__(self, document):
-		self.__document = document
+class DynamicPagePublicAPI (object):
+	"""
+	The public API for DynamicPage
+
+	This API provides functions for performing page-level operations, e.g. executing Javascript code that should not be attached to a specific
+	piece of content
+
+	Rather than hand over an instance of DynamicPage, we pass one of these, which wraps it and provides the required API.
+	"""
+	def __init__(self, page):
+		self.__page = page
 
 
-	def doc_js_eval(self, *expr):
-		ex = []
-		for x in expr:
-			if isinstance(x, str)  or  isinstance(x, unicode):
-				ex.append(x)
-			else:
-				ex.append(json.dumps(x))
+	def page_js_eval(self, expr):
+		"""
+		Schedule a page-level script to be executed
 
-		script = ''.join(ex)
-		self.__document.queue_js_to_execute(script)
-		# Ensure a refresh gets queued
-		self.__document._notify_document_modified()
+		:param expr: the Javascript script to execute, either in the form of a js.JS subclass or a string
+		:return: None
+		"""
+		if isinstance(expr, str)  or  isinstance(expr, unicode):
+			expr = js.JSExprSrc(expr)
+		elif not isinstance(expr, js.JS):
+			raise TypeError, 'Javascript expression must be a string or a JS object'
 
+		# TODO: passing None as the presentation context will cause Resource instances to break
+		expr_src = expr.build_js(None)
 
-	def doc_js_function_call(self, js_fn_name, *json_args):
-		call = [
-			js_fn_name + '(',
-			', '.join([json.dumps(a) for a in json_args]),
-			');'
-		]
-
-		script = ''.join(call)
-		self.__document.queue_js_to_execute(script)
-		# Ensure a refresh gets queued
-		self.__document._notify_document_modified()
+		self.__page.queue_js_to_execute(expr_src)
+		# Notifying the page of a modification causes it to schedule a refresh, which will cause the script to be executed
+		self.__page._notify_page_modified()
 
 
+	def js_function_call(self, js_fn_name, *args):
+		"""
+		Convenience function for scheduling a Javascript function call (constructs an expression and passes it over to page_js_eval.
 
-class DynamicDocument (object):
-	"""A dynamic web document, composed of segments.
+		:param js_fn_name: the name of the function to call
+		:param args: the arguments to pass
+		:return: None
+		"""
+		self.page_js_eval(js.JSCall(js_fn_name, args))
+
+
+
+
+
+class DynamicPage (object):
+	"""A dynamic web page, composed of segments.
 
 	Create segments by calling the new_segment method. Remove them with remove_segment when you are done.
 
@@ -160,7 +174,7 @@ class DynamicDocument (object):
 		self.__service = service
 		self._session_id = session_id
 
-		self.__public_api = DynamicDocumentPublicAPI(self)
+		self.__public_api = DynamicPagePublicAPI(self)
 
 		self._table = _SegmentTable(self)
 
@@ -253,7 +267,7 @@ class DynamicDocument (object):
 
 		dep - the dependency to register
 		"""
-		if not isinstance(dep, dependencies.DocumentDependency):
+		if not isinstance(dep, dependencies.PageDependency):
 			raise TypeError, 'Dependencies must be an instance of DocumentDependency'
 
 		if dep not in self.__all_dependencies:
@@ -479,7 +493,7 @@ class DynamicDocument (object):
 			return False
 
 
-	def add_document_event_handler(self, event_name, event_response_function):
+	def add_page_event_handler(self, event_name, event_response_function):
 		self.__doc_event_handlers.append((event_name, event_response_function))
 
 
@@ -507,14 +521,14 @@ class DynamicDocument (object):
 		self.__js_queue.append( js )
 
 
-	def _notify_document_modified(self):
+	def _notify_page_modified(self):
 		# Segment changes notification. Called by _HtmlSegment.
 		if not self.__document_modified:
 			self.__document_modified = True
-			self.queue_task(self.__refresh_document)
+			self.queue_task(self.__refresh_page)
 
 
-	def __refresh_document(self):
+	def __refresh_page(self):
 		# Refresh the document
 
 		# Get the change set
@@ -522,7 +536,7 @@ class DynamicDocument (object):
 		# Clear changes
 		self._table._clear_changes()
 		# Compose the modify document message
-		self.__document_modifications_message = messages.modify_document_message(change_set.json())
+		self.__document_modifications_message = messages.modify_page_message(change_set.json())
 
 		# Build the execute JS message
 		if len(self.__js_queue) > 0:
@@ -644,8 +658,8 @@ class _ChangeSet (object):
 
 
 class _SegmentTable (object):
-	def __init__(self, doc):
-		self.__doc = doc
+	def __init__(self, page):
+		self.__page = page
 
 		self.__id_counter = 1
 		self.__id_to_segment = {}
@@ -685,12 +699,12 @@ class _SegmentTable (object):
 		desc_str = ('_' + desc)   if desc is not None   else ''
 		seg_id = 'seg{0}{1}'.format(self.__id_counter, desc_str)
 		self.__id_counter += 1
-		seg = DynamicSegment(self.__doc, seg_id, content, owner)
+		seg = DynamicSegment(self.__page, seg_id, content, owner)
 		self.__id_to_segment[seg_id] = seg
 
 		self.__changes_added.add(seg)
 
-		self.__doc._notify_document_modified()
+		self.__page._notify_page_modified()
 
 		return seg
 
@@ -703,22 +717,22 @@ class _SegmentTable (object):
 		else:
 			self.__changes_removed.add(segment)
 
-		self.__doc._notify_document_modified()
+		self.__page._notify_page_modified()
 
 
 	def _segment_modified(self, segment, content):
 		if segment not in self.__changes_added:
 			self.__changes_modified.add(segment)
 
-		self.__doc._notify_document_modified()
+		self.__page._notify_page_modified()
 
 
 
 
 
 class DynamicResource (object):
-	def __init__(self, doc, rsc_id, rsc_data):
-		self.__doc = doc
+	def __init__(self, page, rsc_id, rsc_data):
+		self.__page = page
 		self.__rsc_id = rsc_id
 		self.__rsc_data = rsc_data
 		self.__context = None
@@ -736,18 +750,18 @@ class DynamicResource (object):
 		self.__ref_count -= 1
 		if self.__ref_count == 0:
 			self.__rsc_data.dispose(self.__context)
-			self.__doc._resouce_disposed(self)
+			self.__page._resouce_disposed(self)
 		return self.__ref_count
 
 
 
 	def __on_changed(self):
-		self.__doc._resource_modified(self)
+		self.__page._resource_modified(self)
 
 
 	@property
-	def document(self):
-		return self.__doc
+	def page(self):
+		return self.__page
 
 	@property
 	def id(self):
@@ -764,7 +778,7 @@ class DynamicResource (object):
 
 	@property
 	def url(self):
-		return '/rsc?session_id={0}&rsc_id={1}'.format(self.__doc._session_id, self.__rsc_id)
+		return '/rsc?session_id={0}&rsc_id={1}'.format(self.__page._session_id, self.__rsc_id)
 
 
 	def client_side_js(self):

@@ -247,7 +247,7 @@ class AddDependency (SubSegmentPres):
 
 	def initialise_segment(self, seg, pres_ctx):
 		for dep in self.__dependencies:
-			seg.document.add_dependency(dep)
+			seg.page.add_dependency(dep)
 
 
 

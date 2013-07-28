@@ -4,7 +4,7 @@
 import json
 import traceback
 import sys
-from britefury.dynamicsegments.document import DynamicDocument, EventHandleError
+from britefury.dynamicsegments.page import DynamicPage, EventHandleError
 from britefury.dynamicsegments import messages
 from britefury.inspector import present_exception
 
@@ -36,7 +36,7 @@ class DynamicPageService (object):
 		session = _Session()
 		self.__sessions[session_id] = session
 
-		dynamic_document = DynamicDocument(self, session_id)
+		dynamic_document = DynamicPage(self, session_id)
 		session.dynamic_document = dynamic_document
 
 		try:

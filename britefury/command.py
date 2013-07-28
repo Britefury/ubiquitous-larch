@@ -51,7 +51,7 @@ class CommandSet (object):
 	def attach_to_document(self, dynamic_document):
 		for command in self.commands:
 			dynamic_document.queue_js_to_execute(command.js_expr())
-		dynamic_document.add_document_event_handler('command', self.invoke_by_command_id)
+		dynamic_document.add_page_event_handler('command', self.invoke_by_command_id)
 
 
 

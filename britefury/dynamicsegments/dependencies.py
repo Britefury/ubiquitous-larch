@@ -3,7 +3,7 @@
 ##-*************************
 
 
-class DocumentDependency (object):
+class PageDependency (object):
 	def __init__(self, deps=None):
 		if deps is None:
 			deps = []
@@ -21,7 +21,7 @@ class DocumentDependency (object):
 
 
 
-class _RegisteredDependency (DocumentDependency):
+class _RegisteredDependency (PageDependency):
 	_deps = None
 
 	@classmethod

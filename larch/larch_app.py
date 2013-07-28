@@ -161,7 +161,7 @@ class Document (object):
 
 	def __on_save_command(self, document):
 		name = self.save()
-		document.doc_js_function_call('noty', {'text': 'Saved <span class="emph">{0}</emph>'.format(name), 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
+		document.page_js_function_call('noty', {'text': 'Saved <span class="emph">{0}</emph>'.format(name), 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
 
 
 	def __commands__(self):
