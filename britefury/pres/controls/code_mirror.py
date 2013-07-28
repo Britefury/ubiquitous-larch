@@ -68,7 +68,7 @@ def code_mirror(text, immediate_events=False, config=None, on_edit=None, on_focu
 	:param on_focus: a callback invoked when the editor receives focus; of the form function()
 	:param on_blur: a callback invoked when the editor loses focus; of the form function()
 	:param modes: a list of names of language plugins to load (e.g. 'python', 'javascript', 'glsl', etc; see CodeMirror documentation)
-	:return: the editor conrol
+	:return: the editor control
 	"""
 	if config is None:
 		config = {}

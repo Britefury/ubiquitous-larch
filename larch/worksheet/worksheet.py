@@ -199,13 +199,13 @@ class WorksheetBlockSource (WorksheetBlock):
 		js_item = menu.item('Javascript', lambda: _on_change_language('js'))
 		css_item = menu.item('CSS', lambda: _on_change_language('css'))
 		glsl_item = menu.item('GLSL', lambda: _on_change_language('glsl'))
-		#html_item = menu.item('HTML', lambda: _on_change_language('html'))
+		html_item = menu.item('HTML', lambda: _on_change_language('html'))
 
 		lang_menu = menu.sub_menu('Change language', [
 			js_item,
 			css_item,
 			glsl_item,
-			#html_item
+			html_item
 		])
 		lang_menu_button = menu.menu([lang_menu], drop_down=True)
 
@@ -325,12 +325,14 @@ class Worksheet (object):
 			command.Command([command.Key(ord('P'))], 'Insert Python code below', lambda page: self._insert_block(WorksheetBlockCode(self), True)),
 			command.Command([command.Key(ord('J'))], 'Insert Javascript source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'js', 'js'), True)),
 			command.Command([command.Key(ord('C'))], 'Insert CSS source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'css', 'css'), True)),
+			command.Command([command.Key(ord('T'))], 'Insert HTML source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'html', 'html'), True)),
 			command.Command([command.Key(ord('G'))], 'Insert GLSL source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'glsl', 'glsl'), True)),
 
 			command.Command([command.Key(ord('A')), command.Key(ord('R'))], 'Insert rich text below', lambda page: self._insert_block(WorksheetBlockText(self), False)),
 			command.Command([command.Key(ord('A')), command.Key(ord('P'))], 'Insert Python code below', lambda page: self._insert_block(WorksheetBlockCode(self), False)),
 			command.Command([command.Key(ord('A')), command.Key(ord('J'))], 'Insert Javascript source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'js', 'js'), False)),
 			command.Command([command.Key(ord('A')), command.Key(ord('C'))], 'Insert CSS source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'css', 'css'), False)),
+			command.Command([command.Key(ord('A')), command.Key(ord('T'))], 'Insert HTML source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'html', 'html'), False)),
 			command.Command([command.Key(ord('A')), command.Key(ord('G'))], 'Insert GLSL source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'glsl', 'glsl'), False)),
 
 			command.Command([command.Key(ord('X'))], 'Remove block', lambda page: self._delete_block()),
@@ -378,15 +380,15 @@ class Worksheet (object):
 		insert_code_above = menu.item('Insert executable Python code above', lambda: _insert_code(False))
 		insert_js_above = menu.item('Insert JS source above', lambda: _insert_js(False))
 		insert_css_above = menu.item('Insert CSS source above', lambda: _insert_css(False))
-		insert_glsl_above = menu.item('Insert GLSL source above', lambda: _insert_glsl(False))
 		insert_html_above = menu.item('Insert HTML source above', lambda: _insert_html(False))
+		insert_glsl_above = menu.item('Insert GLSL source above', lambda: _insert_glsl(False))
 
 		insert_rich_text_below = menu.item('Insert rich text below', lambda: _insert_rich_text(True))
 		insert_code_below = menu.item('Insert executable Python code below', lambda: _insert_code(True))
 		insert_js_below = menu.item('Insert JS source below', lambda: _insert_js(True))
 		insert_css_below = menu.item('Insert CSS source below', lambda: _insert_css(True))
-		insert_glsl_below = menu.item('Insert GLSL source below', lambda: _insert_glsl(True))
 		insert_html_below = menu.item('Insert HTML source below', lambda: _insert_html(True))
+		insert_glsl_below = menu.item('Insert GLSL source below', lambda: _insert_glsl(True))
 
 		remove_block = menu.item('Remove block', lambda: self._delete_block())
 		edit_menu_contents = menu.sub_menu('Edit', [
@@ -394,17 +396,20 @@ class Worksheet (object):
 			insert_code_above,
 			insert_js_above,
 			insert_css_above,
-			insert_glsl_above,
 			insert_html_above,
+			insert_glsl_above,
 
-			menu.item('--------', None),
+			menu.separator(),
+
 			insert_rich_text_below,
 			insert_code_below,
 			insert_js_below,
 			insert_css_below,
-			insert_glsl_below,
 			insert_html_below,
-			menu.item('--------', None),
+			insert_glsl_below,
+
+			menu.separator(),
+
 			remove_block])
 
 		edit_menu = menu.menu([edit_menu_contents], drop_down=True)

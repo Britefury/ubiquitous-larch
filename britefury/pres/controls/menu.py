@@ -4,6 +4,15 @@
 from britefury.pres.html import Html
 
 
+def separator():
+	"""
+	Create a separator menu item
+	:return: the separator
+	"""
+	p = Html('<li></li>')
+	return p
+
+
 def item(item_content, on_select=None):
 	"""
 	Create a menu item control. Must be placed within a menu control, created with :menu:.

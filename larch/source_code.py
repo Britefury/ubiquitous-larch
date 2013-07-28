@@ -14,8 +14,8 @@ from britefury.pres.controls import code_mirror
 
 
 class AbstractSourceCode (object):
-	__language__ = None
 	__codemirror_modes__ = []
+	__codemirror_config__ = None
 
 	def __init__(self, code=None, editable=True):
 		if code is None:
@@ -25,8 +25,8 @@ class AbstractSourceCode (object):
 		self.__incr = IncrementalValueMonitor()
 		self.on_focus = None
 		self.on_blur = None
-		if self.__language__ is None:
-			raise TypeError, 'Abstract: __language__ not defined'
+		if self.__codemirror_config__ is None:
+			raise TypeError, 'Abstract: __codemirror_config__ not defined'
 
 
 	def __getstate__(self):
@@ -38,8 +38,8 @@ class AbstractSourceCode (object):
 		self.__incr = IncrementalValueMonitor()
 		self.on_focus = None
 		self.on_blur = None
-		if self.__language__ is None:
-			raise TypeError, 'Abstract: __language__ not defined'
+		if self.__codemirror_config__ is None:
+			raise TypeError, 'Abstract: __codemirror_config__ not defined'
 
 
 
@@ -62,26 +62,18 @@ class AbstractSourceCode (object):
 
 
 	def __present__(self, fragment):
-		if self.__language__ is None:
-			raise TypeError, 'Abstract: __language__ not defined'
+		if self.__codemirror_config__ is None:
+			raise TypeError, 'Abstract: __codemirror_config__ not defined'
 
 		self.__incr.on_access()
 
 		def on_change(ev_data):
 			self.__code = ev_data
 
-		config = {
-			'mode': {
-				'name': self.__language__,
-				'version': 2,
-				'singleLineStringErrors': False},
-			'lineNumbers': True,
-			'indentUnit': 4,
-			'tabMode': "shift",
-			'matchBrackets': True,
-			'readOnly': 'nocursor'   if not self.__editable   else False,
-			'autofocus': self.__editable
-		}
+		config = {}
+		config.update(self.__codemirror_config__)
+		config['readOnly'] = 'nocursor'   if not self.__editable   else False
+		config['autofocus'] = self.__editable
 
 
 
@@ -204,8 +196,18 @@ _stream_style_map = {
 
 
 class PythonCode (AbstractSourceCode):
-	__language__ = 'python'
 	__codemirror_modes__ = ['python']
+	__codemirror_config__ = {
+			'mode': {
+				'name': 'python',
+				'version': 2,
+				'singleLineStringErrors': False
+			},
+			'lineNumbers': True,
+			'indentUnit': 4,
+			'tabMode': "shift",
+			'matchBrackets': True
+	}
 
 
 	def execute_in_module(self, module):
@@ -255,23 +257,52 @@ class PythonCode (AbstractSourceCode):
 
 
 class HtmlCode (AbstractSourceCode):
-	__language__ = 'htmlembedded'
-	__codemirror_modes__ = ['htmlembedded']
+	__codemirror_modes__ = ['xml', 'javascript', 'css', 'htmlmixed']
+	__codemirror_config__ = {
+		'mode' : {
+				'name': 'htmlmixed',
+				'scriptTypes': []
+		},
+		'lineNumbers': True,
+		'indentUnit': 4,
+		'matchBrackets': True
+	}
 
 
 
 class CSSCode (AbstractSourceCode):
-	__language__ = 'css'
 	__codemirror_modes__ = ['css']
+	__codemirror_config__ = {
+		'mode' : {
+				'name': 'css',
+		},
+		'lineNumbers': True,
+		'indentUnit': 4,
+		'matchBrackets': True
+	}
 
 
 
 class JSCode (AbstractSourceCode):
-	__language__ = 'javascript'
 	__codemirror_modes__ = ['javascript']
+	__codemirror_config__ = {
+		'mode' : {
+				'name': 'javascript',
+		},
+		'lineNumbers': True,
+		'indentUnit': 4,
+		'matchBrackets': True
+	}
 
 
 
 class GLSLCode (AbstractSourceCode):
-	__language__ = 'glsl'
 	__codemirror_modes__ = ['glsl']
+	__codemirror_config__ = {
+		'mode' : {
+				'name': 'glsl',
+		},
+		'lineNumbers': True,
+		'indentUnit': 4,
+		'matchBrackets': True
+	}
