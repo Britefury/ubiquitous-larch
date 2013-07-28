@@ -1,7 +1,7 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-from britefury.dynamicsegments.service import DynamicDocumentService
+from britefury.dynamicsegments.service import DynamicPageService
 from britefury.incremental_view.incremental_view import IncrementalView
 from britefury.projection.subject import Subject
 from britefury import command
@@ -13,13 +13,27 @@ class CouldNotResolveLocationError (Exception):
 
 
 
-class ProjectionService (DynamicDocumentService):
+class ProjectionService (DynamicPageService):
+	"""
+	Projection service
+
+	A dynamic page service that uses the projection system to display objects and resolves locations to
+	subjects.
+	"""
+
+
 	def __init__(self, front_page_model):
 		super(ProjectionService, self).__init__()
 		self.__front_page_model = front_page_model
 
 
-	def initialise_session(self, dynamic_document, location):
+	def initialise_session(self, dynamic_page, location):
+		"""
+		Initialise the session
+		:param dynamic_page: The page that will display the required content
+		:param location: The location which we must resolve to find the content to display
+		:return: an IncrementalView
+		"""
 		focus_steps = []
 
 		if isinstance(location, Subject):
@@ -37,18 +51,34 @@ class ProjectionService (DynamicDocumentService):
 				cmds.extend(method())
 
 		command_set = command.CommandSet(cmds)
-		command_set.attach_to_document(dynamic_document)
+		command_set.attach_to_document(dynamic_page)
 
 		# Create the incremental view
-		return IncrementalView(subject, dynamic_document)
+		return IncrementalView(subject, dynamic_page)
 
 
 
 	def __focus_step(self, steps, focus):
+		"""
+		Adds :param focus: to :param steps: if it is not already there
+		:param steps: a list of focii
+		:param focus: a focus
+		:return: None
+		"""
 		if focus not in steps:
 			steps.append(focus)
 
 	def __resolve_step(self, model, subject, focus_steps):
+		"""
+		Steps the subject forward by invoking __resolve_self__ on :param model: if it is available.
+		This will be performed again on the returned result, until the result is the same as the target
+		(__resolve_self__ returns self).
+
+		:param model: The starting model
+		:param subject: The subject
+		:param focus_steps: A list of focii
+		:return: The new model
+		"""
 		while True:
 			self.__focus_step(focus_steps, model)
 			try:
@@ -62,6 +92,12 @@ class ProjectionService (DynamicDocumentService):
 		return model
 
 	def __resolve_name(self, model, subject, name):
+		"""
+		:param model: The starting model
+		:param subject: The subject
+		:param name: The name to look up
+		:return: The result of invoking model.__resolve__(:param name:, :param subject:) or None if __resolve__ is not defined
+		"""
 		try:
 			__resolve__ = model.__resolve__
 		except AttributeError:
@@ -69,6 +105,13 @@ class ProjectionService (DynamicDocumentService):
 		return __resolve__(name, subject)
 
 	def __resolve_location(self, location, focus_steps):
+		"""
+		Resolves a location
+
+		:param location: A location to resolve
+		:param focus_steps: A list that is modified to contain the list of focii along the path to the resulting subject
+		:return: The subject identified by :param location:
+		"""
 		subject = Subject()
 		subject.add_step(focus=self.__front_page_model, location_trail=['pages'], perspective=None, title='Service front page')
 		if location is None  or  location == '':

@@ -19,7 +19,7 @@ class _Session (object):
 		self.session_data = None
 
 
-class DynamicDocumentService (object):
+class DynamicPageService (object):
 	def __init__(self):
 		self.__sessions = {}
 		self.__session_counter = 1
