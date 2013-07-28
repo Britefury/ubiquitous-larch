@@ -3,7 +3,7 @@
 ##-*************************
 from copy import deepcopy
 
-from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
+from britefury.incremental import IncrementalValueMonitor
 
 
 

@@ -4,7 +4,7 @@
 import imp
 import sys
 
-from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
+from britefury.incremental import IncrementalValueMonitor
 from britefury.pres.html import Html
 from britefury.pres.key_event import KeyAction
 from britefury.pres.controls import ckeditor, menu, button, text_entry

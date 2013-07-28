@@ -1,10 +1,9 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
+import weakref
+import unittest
 import gc
-
-from britefury.incremental import incremental_monitor
-
 
 
 
@@ -13,9 +12,122 @@ class IncrementalEvaluationCycleError (Exception):
 
 
 
+class IncrementalMonitor (object):
+	UNINITIALISED = 'UNINITIALISED'
+	REFRESH_REQUIRED = 'REFRESH_REQUIRED'
+	REFRESH_NOT_REQUIRED = 'REFRESH_NOT_REQUIRED'
 
 
-class IncrementalFunctionMonitor (incremental_monitor.IncrementalMonitor):
+	_current_computation = None
+
+
+	def __init__(self, owner=None):
+		self._owner = owner
+		self._incremental_state = IncrementalMonitor.UNINITIALISED
+		self._outgoing_dependencies = None
+		self._listeners = None
+
+
+
+	owner = property(lambda self: self._owner)
+	has_listeners = property(lambda self: (self._listeners is not None  and  len(self._listeners) > 0))
+	outgoing_dependences = property(lambda self: (set(self._outgoing_dependencies.keys())   if self._outgoing_dependencies is not None   else set()))
+	has_outgoing_dependences = property(lambda self: (self._outgoing_dependencies is not None  and  len(self._outgoing_dependencies) > 0))
+
+
+
+	def add_listener(self, listener):
+		if self._listeners is None:
+			self._listeners = []
+		if listener in self._listeners:
+			return
+		self._listeners.append(listener)
+
+	def remove_listener(self, listener):
+		if self._listeners is not None:
+			try:
+				self._listeners.remove(listener)
+			except ValueError:
+				pass
+
+
+
+	def _on_value_access(self):
+		if IncrementalMonitor._current_computation is not None:
+			IncrementalMonitor._current_computation._on_incoming_dependency_access(self)
+
+	def _notify_changed(self):
+		if self._incremental_state != IncrementalMonitor.REFRESH_REQUIRED:
+			self._incremental_state = IncrementalMonitor.REFRESH_REQUIRED
+			self._emit_changed()
+
+			if self._outgoing_dependencies is not None:
+				for dep in self._outgoing_dependencies.keys():
+					dep._notify_changed()
+
+	def _notify_refreshed(self):
+		self._incremental_state = IncrementalMonitor.REFRESH_NOT_REQUIRED
+
+
+	def _emit_changed(self):
+		if self._listeners is not None:
+			for listener in self._listeners:
+				listener(self)
+
+
+	@staticmethod
+	def _push_current_computation(computation):
+		f = IncrementalMonitor._current_computation
+		IncrementalMonitor._current_computation = computation
+		return f
+
+	@staticmethod
+	def _pop_current_computation(prev_computation):
+		IncrementalMonitor._current_computation = prev_computation
+
+
+
+	@staticmethod
+	def block_access_tracking():
+		return IncrementalMonitor._push_current_computation(None)
+
+	@staticmethod
+	def unblock_access_tracking(prev_computation):
+		IncrementalMonitor._pop_current_computation(prev_computation)
+
+
+
+	def _add_outgoing_dependency(self, dep):
+		if self._outgoing_dependencies is None:
+			self._outgoing_dependencies = weakref.WeakKeyDictionary()
+		self._outgoing_dependencies[dep] = None
+
+	def _remove_outgoing_dependency(self, dep):
+		if self._outgoing_dependencies is not None:
+			del self._outgoing_dependencies[dep]
+			if len(self._outgoing_dependencies) == 0:
+				self._outgoing_dependencies = None
+		else:
+			raise KeyError
+
+
+
+
+
+
+class IncrementalValueMonitor (IncrementalMonitor):
+	def on_access(self):
+		self._notify_refreshed()
+		self._on_value_access()
+
+	def on_changed(self):
+		self._notify_changed()
+
+
+
+
+
+class IncrementalFunctionMonitor (IncrementalMonitor):
 	""" Incremental Function Monitor
 
 	Monitor a value acquired by evaluating a function.
@@ -67,9 +179,9 @@ class IncrementalFunctionMonitor (incremental_monitor.IncrementalMonitor):
 		self.__clear_flag(self._FLAG_BLOCK_INCOMING_DEPENDENCIES)
 		self.__set_flag(self._FLAG_CYCLE_LOCK)
 
-		if self._incremental_state != incremental_monitor.IncrementalMonitor.REFRESH_NOT_REQUIRED:
+		if self._incremental_state != IncrementalMonitor.REFRESH_NOT_REQUIRED:
 			# Push current computation
-			old_computation = incremental_monitor.IncrementalMonitor._push_current_computation(self)
+			old_computation = IncrementalMonitor._push_current_computation(self)
 
 			refresh_state = old_computation, self._incoming_dependencies
 			self._incoming_dependencies = None
@@ -79,11 +191,11 @@ class IncrementalFunctionMonitor (incremental_monitor.IncrementalMonitor):
 
 
 	def on_refresh_end(self, refresh_state):
-		if self._incremental_state != incremental_monitor.IncrementalMonitor.REFRESH_NOT_REQUIRED:
+		if self._incremental_state != IncrementalMonitor.REFRESH_NOT_REQUIRED:
 			old_computation, prev_incoming_dependencies = refresh_state
 
 			# Restore current computation
-			incremental_monitor.IncrementalMonitor._pop_current_computation(old_computation)
+			IncrementalMonitor._pop_current_computation(old_computation)
 
 			# Disconnect the dependencies that are being removed
 			if prev_incoming_dependencies is not None:
@@ -98,7 +210,7 @@ class IncrementalFunctionMonitor (incremental_monitor.IncrementalMonitor):
 						inc._add_outgoing_dependency(self)
 
 
-			self._incremental_state = incremental_monitor.IncrementalMonitor.REFRESH_NOT_REQUIRED
+			self._incremental_state = IncrementalMonitor.REFRESH_NOT_REQUIRED
 
 		self.__clear_flag(self._FLAG_CYCLE_LOCK)
 
@@ -145,8 +257,103 @@ class IncrementalFunctionMonitor (incremental_monitor.IncrementalMonitor):
 
 
 
+class Test_IncrementalMonitor (unittest.TestCase):
+	class _Counter (object):
+		def __init__(self):
+			self.count = 0
 
-class Test_IncrementalFunctionMonitor (incremental_monitor.Test_IncrementalMonitor):
+		def __call__(self, *args, **kwargs):
+			self.count += 1
+
+
+	def signal_counter(self):
+		return Test_IncrementalMonitor._Counter()
+
+
+
+	@staticmethod
+	def _get_listeners(inc):
+		ls =  []
+		if inc._listeners is not None:
+			for r in inc._listeners:
+				l = r()
+				if l is not None:
+					ls.append(l)
+		return ls
+
+
+	def test_listener_refs(self):
+		inc = IncrementalMonitor()
+
+		l1 = self.signal_counter()
+		l2 = self.signal_counter()
+		l3 = self.signal_counter()
+		l4 = self.signal_counter()
+
+
+		inc.add_listener(l1)
+		inc.add_listener(l2)
+		inc.add_listener(l3)
+		inc.add_listener(l4)
+
+		del l4
+		gc.collect()
+		self.assertEqual(set([l1, l2, l3]), set(self._get_listeners(inc)))
+
+		del l3
+		gc.collect()
+		self.assertEqual(set([l1, l2]), set(self._get_listeners(inc)))
+
+		l3 = self.signal_counter()
+		inc.add_listener(l3)
+		inc.add_listener(l3)
+		self.assertEqual(set([l1, l2, l3]), set(self._get_listeners(inc)))
+
+		del l3
+		gc.collect()
+		inc.remove_listener(l2)
+		self.assertEqual(set([l1]), set(self._get_listeners(inc)))
+		self.assertTrue(inc.has_listeners)
+
+		inc.remove_listener(l1)
+		self.assertEqual(set(), set(self._get_listeners(inc)))
+		self.assertFalse(inc.has_listeners)
+
+
+		inc.add_listener(l1)
+		inc.add_listener(l2)
+		del l2
+		gc.collect()
+		inc._notify_changed()
+		self.assertEqual(set([l1]), set(self._get_listeners(inc)))
+
+
+
+
+class Test_IncrementalValueMonitor (Test_IncrementalMonitor):
+	def test_listener(self):
+		counter = self.signal_counter()
+		self.assertEqual(0, counter.count)
+
+		inc = IncrementalValueMonitor()
+
+		inc.add_listener(counter)
+
+		inc.on_changed()
+		self.assertEqual(1, counter.count)
+
+		inc.on_changed()
+		self.assertEqual(1, counter.count)
+
+		inc.on_access()
+		inc.on_changed()
+		self.assertEqual(2, counter.count)
+
+
+
+
+
+class Test_IncrementalFunctionMonitor (Test_IncrementalMonitor):
 	def test_listener(self):
 		counter = self.signal_counter()
 		self.assertEqual(0, counter.count)
@@ -282,9 +489,9 @@ class Test_IncrementalFunctionMonitor (incremental_monitor.Test_IncrementalMonit
 		inc2.on_access()
 		inc4.on_refresh_end( rs4 )
 		rs3 = inc3.on_refresh_begin()
-		f = incremental_monitor.IncrementalMonitor.block_access_tracking()
+		f = IncrementalMonitor.block_access_tracking()
 		inc2.on_access()
-		incremental_monitor.IncrementalMonitor.unblock_access_tracking( f )
+		IncrementalMonitor.unblock_access_tracking( f )
 		inc3.on_refresh_end( rs3 )
 
 		self.assertEqual(set([inc2]), inc1.outgoing_dependences )
@@ -329,7 +536,7 @@ class Test_IncrementalFunctionMonitor (incremental_monitor.Test_IncrementalMonit
 		rs1 = inc1.on_refresh_begin()
 		inc1.on_refresh_end( rs1 )
 
-		
+
 
 	def test_deps(self):
 		inc1 = IncrementalFunctionMonitor()

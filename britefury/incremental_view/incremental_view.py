@@ -8,8 +8,7 @@ from britefury.attribute_table.simple_attribute_table import SimpleAttributeTabl
 from britefury.pres.presctx import PresentationContext
 from britefury.pres.pres import Pres
 from britefury.pres.html import Html
-from britefury.incremental.incremental_monitor import IncrementalMonitor
-from britefury.incremental.incremental_function_monitor import IncrementalFunctionMonitor
+from britefury.incremental import IncrementalMonitor, IncrementalFunctionMonitor
 from britefury.inspector.present_exception import present_exception
 from britefury.dynamicsegments.segment import  HtmlContent
 

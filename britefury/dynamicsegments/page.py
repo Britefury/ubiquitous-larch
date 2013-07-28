@@ -149,7 +149,7 @@ class DynamicPagePublicAPI (object):
 		self.__page._notify_page_modified()
 
 
-	def js_function_call(self, js_fn_name, *args):
+	def page_js_function_call(self, js_fn_name, *args):
 		"""
 		Convenience function for scheduling a Javascript function call (constructs an expression and passes it over to page_js_eval.
 

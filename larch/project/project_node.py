@@ -1,7 +1,7 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
+from britefury.incremental import IncrementalValueMonitor
 
 from britefury.live.live_value import LiveValue
 

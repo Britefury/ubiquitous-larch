@@ -1,7 +1,7 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-from britefury.default_perspective.default_perspective import DefaultPerspective
+from britefury.default_perspective import DefaultPerspective
 
 
 

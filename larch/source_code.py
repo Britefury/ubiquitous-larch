@@ -5,7 +5,7 @@ import imp
 import _ast
 import sys
 from collections import namedtuple
-from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
+from britefury.incremental import IncrementalValueMonitor
 from britefury.inspector.present_exception import present_exception
 from britefury.pres.html import Html
 from britefury.pres.key_event import KeyAction

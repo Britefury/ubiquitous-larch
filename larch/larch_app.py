@@ -9,7 +9,7 @@ import imp
 import sys
 
 from britefury.projection.projection_service import ProjectionService
-from britefury.incremental.incremental_value_monitor import IncrementalValueMonitor
+from britefury.incremental import IncrementalValueMonitor
 from britefury import command
 from larch.console import console
 from larch.worksheet import worksheet

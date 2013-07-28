@@ -1,7 +1,7 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-from britefury.incremental.incremental_function_monitor import IncrementalFunctionMonitor
+from britefury.incremental import IncrementalFunctionMonitor
 from britefury.live.abstract_live import AbstractLive
 
 
