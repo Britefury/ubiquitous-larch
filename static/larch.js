@@ -64,26 +64,28 @@ larch.__buildConnectivity = function(segment) {
     // Sometimes we put these nodes back in again. In such cases, the nextSibling attribute will be null,
     // preventing us from using it for iterating across the sequence of nodes.
     // So, we create a __lch_next attribute that points to the next sibling, so we can iterate using this instead.
-    var p = null;
-    for (var n = segment.start; n !== segment.end; n = n.nextSibling) {
-        if (p !== null) {
-            p.__lch_next = n;
+
+    var prev = null;        // Maintain previous node, so that we can link to the current node
+    for (var node = segment.start; node !== segment.end; node = node.nextSibling) {
+        if (prev !== null) {
+            prev.__lch_next = node;
         }
-        p = n;
+        prev = node;
     }
-    p.__lch_next = segment.end;
+    prev.__lch_next = segment.end;
 };
 
 larch.__clearConnectivity = function(nodes) {
     // Clear connectivity built earlier
-    var p = null;
+
+    var prev = null;        // Maintain previous node, so we can clear its connectivity after we have moved on to the next
     for (var i = 0; i < nodes.length; i++)
     {
         var n = nodes[i];
-        if (p !== null) {
-            p.__lch_next = null;
+        if (prev !== null) {
+            prev.__lch_next = null;
         }
-        p = n;
+        prev = n;
     }
 };
 
@@ -106,17 +108,18 @@ larch.__getNodesInInactiveSegment = function(segment) {
     // Iterate using __lch_next attribute; see __newSegmentState function for explanation
     var nodeList = [];
     var start = segment.start;
+    var n;
     if (start.hasOwnProperty('__lch_next')  &&  start.__lch_next !== null) {
         // This inactive segment was directly removed in a previous replacement operation.
         // We must use the __lch_next property to iterate.
-        for (var n = segment.start; n !== segment.end; n = n.__lch_next) {
+        for (n = segment.start; n !== segment.end; n = n.__lch_next) {
             nodeList.push(n);
         }
     }
     else {
         // This segment was removed as a result of a parent being removed, hence __lch_next has
         // not been initialised. Iterate using nextSibling.
-        for (var n = segment.start; n !== segment.end; n = n.nextSibling) {
+        for (n = segment.start; n !== segment.end; n = n.nextSibling) {
             nodeList.push(n);
         }
     }
@@ -208,6 +211,7 @@ larch.__register_segments = function() {
                 // Next
                 var nextNode = n.nextSibling;
                 if (nextNode === null) {
+                    larch.__errorCouldNotFindMatchingSegmentEndNode(segment_id, start);
                     throw "Did not find matching segment end node";
                 }
                 n = nextNode;
@@ -393,6 +397,15 @@ larch.__unhighlightSegment = function(segment_id) {
 };
 
 
+larch.__highlightElement = function(element) {
+    $(element).addClass("segment_highlight");
+};
+
+larch.__unhighlightElement = function(element) {
+    $(element).removeClass("segment_highlight");
+};
+
+
 
 
 
@@ -542,21 +555,36 @@ larch.__messageHandlers = {
 
     error_handling_event: function(message) {
         var eventName = '<span class="event_error_event_name">' + message.event_name + '</span>';
-        var headerHtml;
+        var header;
         if (message.event_seg_id !== null) {
-            var srcSegment = '<span class="event_error_segment" onmouseover="larch.__highlightSegment(\'' + message.event_seg_id + '\');" onmouseout="larch.__unhighlightSegment(\'' + message.event_seg_id + '\');">segment</span>';
-            var hdlSegment = '<span class="event_error_segment" onmouseover="larch.__highlightSegment(\'' + message.handler_seg_id + '\');" onmouseout="larch.__unhighlightSegment(\'' + message.handler_seg_id + '\');">segment</span>';
-            var sentFrom = 'sent from a ' + srcSegment + ' belonging to an instance of <span class="event_error_model_type">' + message.event_model_type_name + '</span>, ';
-            var handledAt = 'handled at a ' + hdlSegment + ' belonging to an instance of <span class="event_error_model_type">' + message.handler_model_type_name + '</span>';
+            var srcSegment = $('<span class="event_error_segment">segment</span>');
+            srcSegment.mouseover(function() {larch.__highlightSegment(message.event_seg_id)}).mouseout(function() {larch.__unhighlightSegment(message.event_seg_id)});
 
-            headerHtml = '<div class="event_error_header">Error handling event ' + eventName + ', ' + sentFrom + handledAt + '</div>';
+            var hdlSegment = $('<span class="event_error_segment">segment</span>');
+            hdlSegment.mouseover(function() {larch.__highlightSegment(message.handler_seg_id)}).mouseout(function() {larch.__unhighlightSegment(message.handler_seg_id)});
+
+            var sentFrom = $('<span>sent from a </span>');
+            sentFrom.append(srcSegment);
+            sentFrom.append(' belonging to an instance of <span class="event_error_model_type">' + message.event_model_type_name + '</span>, ');
+
+            var handledAt = $('<span>handled at a </span>');
+            handledAt.append(hdlSegment);
+            handledAt.append(' belonging to an instance of <span class="event_error_model_type">' + message.handler_model_type_name + '</span>');
+
+            header = $('<div class="event_error_header">Error handling event ' + eventName + ', </div>');
+            header.append(sentFrom);
+            header.append(handledAt);
         }
         else {
-            headerHtml = '<div class="event_error_header">Error handling page event ' + eventName + '</div>';
+            header = $('<div class="event_error_header">Error handling page event ' + eventName + '</div>');
         }
 
+        var text = $('<div class="exception_in_noty"></div>');
+        text.append(header);
+        text.append(message.err_html);
+
         noty({
-            text: '<div class="exception_in_noty">' + headerHtml + message.err_html + '</div>',
+            text: text,
             layout: "bottom",
             type: "alert",
             closeWith: ["click"]
@@ -583,6 +611,13 @@ larch.__handleMessagesFromServer = function(messages) {
             handler(msg);
         }
         else {
+            noty({
+                text: '<p class="invalid_page_style">Ubiquitous Larch received an unrecognised message from the server (message type <span class="emph">' + msg.msgtype + '</span>)</p>',
+                layout: "center",
+                type: "error",
+                modal: true,
+                closeWith: ["click"]
+            });
             throw ('Larch: unrecognised message: ' + msg.msgtype);
         }
     }
@@ -691,6 +726,9 @@ larch.postEvent = function(src_element, event_name, event_data) {
         var ev_msg = larch.__buildElementEventMessage(segment_id, event_name, event_data);
         larch.__postEventMessage(ev_msg);
     }
+    else {
+        larch.__warnUserUnableToGetSegmentIDForElement(src_element);
+    }
 };
 
 
@@ -712,20 +750,68 @@ larch.__eventFactoriesBySrcAndName = {};
 
 larch.queueEventFactory = function(src_element, event_name, event_factory) {
     var segment_id = larch.__getSegmentIDForEvent(src_element);
-    var key = segment_id + '__' + event_name;
 
-    var fac = {segment_id: segment_id, event_name: event_name, event_factory: event_factory};
-    if (!larch.hasQueuedEventFactory(src_element, event_name)) {
-        larch.__eventFactoryQueue.push(key);
+    if (segment_id !== null) {
+        var key = segment_id + '__' + event_name;
+
+        var fac = {segment_id: segment_id, event_name: event_name, event_factory: event_factory};
+        if (!larch.hasQueuedEventFactory(src_element, event_name)) {
+            larch.__eventFactoryQueue.push(key);
+        }
+        larch.__eventFactoriesBySrcAndName[key] = fac;
     }
-    larch.__eventFactoriesBySrcAndName[key] = fac;
+    else {
+        larch.__warnUserUnableToGetSegmentIDForElement(src_element);
+    }
 };
 
 larch.hasQueuedEventFactory = function(src_element, event_name) {
     var segment_id = larch.__getSegmentIDForEvent(src_element);
-    var key = segment_id + '__' + event_name;
 
-    return larch.__eventFactoriesBySrcAndName.hasOwnProperty(key);
+    if (segment_id !== null) {
+        var key = segment_id + '__' + event_name;
+
+        return larch.__eventFactoriesBySrcAndName.hasOwnProperty(key);
+    }
+    else {
+        larch.__warnUserUnableToGetSegmentIDForElement(src_element);
+    }
+};
+
+
+
+//
+//
+// WARNING AND ERROR NOTIFICATIONS FOR THE USER
+//
+//
+
+larch.__warnUserUnableToGetSegmentIDForElement = function(element) {
+    var elem = $('<span class="event_error_segment">element</span>');
+    elem.mouseover(function() {larch.__highlightElement(element);}).mouseout(function() {larch.__unhighlightElement(element);});
+
+    var text = $('<span>Unable to get find the segment containing </span>');
+    text.append(elem);
+    text.append('<br>This is likely due to DOM manipulation operations moving the element outside the Larch document flow');
+
+    noty({
+        text: text,
+        layout: "bottom",
+        type: "alert",
+        closeWith: ["click"]
+    });
+};
+
+
+larch.__errorCouldNotFindMatchingSegmentEndNode = function(segment_id, start) {
+    var text = $('<span>Ubiquitous Larch has been unable to handle the structure of the HTML within part of this page.</span>');
+
+    noty({
+        text: text,
+        layout: "bottom",
+        type: "warning",
+        closeWith: ["click"]
+    });
 };
 
 

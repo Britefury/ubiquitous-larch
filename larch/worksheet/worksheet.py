@@ -426,7 +426,7 @@ class Worksheet (object):
 			return True
 
 		def on_save_key(key):
-			save_name = self._save_containing_document()
+			save_name = self._save_containing_document(fragment)
 			fragment.page.page_js_function_call('noty', {'text': 'Saved <span class="emph">{0}</span>'.format(save_name), 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
 
 
