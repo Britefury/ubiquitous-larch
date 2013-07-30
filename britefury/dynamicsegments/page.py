@@ -194,6 +194,10 @@ class DynamicPage (object):
 		self.__js_queue = []
 		self.__execute_js_message = None
 
+		# Segments with invalid structure
+		self.__segments_with_invalid_html_structure = set()
+		self.__segment_html_structure_fixes = {}
+
 		# Page reload queued
 		self.__page_reload_queued = False
 
@@ -264,7 +268,6 @@ class DynamicPage (object):
 
 	def __on_broken_html_structure(self, public_api, broken_segment_ids):
 		# The HTML structure is broken
-		print 'Notified of broken HTML'
 		self.__service._notify_page_broken_html_structure(self)
 		self.queue_page_reload()
 
@@ -316,8 +319,6 @@ class DynamicPage (object):
 		:param owner: the owner of the segment
 		:return: the new segment
 		"""
-		if self._enable_structure_checking:
-			self._check_content_structure(content)
 		return self._table._new_segment(content, desc, owner)
 
 	def remove_segment(self, segment):
@@ -479,6 +480,12 @@ class DynamicPage (object):
 			if rsc_disp_message is not None:
 				msg_list.append(rsc_disp_message)
 
+			# Structure validity message
+			structure_validity_message = self.__structure_validity_message()
+			if structure_validity_message is not None:
+				msg_list.append(structure_validity_message)
+
+
 		return msg_list
 
 
@@ -547,14 +554,49 @@ class DynamicPage (object):
 
 
 
+
 	#
 	#
-	# Structure checking
+	# Invalid content structure
 	#
 	#
 
-	def _check_content_structure(self, content):
-		raise NotImplementedError
+	def _notify_segment_html_structure_validity_change(self, segment, valid):
+		if not valid:
+			self.__segments_with_invalid_html_structure.add(segment)
+		else:
+			self.__segments_with_invalid_html_structure.remove(segment)
+			if len(self.__segments_with_invalid_html_structure) == 0:
+				# Validity problems have been fixed: queue a reload
+				self.queue_page_reload()
+
+
+	def _notify_segment_html_structure_fixes(self, segment, fixes):
+		self.__segment_html_structure_fixes[segment] = fixes
+
+
+	def __structure_validity_message(self):
+		if len(self.__segment_html_structure_fixes) > 0:
+			fixes_by_model_id = {}
+
+			for seg, fixes in self.__segment_html_structure_fixes.items():
+				model = seg.owner.model
+				fixes_for_model = fixes_by_model_id.setdefault(id(model), (model, []))
+				fixes_for_model[1].extend(fixes)
+
+			fixed_by_model_json = []
+			for model, fixes in fixes_by_model_id.values():
+				fixes_json = {
+					'model_type_name': type(model).__name__,
+					'fixes': [fix.to_json() for fix in fixes]
+				}
+				fixed_by_model_json.append(fixes_json)
+
+			self.__segment_html_structure_fixes = {}
+			return messages.html_structure_fixes_message(fixed_by_model_json)
+		else:
+			return None
+
 
 
 
@@ -775,10 +817,6 @@ class _SegmentTable (object):
 
 
 	def _segment_modified(self, segment, content):
-		if self.__page._enable_structure_checking:
-			self.__page._check_content_structure(content)
-
-
 		if segment not in self.__changes_added:
 			self.__changes_modified.add(segment)
 

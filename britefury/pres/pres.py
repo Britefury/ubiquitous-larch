@@ -96,8 +96,16 @@ class Pres (object):
 		return [x.build(pres_ctx)   for x in xs]
 
 
+
 	@staticmethod
 	def coerce(x):
+		if isinstance(x, Pres):
+			return x
+		else:
+			return InnerFragment(x)
+
+	@staticmethod
+	def coerce_none_as_none(x):
 		if x is None:
 			return None
 		elif isinstance(x, Pres):
@@ -106,23 +114,14 @@ class Pres (object):
 			return InnerFragment(x)
 
 
-	@staticmethod
-	def coerce_nullable(x):
-		if x is None:
-			return InnerFragment(None)
-		elif isinstance(x, Pres):
-			return x
-		else:
-			return InnerFragment(x)
-
 
 	@staticmethod
 	def map_coerce(xs):
 		return [Pres.coerce(x)   for x in xs]
 
 	@staticmethod
-	def map_coerce_nullable(xs):
-		return [Pres.coerce_nullable(x)   for x in xs]
+	def map_coerce_none_as_none(xs):
+		return [Pres.coerce(x)   for x in xs]
 
 
 
@@ -159,7 +158,7 @@ class CompositePres (Pres):
 class ApplyPerspective (Pres):
 	def __init__(self, perspective, child):
 		self.__perspective = perspective
-		self.__child = Pres.coerce_nullable(child)
+		self.__child = Pres.coerce(child)
 
 
 	def build(self, pres_ctx):
@@ -182,7 +181,7 @@ class InnerFragment (Pres):
 
 class SubSegmentPres (Pres):
 	def __init__(self, child):
-		self._child = Pres.coerce_nullable(child)
+		self._child = Pres.coerce(child)
 
 
 

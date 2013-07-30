@@ -23,10 +23,7 @@ class AbstractLive (CompositePres):
 				exception_view = present_exception.present_exception_no_traceback(e)
 				return error_box('Exception during live evaluation', exception_view)
 
-			if value is not None:
-				return Pres.coerce(value).build(pres_ctx)
-			else:
-				return present_primitive.present_none().build(pres_ctx)
+			return Pres.coerce(value).build(pres_ctx)
 
 
 	@property

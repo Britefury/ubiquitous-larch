@@ -171,7 +171,7 @@ class ExecutionResultValue (ExecutionResultEmpty):
 
 
 	def __present__(self, fragment):
-		return Html(self.streams, Pres.coerce_nullable(self.value))
+		return Html(self.streams, Pres.coerce(self.value))
 
 
 

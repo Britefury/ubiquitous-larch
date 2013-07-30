@@ -3,6 +3,8 @@
 ##-*************************
 __author__ = 'Geoff'
 
+from HTMLParser import HTMLParser
+
 
 
 class DynamicSegment (object):
@@ -21,15 +23,25 @@ class DynamicSegment (object):
 		:param content: The content that this segment should contain
 		:param owner: The owner (application provided; used to find out what content a segment represents/displays)
 		"""
-		self.__page = page
 		self.__id = seg_id
 		assert content is None  or  isinstance(content, HtmlContent)
-		self.__content = content
+		self.__page = page
 		self.__owner = owner
 		self.__parent = None
 		self.__event_handlers = None
 		self.__initialise_scripts = None
 		self.__shutdown_scripts = None
+
+		self.__structure_valid = True
+		if page._enable_structure_checking  and  content is not None:
+			fixed_content, fixes = content._fix_structure()
+			if fixes is not None:
+				content = fixed_content
+				self.__structure_valid = False
+				self.__page._notify_segment_html_structure_fixes(self, fixes)
+				self.__page._notify_segment_html_structure_validity_change(self, False)
+
+		self.__content = content
 		self.__connect_children()
 
 
@@ -80,8 +92,20 @@ class DynamicSegment (object):
 		"""
 		if x is not None  and not  isinstance(x, HtmlContent):
 			raise TypeError, 'Content should be either None or an HtmlContent instance'
+		valid = True
+		fixes = None
+		if self.__page._enable_structure_checking  and  x is not None:
+			fixed_x, fixes = x._fix_structure()
+			if fixes is not None:
+				valid = False
+				x = fixed_x
+				self.__page._notify_segment_html_structure_fixes(self, fixes)
+
 		self.__disconnect_children()
 		self.__content = x
+		if valid != self.__structure_valid:
+			self.__structure_valid = valid
+			self.__page._notify_segment_html_structure_validity_change(self, valid, fixes)
 		self.__connect_children()
 		self.__page._table._segment_modified(self, x)
 
@@ -195,6 +219,10 @@ class DynamicSegment (object):
 
 
 
+
+
+
+
 class SegmentRef (object):
 	"""A reference to a segment. Put these in HtmlContent objects to nest segments.
 	"""
@@ -262,3 +290,161 @@ class HtmlContent (list):
 				items.append(x)
 			else:
 				x._build_html(items, ref_resolver)
+
+
+	def _fix_structure(self):
+		c = _HtmlContentStructureFixer()
+		xs = []
+		fixes = []
+		for x in self:
+			if isinstance(x, str)  or  isinstance(x, unicode):
+				c.item(x)
+				item_fixes = c.item_fixes()
+				if len(item_fixes) > 0:
+					xs.append(c.output)
+					fixes.extend(item_fixes)
+				else:
+					xs.append(x)
+			elif isinstance(x, HtmlContent):
+				fixed, item_fixes = x._fix_structure()
+				if item_fixes is not None:
+					xs.append(fixed)
+					fixes.extend(item_fixes)
+				else:
+					xs.append(x)
+			else:
+				xs.append(x)
+
+		if len(fixes) > 0:
+			return HtmlContent(self[:]), fixes
+		else:
+			return self, None
+
+
+
+
+
+
+class _HtmlContentStructureFixer (HTMLParser):
+	__self_closing_tags = {'img', 'input', 'br', 'hr', 'frame', 'area', 'base', 'basefont', 'col', 'isindex', 'link', 'meta', 'param'}
+
+	def __init__(self):
+		HTMLParser.__init__(self)
+
+		self.__tag_stack = []
+		self.__item_index = 0
+
+		self.__end_tags_to_insert = []
+
+		self.__out = []
+		self.__fixes = []
+
+
+	def item(self, x):
+		# Reset
+		self.__out = []
+		self.__fixes = []
+
+		# Feed the data
+		self.feed(x)
+
+		# Close unclosed tags
+		while len(self.__tag_stack) > 0:
+			tag = self.__tag_stack.pop()
+			self._emit('</' + tag + '>')
+			self.__fixes.append(_CloseUnclosedTagFix(tag))
+
+		# Close off
+		self.close()
+
+
+	@property
+	def output(self):
+		return ''.join(self.__out)
+
+	def item_fixes(self):
+		return self.__fixes
+
+
+	def _emit(self, text):
+		self.__out.append(text)
+
+
+	def handle_starttag(self, tag, attrs):
+		t = tag.strip().lower()
+		if t not in self.__self_closing_tags:
+			self.__tag_stack.append(t)
+		self._emit(self.get_starttag_text())
+
+	def handle_endtag(self, tag):
+		# If there are tags to close
+		if len(self.__tag_stack) > 0:
+			t = tag.strip().lower()
+			if t == self.__tag_stack[-1]:
+				# The tag matches the tag at the top of the stack: close it
+				self._emit('</' + tag + '>')
+				self.__tag_stack.pop()
+			else:
+				if t in self.__tag_stack:
+					# There are tags that must be closed before this one
+					while t != self.__tag_stack[-1]:
+						tag_to_close = self.__tag_stack.pop()
+						self._emit('</' + tag_to_close + '>')
+						self.__fixes.append(_CloseUnclosedTagFix(tag_to_close))
+					# We have reached the matching start tag: close it
+					self._emit('</' + tag + '>')
+				else:
+					# There is no tag on the tag stack by this name waiting to be closed: drop it
+					self.__fixes.append(_DropCloseTagWithNoMatchingOpenTag(t))
+					pass
+		else:
+			# No tags left to close: drop it
+			self.__fixes.append(_DropCloseTagWithNoMatchingOpenTag(tag))
+			pass
+
+	def handle_startendtag(self, tag, attrs):
+		self._emit(self.get_starttag_text())
+
+	def handle_data(self, data):
+		self._emit(data)
+
+	def handle_entityref(self, name):
+		self._emit('&' + name + ';')
+
+	def handle_charref(self, name):
+		self._emit('&#' + name + ';')
+
+	def handle_comment(self, data):
+		self._emit('<!--' + data + '-->')
+
+	def handle_decl(self, decl):
+		self._emit('<!' + decl + '>')
+
+	def handle_pi(self, data):
+		self._emit('<?' + data + '>')
+
+	def unknown_decl(self, data):
+		self._emit('<![' + data + ']>')
+
+
+
+
+class _HtmlFix (object):
+	def to_json(self):
+		raise NotImplementedError, 'abstract'
+
+
+class _CloseUnclosedTagFix (_HtmlFix):
+	def __init__(self, tag):
+		self.__tag = tag
+
+	def to_json(self):
+		return {'fix_type': 'close_unclosed_tag', 'tag': self.__tag}
+
+
+class _DropCloseTagWithNoMatchingOpenTag (_HtmlFix):
+	def __init__(self, tag):
+		self.__tag = tag
+
+	def to_json(self):
+		return {'fix_type': 'drop_close_tag_with_no_matching_open_tag', 'tag': self.__tag}

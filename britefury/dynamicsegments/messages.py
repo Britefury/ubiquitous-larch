@@ -50,3 +50,8 @@ def error_handling_event_message(err_html, event_name, event_seg_id, event_model
 def error_during_update_message(err_html):
 	return {'msgtype': 'error_during_update',
 		'err_html': err_html}
+
+
+def html_structure_fixes_message(fixes_by_model):
+	return {'msg_type': 'html_structure_fixes',
+		'fixes_by_model': fixes_by_model}

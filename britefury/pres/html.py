@@ -12,7 +12,7 @@ class Html (Pres):
 			if isinstance(c, str) or isinstance(c, unicode):
 				self.__contents.append(c)
 			else:
-				self.__contents.append(Pres.coerce_nullable(c))
+				self.__contents.append(Pres.coerce(c))
 
 
 	def build(self, pres_ctx):

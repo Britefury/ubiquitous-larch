@@ -627,6 +627,10 @@ larch.__messageHandlers = {
             modal: true,
             closeWith: ["click"]
         });
+    },
+
+    html_structure_fixes: function(message) {
+        var fixes_by_model = message.fixes;
     }
 };
 
@@ -859,6 +863,86 @@ larch.__errorEncounteredBrokenHTMLStructure = function() {
 
 
 
+
+
+//
+//
+// ALERT MESSAGES
+//
+//
+
+larch.__alertBox = {
+    visible: false,
+    alerts: [],
+    body: null,
+    selectorSpinner: null,
+
+    changePage: function(pageIndex) {
+        larch.__alertBox.body.children().remove();
+        larch.__alertBox.body.append(larch.__alertBox.alerts[pageIndex]);
+    },
+
+    notifyClosed: function() {
+        larch.__alertBox.visible = false;
+        larch.__alertBox.alerts = [];
+        larch.__alertBox.body = null;
+        larch.__alertBox.selectorSpinner = null;
+    }
+};
+
+larch.__showAlert = function(contents) {
+    larch.__alertBox.alerts.push(contents);
+
+    if (!larch.__alertBox.visible) {
+        larch.__alertBox.visible = true;
+
+        larch.__alertBox.selectorSpinner = $('<input name="value" value="0">');
+        var header = $('<div class="alert_selector_header">Show alert </div>');
+        header.append(larch.__alertBox.selectorSpinner);
+
+        larch.__alertBox.body = $('<div class="alert_body"></div>');
+        larch.__alertBox.body.append(larch.__alertBox.alerts[0]);
+
+        var text = $('<div class="alert_box"></div>')
+        text.append(header);
+        text.append(larch.__alertBox.body);
+
+        noty({
+            text: text,
+            layout: "bottom",
+            type: "alert",
+            closeWith: [],
+            callback: {
+                onClose: function() {
+                    larch.__alertBox.notifyClosed();
+                }
+            },
+            buttons: [
+                {
+                    addClass: 'btn btn-primary',
+                    text: 'Ok',
+                    onClick: function(notification) {
+                         notification.close();
+                    }
+                }
+            ]
+        });
+
+        larch.__alertBox.selectorSpinner.spinner({
+            spin: function(event, ui) {
+                larch.__alertBox.changePage(ui.value);
+            },
+            min: 0,
+            max: 0
+        });
+    }
+    else {
+        var lastPageIndex = larch.__alertBox.alerts.length - 1;
+        larch.__alertBox.selectorSpinner.spinner("option", "max", lastPageIndex);
+        larch.__alertBox.selectorSpinner.spinner("value", lastPageIndex);
+        larch.__alertBox.changePage(lastPageIndex);
+    }
+};
 
 //
 //
