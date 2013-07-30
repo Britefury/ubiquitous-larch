@@ -181,6 +181,10 @@ larch.__getSegmentBeginNodes = function() {
 
 
 
+
+// A list of segments that are broken due to bad HTML structure.
+larch.__brokenSegmentIDs = null;
+
 larch.__register_segments = function() {
     var segment_table = larch.__segment_table;
 
@@ -200,6 +204,7 @@ larch.__register_segments = function() {
 
             // Iterate forwards until we find the matching end node.
             var n = start;
+            var segmentIsValid = true;      // false if the structure is broken
             while (true) {
                 // Set the node's segment ID
                 n.__lch_seg_id = segment_id;
@@ -211,18 +216,33 @@ larch.__register_segments = function() {
                 // Next
                 var nextNode = n.nextSibling;
                 if (nextNode === null) {
-                    larch.__errorCouldNotFindMatchingSegmentEndNode(segment_id, start);
-                    throw "Did not find matching segment end node";
+                    segmentIsValid = false;
+                    if (larch.__brokenSegmentIDs === null) {
+                        larch.__brokenSegmentIDs = [];
+                    }
+                    larch.__brokenSegmentIDs.push(segment_id);
+                    break;
                 }
                 n = nextNode;
             }
 
-            // @n is now the end node
-            var end = n;
+            if (segmentIsValid) {
+                // This segment is valid e.g. not broken
 
-            // Put an entry in our segment table
-            segment_table[segment_id] = larch.__newSegmentState(start, end);
+                // @n is now the end node
+                var end = n;
+
+                // Put an entry in our segment table
+                segment_table[segment_id] = larch.__newSegmentState(start, end);
+            }
+            else {
+                continue;
+            }
         }
+    }
+
+    if (larch.__brokenSegmentIDs !== null) {
+        larch.__errorEncounteredBrokenHTMLStructure();
     }
 };
 
@@ -256,7 +276,8 @@ larch.__executeNodeScripts = function(node_scripts) {
         //console.log("Executing initialisers for " + segment_id);
         var state = segment_table[segment_id];
         if (state === undefined) {
-            throw "Cannot get segment " + segment_id
+            console.log("larch.__executeNodeScripts: Cannot get segment " + segment_id);
+            return;
         }
         var nodes = larch.__getNodesInActiveSegment(state);
         for (var j = 1; j < nodes.length - 1; j++) {
@@ -376,7 +397,8 @@ larch.__highlightSegment = function(segment_id) {
     var segment_table = larch.__segment_table;
     var state = segment_table[segment_id];
     if (state === undefined) {
-        throw "Cannot get segment " + segment_id
+        console.log("larch.__highlightSegment: Cannot get segment " + segment_id);
+        return;
     }
     var nodes = larch.__getNodesInActiveSegment(state);
     for (var j = 1; j < nodes.length - 1; j++) {
@@ -388,7 +410,8 @@ larch.__unhighlightSegment = function(segment_id) {
     var segment_table = larch.__segment_table;
     var state = segment_table[segment_id];
     if (state === undefined) {
-        throw "Cannot get segment " + segment_id
+        console.log("larch.__unhighlightSegment: Cannot get segment " + segment_id);
+        return;
     }
     var nodes = larch.__getNodesInActiveSegment(state);
     for (var j = 1; j < nodes.length - 1; j++) {
@@ -553,6 +576,10 @@ larch.__messageHandlers = {
         }
     },
 
+    reload_page: function(message) {
+        location.reload();
+    },
+
     error_handling_event: function(message) {
         var eventName = '<span class="event_error_event_name">' + message.event_name + '</span>';
         var header;
@@ -621,6 +648,16 @@ larch.__handleMessagesFromServer = function(messages) {
             throw ('Larch: unrecognised message: ' + msg.msgtype);
         }
     }
+
+    larch.__postModificationCleanup();
+};
+
+
+larch.__postModificationCleanup = function() {
+    if (larch.__brokenSegmentIDs !== null) {
+        larch.postDocumentEvent('broken_html_structure', larch.__brokenSegmentIDs);
+        larch.__brokenSegmentIDs = null;
+    }
 };
 
 
@@ -635,9 +672,10 @@ larch.__buildElementEventMessage = function(segment_id, event_name, event_data) 
 };
 
 
+
 larch.__messageBlockCount = 0;
 larch.__messageBuffer = [];
-larch.__waitingForResponse = false;
+larch.__waitingForResponse = 0;
 
 // Messages are handled in a synchronous manner....
 // This does violate the normal way of interacting with web servers but....
@@ -653,7 +691,7 @@ larch.__waitingForResponse = false;
 // Building up a back-log of server-side work is VERY easy to do, and makes the application feel more laggy in these instances
 // than if we buffer messages until we KNOW that the server is ready to work on them.
 larch.__sendEventMessagesToServer = function(ev_messages) {
-    if (larch.__waitingForResponse) {
+    if (larch.__waitingForResponse > 0) {
         // The last event has not yet received a response, buffer the messages
         larch.__messageBuffer = larch.__messageBuffer.concat(ev_messages);
     }
@@ -677,8 +715,8 @@ larch.__sendEventMessagesToServer = function(ev_messages) {
         };
 
         //console.log('EVENT ' + block_id + ': sent ' + ev_messages.length);
-        // Set the waiting for response flag
-        larch.__waitingForResponse = true;
+        // Increment waiting for response
+        larch.__waitingForResponse++;
         $.ajax({
             type: 'POST',
             url: '/event',
@@ -686,8 +724,13 @@ larch.__sendEventMessagesToServer = function(ev_messages) {
             success: function(msg) {
                 //console.log('EVENT ' + block_id + ': received ' + msg.length);
                 // We have a response; we are not waiting any more
-                larch.__waitingForResponse = false;
+                larch.__waitingForResponse--;
                 larch.__handleMessagesFromServer(msg);
+
+                if (larch.__waitingForResponse == 0  &&  larch.__messageBuffer.length > 0) {
+                    // More messages have been buffered up: send them
+                    larch.__sendEventMessagesToServer([]);
+                }
             },
             dataType: 'json'
         });
@@ -803,7 +846,7 @@ larch.__warnUserUnableToGetSegmentIDForElement = function(element) {
 };
 
 
-larch.__errorCouldNotFindMatchingSegmentEndNode = function(segment_id, start) {
+larch.__errorEncounteredBrokenHTMLStructure = function() {
     var text = $('<span>Ubiquitous Larch has been unable to handle the structure of the HTML within part of this page.</span>');
 
     noty({
@@ -1141,5 +1184,6 @@ larch.__onDocumentReady = function(initialisers) {
     finally {
         larch.__setupCommandListeners();
     }
+    larch.__postModificationCleanup();
 };
 

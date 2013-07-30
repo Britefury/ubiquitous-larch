@@ -162,9 +162,10 @@ class DynamicPage (object):
 
 	You must create and set the root segment before using the page. Create using new_segment, then set the root_segment attribute.
 	"""
-	def __init__(self, service, session_id):
+	def __init__(self, service, session_id, enable_structure_checking):
 		self.__service = service
 		self._session_id = session_id
+		self._enable_structure_checking = enable_structure_checking
 
 		self.__public_api = DynamicPagePublicAPI(self)
 
@@ -193,6 +194,9 @@ class DynamicPage (object):
 		self.__js_queue = []
 		self.__execute_js_message = None
 
+		# Page reload queued
+		self.__page_reload_queued = False
+
 		# The root segment
 		self.__root_segment = None
 
@@ -205,6 +209,10 @@ class DynamicPage (object):
 
 		# Threading lock, required for servers such as CherryPy
 		self.__lock = None
+
+
+		# Register the broken HTML structure event handler
+		self.add_page_event_handler('broken_html_structure', self.__on_broken_html_structure)
 
 
 
@@ -244,6 +252,22 @@ class DynamicPage (object):
 	def unlock(self):
 		if self.__lock is not None:
 			self.__lock.release()
+
+
+
+
+	#
+	#
+	# Broken HTML structure event handler
+	#
+	#
+
+	def __on_broken_html_structure(self, public_api, broken_segment_ids):
+		# The HTML structure is broken
+		print 'Notified of broken HTML'
+		self.__service._notify_page_broken_html_structure(self)
+		self.queue_page_reload()
+
 
 
 
@@ -292,6 +316,8 @@ class DynamicPage (object):
 		:param owner: the owner of the segment
 		:return: the new segment
 		"""
+		if self._enable_structure_checking:
+			self._check_content_structure(content)
 		return self._table._new_segment(content, desc, owner)
 
 	def remove_segment(self, segment):
@@ -407,41 +433,51 @@ class DynamicPage (object):
 		# Build message list
 		msg_list = []
 
-		# Dependency message
-		deps_list = []
-		# Get new global dependencies
-		if not global_dependencies.are_global_dependencies_up_to_date(self.__global_deps_version):
-			global_deps = set()
-			global_deps.update(global_dependencies.get_global_dependencies())
-			deps_list.extend(global_deps.difference(self.__global_deps))
-			self.__global_deps = global_deps
-			self.__global_deps_version = global_dependencies.get_global_dependencies_version()
+		if self.__page_reload_queued:
+			# Just add the page reload message; no need for anything else since this dynamic page will no longer be in use
+			msg_list.append(messages.reload_page_message())
+			# Close the page; it's dead
+			self.__service._close_page(self)
+		else:
+			# Dependency message
+			deps_list = []
+			# Get new global dependencies
+			if not global_dependencies.are_global_dependencies_up_to_date(self.__global_deps_version):
+				# Get the global dependencies
+				global_deps = set()
+				global_deps.update(global_dependencies.get_global_dependencies())
+				# Get the dependencies which have been added since last time
+				deps_list.extend(global_deps.difference(self.__global_deps))
+				# Update our view of the global dependencies
+				self.__global_deps = global_deps
+				self.__global_deps_version = global_dependencies.get_global_dependencies_version()
 
-		deps_list.extend(self.__dependencies)
-		self.__dependencies = []
-		if len(deps_list) > 0:
-			msg = messages.dependency_message([dep.to_html()   for dep in deps_list])
-			msg_list.append(msg)
+			# Add any local dependencies
+			deps_list.extend(self.__dependencies)
+			self.__dependencies = []
+			if len(deps_list) > 0:
+				msg = messages.dependency_message([dep.to_html()   for dep in deps_list])
+				msg_list.append(msg)
 
-		# Document modifications message
-		if self.__page_modifications_message is not None:
-			msg_list.append(self.__page_modifications_message)
-			self.__page_modifications_message = None
+			# Page modifications message
+			if self.__page_modifications_message is not None:
+				msg_list.append(self.__page_modifications_message)
+				self.__page_modifications_message = None
 
-		# Execute JS message
-		if self.__execute_js_message is not None:
-			msg_list.append(self.__execute_js_message)
-			self.__execute_js_message = None
+			# Execute JS message
+			if self.__execute_js_message is not None:
+				msg_list.append(self.__execute_js_message)
+				self.__execute_js_message = None
 
-		# Resource modification message
-		rsc_mod_message = self.__resources_modified_message()
-		if rsc_mod_message is not None:
-			msg_list.append(rsc_mod_message)
+			# Resource modification message
+			rsc_mod_message = self.__resources_modified_message()
+			if rsc_mod_message is not None:
+				msg_list.append(rsc_mod_message)
 
-		# Resource disposal message
-		rsc_disp_message = self.__resources_disposed_message()
-		if rsc_disp_message is not None:
-			msg_list.append(rsc_disp_message)
+			# Resource disposal message
+			rsc_disp_message = self.__resources_disposed_message()
+			if rsc_disp_message is not None:
+				msg_list.append(rsc_disp_message)
 
 		return msg_list
 
@@ -500,10 +536,36 @@ class DynamicPage (object):
 
 
 
+	#
+	#
+	# Page reload
+	#
+	#
+
+	def queue_page_reload(self):
+		self.__page_reload_queued = True
+
+
+
+	#
+	#
+	# Structure checking
+	#
+	#
+
+	def _check_content_structure(self, content):
+		raise NotImplementedError
+
+
+
 
 
 
 	def __execute_queued_tasks(self):
+		"""
+		Execute the tasks in the task queue
+		:return: None
+		"""
 		while len(self.__queued_tasks) > 0:
 			f = self.__queued_tasks.popleft()
 			f()
@@ -713,6 +775,10 @@ class _SegmentTable (object):
 
 
 	def _segment_modified(self, segment, content):
+		if self.__page._enable_structure_checking:
+			self.__page._check_content_structure(content)
+
+
 		if segment not in self.__changes_added:
 			self.__changes_modified.add(segment)
 

@@ -91,7 +91,6 @@ class PageFrame (CompositePres):
 		if len(menu_bar_contents) > 0:
 			contents = ['<table><tr>']
 			for x in menu_bar_contents:
-				print 'ADDING ', x
 				contents.extend(['<td class="__larch_app_frame_menu_bar">', x, '</td>'])
 			contents.append('</tr></table>')
 			menu_bar = Html(*contents)

@@ -134,7 +134,7 @@ class ProjectionService (DynamicPageService):
 		"""
 		subject = Subject()
 		subject.add_step(focus=self.__front_page_model, location_trail=['pages'], perspective=None, title='Service front page')
-		if location is None  or  location == '':
+		if location == '':
 			self.__resolve_step(self.__front_page_model, subject, focus_steps)
 			return subject
 		else:

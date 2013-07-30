@@ -17,6 +17,7 @@ class _Session (object):
 	def __init__(self):
 		self.dynamic_page = None
 		self.session_data = None
+		self.location = None
 
 
 class DynamicPageService (object):
@@ -33,6 +34,8 @@ class DynamicPageService (object):
 
 		self.__rng = random.Random()
 
+		self.__broken_locations = set()
+
 
 	def initialise_page(self, dynamic_page, location):
 		"""
@@ -45,7 +48,7 @@ class DynamicPageService (object):
 		raise NotImplementedError, 'abstract'
 
 
-	def page(self, location=None):
+	def page(self, location=''):
 		"""
 		The web service will invoke this method when the user opens a page. The HTML returned must be send to the client.
 
@@ -56,8 +59,9 @@ class DynamicPageService (object):
 		session = _Session()
 		self.__sessions[session_id] = session
 
-		dynamic_page = DynamicPage(self, session_id)
+		dynamic_page = DynamicPage(self, session_id, location in self.__broken_locations)
 		session.dynamic_page = dynamic_page
+		session.location = location
 
 		try:
 			session_data = self.initialise_page(dynamic_page, location)
@@ -160,6 +164,31 @@ class DynamicPageService (object):
 			dynamic_page.unlock()
 
 		return result
+
+
+
+	def _notify_page_broken_html_structure(self, page):
+		session_id = page._session_id
+
+		try:
+			session = self.__sessions[session_id]
+		except KeyError:
+			# Could not find the session; can't really do anything about this
+			return None
+
+		location = session.location
+		self.__broken_locations.add(location)
+
+
+	def _close_page(self, page):
+		session_id = page._session_id
+		try:
+			del self.__sessions[session_id]
+		except KeyError:
+			pass
+
+
+
 
 
 
