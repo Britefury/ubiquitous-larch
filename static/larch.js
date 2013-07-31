@@ -240,10 +240,6 @@ larch.__register_segments = function() {
             }
         }
     }
-
-    if (larch.__brokenSegmentIDs !== null) {
-        larch.__errorEncounteredBrokenHTMLStructure();
-    }
 };
 
 
@@ -327,25 +323,27 @@ larch.__applyChanges = function(changes) {
             var segment_id = modified[i][0];
             var content = modified[i][1];
 
-            var state = segment_table[segment_id];
+            if (segment_id in segment_table) {
+                var state = segment_table[segment_id];
 
-            //console.log("Replaced " + segment_id);
+                //console.log("Replaced " + segment_id);
 
-            var newState = larch.__createSegmentContentNodesFromSource(content);
-            newState.start.__lch_initialised = true;
+                var newState = larch.__createSegmentContentNodesFromSource(content);
+                newState.start.__lch_initialised = true;
 
-            // Unregister segment IDs
-            var oldNodes = larch.__getNodesInActiveSegment(state);
-            oldNodes.forEach(function(n) {n.__lch_seg_id = null;});
+                // Unregister segment IDs
+                var oldNodes = larch.__getNodesInActiveSegment(state);
+                oldNodes.forEach(function(n) {n.__lch_seg_id = null;});
 
-            larch.__replaceSegment(state, newState);
+                larch.__replaceSegment(state, newState);
 
-            // Register segment IDs
-            var newNodes = larch.__getNodesInActiveSegment(newState);
-            newNodes.forEach(function(n) {n.__lch_seg_id = segment_id;});
+                // Register segment IDs
+                var newNodes = larch.__getNodesInActiveSegment(newState);
+                newNodes.forEach(function(n) {n.__lch_seg_id = segment_id;});
 
-            // Put in segment table
-            segment_table[segment_id] = newState;
+                // Put in segment table
+                segment_table[segment_id] = newState;
+            }
         }
 
         // Replace the placeholders with the segments that they reference
@@ -577,7 +575,30 @@ larch.__messageHandlers = {
     },
 
     reload_page: function(message) {
-        location.reload();
+        var loc = message.location;
+        var get_params = message.get_params;
+
+        if (loc === null  &&  get_params === null) {
+            location.reload();
+        }
+        else {
+            // Default to the current location
+            if (loc === null) {
+                loc = window.location.origin + window.location.pathname;
+            }
+
+            // Default to existing parameters
+            var paramsString = '';
+            if (get_params === null) {
+                paramsString = window.location.search;
+            }
+            else {
+                paramsString = '?' + $.param(get_params);
+            }
+
+            // Go
+            window.location.replace(loc + paramsString);
+        }
     },
 
     error_handling_event: function(message) {
@@ -630,7 +651,32 @@ larch.__messageHandlers = {
     },
 
     html_structure_fixes: function(message) {
-        var fixes_by_model = message.fixes;
+        var fixes_by_model = message.fixes_by_model;
+
+        for (var i = 0; i < fixes_by_model.length; i++) {
+            var fix_set = fixes_by_model[i];
+            var model_type_name = fix_set.model_type_name;
+            var fixes = fix_set.fixes;
+
+            var heading = $('<div>The following HTML structure problems were detected in a presentation of a <span class="event_error_model_type">' + model_type_name  + '</span></div>');
+            var fixHTML = $('<div></div>');
+
+            for (var j = 0; j < fixes.length; j++) {
+                var fix = fixes[j];
+                if (fix.fix_type === 'close_unclosed_tag') {
+                    fixHTML.append($('<div>Added missing end tag<span class="event_error_model_type">&lt;/' + fix.tag  + '&gt;</span></div>'))
+                }
+                else if (fix.fix_type === 'drop_close_tag_with_no_matching_open_tag') {
+                    fixHTML.append($('<div>Dropped orphan end tag<span class="event_error_model_type">&lt;/' + fix.tag  + '&gt;</span></div>'))
+                }
+            }
+
+            var text = $('<div></div>');
+            text.append(heading);
+            text.append(fixHTML);
+
+            larch.showAlert(text);
+        }
     }
 };
 
@@ -841,24 +887,7 @@ larch.__warnUserUnableToGetSegmentIDForElement = function(element) {
     text.append(elem);
     text.append('<br>This is likely due to DOM manipulation operations moving the element outside the Larch document flow');
 
-    noty({
-        text: text,
-        layout: "bottom",
-        type: "alert",
-        closeWith: ["click"]
-    });
-};
-
-
-larch.__errorEncounteredBrokenHTMLStructure = function() {
-    var text = $('<span>Ubiquitous Larch has been unable to handle the structure of the HTML within part of this page.</span>');
-
-    noty({
-        text: text,
-        layout: "bottom",
-        type: "warning",
-        closeWith: ["click"]
-    });
+    larch.showAlert(text);
 };
 
 
@@ -867,7 +896,7 @@ larch.__errorEncounteredBrokenHTMLStructure = function() {
 
 //
 //
-// ALERT MESSAGES
+// ALERTS BOX
 //
 //
 
@@ -890,7 +919,7 @@ larch.__alertBox = {
     }
 };
 
-larch.__showAlert = function(contents) {
+larch.showAlert = function(contents) {
     larch.__alertBox.alerts.push(contents);
 
     if (!larch.__alertBox.visible) {

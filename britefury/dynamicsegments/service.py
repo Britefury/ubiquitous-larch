@@ -34,8 +34,6 @@ class DynamicPageService (object):
 
 		self.__rng = random.Random()
 
-		self.__broken_locations = set()
-
 
 	def initialise_page(self, dynamic_page, location):
 		"""
@@ -48,18 +46,22 @@ class DynamicPageService (object):
 		raise NotImplementedError, 'abstract'
 
 
-	def page(self, location=''):
+	def page(self, location='', get_params=None):
 		"""
 		The web service will invoke this method when the user opens a page. The HTML returned must be send to the client.
 
-		:param location: The location from the browser, identifying the content that the user wishes to see. You should set up your app so that all paths under a specific URL prefix should take the suffix and pass it as the location.
+		:param location: The location being access by the browser, identifying the content that the user wishes to see. You should set up your app so that all paths under a specific URL prefix should take the suffix and pass it as the location.
+		:param get_params: The GET parameters received as part of the location
 		:return: The HTML content to be sent to the client browser
 		"""
 		session_id = self.__new_session_id()
 		session = _Session()
 		self.__sessions[session_id] = session
 
-		dynamic_page = DynamicPage(self, session_id, location in self.__broken_locations)
+		if get_params is None:
+			get_params = {}
+
+		dynamic_page = DynamicPage(self, session_id, location, get_params)
 		session.dynamic_page = dynamic_page
 		session.location = location
 
@@ -165,19 +167,6 @@ class DynamicPageService (object):
 
 		return result
 
-
-
-	def _notify_page_broken_html_structure(self, page):
-		session_id = page._session_id
-
-		try:
-			session = self.__sessions[session_id]
-		except KeyError:
-			# Could not find the session; can't really do anything about this
-			return None
-
-		location = session.location
-		self.__broken_locations.add(location)
 
 
 	def _close_page(self, page):

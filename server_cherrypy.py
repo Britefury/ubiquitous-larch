@@ -11,7 +11,7 @@ from britefury.projection.projection_service import CouldNotResolveLocationError
 from larch import larch_app
 
 
-config = {'/static/':
+config = {'/static':
 			  {'tools.staticdir.on': True,
 			   'tools.staticdir.dir': os.path.abspath('static'),
 			   }
@@ -35,9 +35,9 @@ class LarchServer (object):
 
 
 
-	def pages(self, *location_components):
+	def pages(self, *location_components, **get_params):
 		try:
-			return self.service.page('/'.join(location_components))
+			return self.service.page('/'.join(location_components), get_params)
 		except CouldNotResolveLocationError:
 			cherrypy.response.status = 404
 			return 'Document not found'

@@ -28,7 +28,9 @@ def index():
 @app.route('/pages/<location:path>')
 def page(location):
 	try:
-		return service.page(location)
+		get_params = {}
+		get_params.update(request.params)
+		return service.page(location, get_params)
 	except CouldNotResolveLocationError:
 		response.status = 404
 		return 'Page at {0} not found'.format(location)

@@ -25,8 +25,10 @@ def index():
 
 @app.route('/pages/<path:location>')
 def page(location):
+	get_params = {}
+	get_params.update(request.args)
 	try:
-		return service.page(location)
+		return service.page(location, get_params)
 	except CouldNotResolveLocationError:
 		abort(404)
 

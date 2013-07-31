@@ -33,7 +33,7 @@ class DynamicSegment (object):
 		self.__shutdown_scripts = None
 
 		self.__structure_valid = True
-		if page._enable_structure_checking  and  content is not None:
+		if page._enable_structure_fixing  and  content is not None:
 			fixed_content, fixes = content._fix_structure()
 			if fixes is not None:
 				content = fixed_content
@@ -94,7 +94,7 @@ class DynamicSegment (object):
 			raise TypeError, 'Content should be either None or an HtmlContent instance'
 		valid = True
 		fixes = None
-		if self.__page._enable_structure_checking  and  x is not None:
+		if self.__page._enable_structure_fixing  and  x is not None:
 			fixed_x, fixes = x._fix_structure()
 			if fixes is not None:
 				valid = False
@@ -105,7 +105,7 @@ class DynamicSegment (object):
 		self.__content = x
 		if valid != self.__structure_valid:
 			self.__structure_valid = valid
-			self.__page._notify_segment_html_structure_validity_change(self, valid, fixes)
+			self.__page._notify_segment_html_structure_validity_change(self, valid)
 		self.__connect_children()
 		self.__page._table._segment_modified(self, x)
 
@@ -315,8 +315,15 @@ class HtmlContent (list):
 			else:
 				xs.append(x)
 
+		c.finish()
+
+		item_fixes = c.item_fixes()
+		if len(item_fixes) > 0:
+			xs.append(c.output)
+			fixes.extend(item_fixes)
+
 		if len(fixes) > 0:
-			return HtmlContent(self[:]), fixes
+			return HtmlContent(xs), fixes
 		else:
 			return self, None
 
@@ -348,14 +355,20 @@ class _HtmlContentStructureFixer (HTMLParser):
 		# Feed the data
 		self.feed(x)
 
+		# Close off
+		self.close()
+
+
+	def finish(self):
+		self.__out = []
+		self.__fixes = []
+
 		# Close unclosed tags
 		while len(self.__tag_stack) > 0:
 			tag = self.__tag_stack.pop()
 			self._emit('</' + tag + '>')
 			self.__fixes.append(_CloseUnclosedTagFix(tag))
 
-		# Close off
-		self.close()
 
 
 	@property
@@ -438,13 +451,49 @@ class _CloseUnclosedTagFix (_HtmlFix):
 	def __init__(self, tag):
 		self.__tag = tag
 
+	def __eq__(self, other):
+		if isinstance(other, _CloseUnclosedTagFix):
+			return self.__tag == other.__tag
+		else:
+			return False
+
 	def to_json(self):
 		return {'fix_type': 'close_unclosed_tag', 'tag': self.__tag}
+
+	def __str__(self):
+		return 'INSERT(</{0}>)'.format(self.__tag)
 
 
 class _DropCloseTagWithNoMatchingOpenTag (_HtmlFix):
 	def __init__(self, tag):
 		self.__tag = tag
 
+	def __eq__(self, other):
+		if isinstance(other, _DropCloseTagWithNoMatchingOpenTag):
+			return self.__tag == other.__tag
+		else:
+			return False
+
 	def to_json(self):
 		return {'fix_type': 'drop_close_tag_with_no_matching_open_tag', 'tag': self.__tag}
+
+	def __str__(self):
+		return 'DELETE(</{0}>)'.format(self.__tag)
+
+
+
+
+import unittest
+
+class Test_FixHtmlContent (unittest.TestCase):
+	def test_valid(self):
+		c = HtmlContent(['<button>', 'Test', '</button>'])
+		f, fixes = c._fix_structure()
+		self.assertEqual(fixes, None)
+		self.assertIs(f, c)
+
+	def test_unclosed(self):
+		c = HtmlContent(['<div>', 'Test',])
+		f, fixes = c._fix_structure()
+		self.assertEqual(fixes, [_CloseUnclosedTagFix('div')])
+		self.assertEqual(f, HtmlContent(['<div>', 'Test', '</div>']))

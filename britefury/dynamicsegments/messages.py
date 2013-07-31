@@ -32,8 +32,10 @@ def invalid_page_message():
 	return {'msgtype': 'invalid_page'}
 
 
-def reload_page_message():
-	return {'msgtype': 'reload_page'}
+def reload_page_message(location, get_params):
+	return {'msgtype': 'reload_page',
+		'location': location,
+		'get_params': get_params}
 
 
 
@@ -53,5 +55,5 @@ def error_during_update_message(err_html):
 
 
 def html_structure_fixes_message(fixes_by_model):
-	return {'msg_type': 'html_structure_fixes',
+	return {'msgtype': 'html_structure_fixes',
 		'fixes_by_model': fixes_by_model}

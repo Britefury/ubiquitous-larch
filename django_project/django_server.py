@@ -23,7 +23,9 @@ def index(request):
 
 def page(request, location):
 	try:
-		return HttpResponse(service.page(location))
+		get_params = {}
+		get_params.update(request.GET)
+		return HttpResponse(service.page(location, get_params))
 	except CouldNotResolveLocationError:
 		raise Http404
 

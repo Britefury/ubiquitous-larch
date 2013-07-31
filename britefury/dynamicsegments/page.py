@@ -156,16 +156,28 @@ class DynamicPagePublicAPI (object):
 
 
 class DynamicPage (object):
-	"""A dynamic web page, composed of segments.
+	__FIX_HTML_STRUCTURE_PARAM_NAME = 'fix_html_structure'
+
+	"""
+	A dynamic web page, composed of segments.
 
 	Create segments by calling the new_segment method. Remove them with remove_segment when you are done.
 
+	:param service: The dynamic page service that spawned this page
+	:param session_id: The session ID used to identify this page
+	:param location: The browser location
+	:param get_params: The parameters that were provided as part of the location
+
 	You must create and set the root segment before using the page. Create using new_segment, then set the root_segment attribute.
+
 	"""
-	def __init__(self, service, session_id, enable_structure_checking):
+	def __init__(self, service, session_id, location, get_params):
 		self.__service = service
 		self._session_id = session_id
-		self._enable_structure_checking = enable_structure_checking
+		self.__location = location
+		self.__get_params = get_params
+
+		self._enable_structure_fixing = self.__FIX_HTML_STRUCTURE_PARAM_NAME in get_params
 
 		self.__public_api = DynamicPagePublicAPI(self)
 
@@ -199,7 +211,7 @@ class DynamicPage (object):
 		self.__segment_html_structure_fixes = {}
 
 		# Page reload queued
-		self.__page_reload_queued = False
+		self.__queued_page_reload = None
 
 		# The root segment
 		self.__root_segment = None
@@ -267,10 +279,14 @@ class DynamicPage (object):
 	#
 
 	def __on_broken_html_structure(self, public_api, broken_segment_ids):
-		# The HTML structure is broken
-		self.__service._notify_page_broken_html_structure(self)
-		self.queue_page_reload()
+		if self.__FIX_HTML_STRUCTURE_PARAM_NAME not in self.__get_params:
+			get_params = {}
+			get_params.update(self.__get_params)
 
+			get_params[self.__FIX_HTML_STRUCTURE_PARAM_NAME] = ''
+
+			# The HTML structure is broken
+			self.queue_page_reload(None, get_params)
 
 
 
@@ -324,6 +340,10 @@ class DynamicPage (object):
 	def remove_segment(self, segment):
 		"""Remove a segment from the page. You should remove segments when you don't need them anymore.
 		"""
+		if self._enable_structure_fixing:
+			if segment in self.__segments_with_invalid_html_structure:
+				self.__segments_with_invalid_html_structure.remove(segment)
+				self._check_for_structurally_valid_page()
 		self._table._remove_segment(segment)
 
 
@@ -434,9 +454,11 @@ class DynamicPage (object):
 		# Build message list
 		msg_list = []
 
-		if self.__page_reload_queued:
+		if self.__queued_page_reload is not None:
+			location, get_params = self.__queued_page_reload
+
 			# Just add the page reload message; no need for anything else since this dynamic page will no longer be in use
-			msg_list.append(messages.reload_page_message())
+			msg_list.append(messages.reload_page_message(location, get_params))
 			# Close the page; it's dead
 			self.__service._close_page(self)
 		else:
@@ -549,8 +571,8 @@ class DynamicPage (object):
 	#
 	#
 
-	def queue_page_reload(self):
-		self.__page_reload_queued = True
+	def queue_page_reload(self, location=None, get_params=None):
+		self.__queued_page_reload = location, get_params
 
 
 
@@ -566,9 +588,18 @@ class DynamicPage (object):
 			self.__segments_with_invalid_html_structure.add(segment)
 		else:
 			self.__segments_with_invalid_html_structure.remove(segment)
-			if len(self.__segments_with_invalid_html_structure) == 0:
-				# Validity problems have been fixed: queue a reload
-				self.queue_page_reload()
+			self._check_for_structurally_valid_page()
+
+
+
+	def _check_for_structurally_valid_page(self):
+		if len(self.__segments_with_invalid_html_structure) == 0:
+			# Validity problems have been fixed: queue a reload
+			get_params = {}
+			get_params.update(self.__get_params)
+			if self.__FIX_HTML_STRUCTURE_PARAM_NAME in get_params:
+				del get_params[self.__FIX_HTML_STRUCTURE_PARAM_NAME]
+			self.queue_page_reload(None, get_params)
 
 
 	def _notify_segment_html_structure_fixes(self, segment, fixes):
@@ -768,6 +799,11 @@ class _SegmentTable (object):
 
 	def __getitem__(self, segment_id):
 		return self.__id_to_segment[segment_id]
+
+
+	@property
+	def all_segments(self):
+		return self.__id_to_segment.values()
 
 
 
