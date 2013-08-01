@@ -33,18 +33,16 @@ def page(location):
 		abort(404)
 
 
-@app.route('/event', methods=['POST'])
-def event():
-	session_id = request.form['session_id']
+@app.route('/event/<session_id>', methods=['POST'])
+def event(session_id):
+	#session_id = request.form['session_id']
 	event_data = request.form['event_data']
 	data = service.event(session_id, event_data)
 	return Response(response=data, status=200, mimetype='application/json')
 
 
-@app.route('/rsc', methods=['GET'])
-def rsc():
-	session_id = request.args['session_id']
-	rsc_id = request.args['rsc_id']
+@app.route('/rsc/<session_id>/<rsc_id>', methods=['GET'])
+def rsc(session_id, rsc_id):
 	data_and_mime_type = service.resource(session_id, rsc_id)
 	if data_and_mime_type is not None:
 		data, mime_type = data_and_mime_type

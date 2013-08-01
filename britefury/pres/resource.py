@@ -17,10 +17,10 @@ __author__ = 'Geoff'
 
 
 class ResourceData (object):
-	def initialise(self, context, change_listener):
+	def initialise_rscdata(self, context, change_listener):
 		raise NotImplementedError, 'abstract'
 
-	def dispose(self, context):
+	def dispose_rscdata(self, context):
 		raise NotImplementedError, 'abstract'
 
 
@@ -36,10 +36,10 @@ class ConstResource (Resource):
 			self.data = data
 			self.mime_type = mime_type
 
-		def initialise(self, pres_ctx, change_listener):
+		def initialise_rscdata(self, pres_ctx, change_listener):
 			pass
 
-		def dispose(self, pres_ctx):
+		def dispose_rscdata(self, pres_ctx):
 			self.data = None
 			self.mime_type = None
 
@@ -62,15 +62,15 @@ class CSVResource (ConstResource):
 
 
 class FnResource (Resource):
-	class _FnResourceData (object):
+	class _FnResourceData (ResourceData):
 		def __init__(self, data_fn, mime_type):
 			self.data_fn = data_fn
 			self.mime_type = mime_type
 
-		def initialise(self, pres_ctx, change_listener):
+		def initialise_rscdata(self, pres_ctx, change_listener):
 			pass
 
-		def dispose(self, pres_ctx):
+		def dispose_rscdata(self, pres_ctx):
 			self.data_fn = None
 			self.mime_type = None
 
@@ -94,18 +94,18 @@ class CSVFnResource (FnResource):
 
 
 class LiveFnResource (Resource):
-	class _LiveFnResourceData (object):
+	class _LiveFnResourceData (ResourceData):
 		def __init__(self, data_fn, mime_type):
 			self.data_fn = LiveFunction(data_fn)
 			self.mime_type = mime_type
 			self.__change_listener = None
 
-		def initialise(self, pres_ctx, change_listener):
+		def initialise_rscdata(self, pres_ctx, change_listener):
 			self.__change_listener = change_listener
 			self.data_fn.add_listener(self._live_listener)
 
 
-		def dispose(self, pres_ctx):
+		def dispose_rscdata(self, pres_ctx):
 			self.data_fn.remove_listener(self._live_listener)
 			self.data_fn = None
 			self.mime_type = None
@@ -135,20 +135,20 @@ class CSVLiveFnResource (LiveFnResource):
 
 
 class ImageFromFile (Resource):
-	class _ImageFromFileResourceData (object):
+	class _ImageFromFileResourceData (ResourceData):
 		def __init__(self, filename):
 			self.__filename = filename
 			self.data = ''
 			self.mime_type = ''
 
-		def initialise(self, pres_ctx, change_listener):
+		def initialise_rscdata(self, pres_ctx, change_listener):
 			if os.path.exists(self.__filename)  and  os.path.isfile(self.__filename):
 				f = open(self.__filename, 'rb')
 				self.data = f.read()
 				self.mime_type = mimetypes.guess_type(self.__filename)[0]
 				f.close()
 
-		def dispose(self, pres_ctx):
+		def dispose_rscdata(self, pres_ctx):
 			self.data = None
 			self.mime_type = None
 
@@ -188,18 +188,18 @@ class ImageFromBinary (ConstResource):
 
 
 class SubjectResource (Resource):
-	class _SubjectResourceData (object):
+	class _SubjectResourceData (ResourceData):
 		def __init__(self, subject):
 			self.__subject = subject
 			self.data = ''
 			self.mime_type = ''
 
 
-		def initialise(self, pres_ctx):
+		def initialise_rscdata(self, pres_ctx, change_listener):
 			self.data = pres_ctx.fragment_view.service.page(self.__subject)
 			self.mime_type = 'text/html'
 
-		def dispose(self, pres_ctx):
+		def dispose_rscdata(self, pres_ctx):
 			self.data = ''
 			self.mime_type = ''
 
@@ -210,20 +210,20 @@ class SubjectResource (Resource):
 
 
 class PresResource (Resource):
-	class _PresResourceData (object):
+	class _PresResourceData (ResourceData):
 		def __init__(self, contents):
 			self.__contents = contents
 			self.data = ''
 			self.mime_type = ''
 
 
-		def initialise(self, pres_ctx, change_listener):
+		def initialise_rscdata(self, pres_ctx, change_listener):
 			subj = Subject()
 			subj.add_step(focus=self.__contents, perspective=pres_ctx.perspective, title='Resource')
 			self.data = pres_ctx.fragment_view.service.page(subj)
 			self.mime_type = 'text/html'
 
-		def dispose(self, pres_ctx):
+		def dispose_rscdata(self, pres_ctx):
 			self.data = ''
 			self.mime_type = ''
 

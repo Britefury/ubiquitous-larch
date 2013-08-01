@@ -760,7 +760,6 @@ larch.__sendEventMessagesToServer = function(ev_messages) {
 
         // Create the POST data
         var post_data = {
-            session_id: larch.__session_id,
             event_data: block_json
         };
 
@@ -769,7 +768,7 @@ larch.__sendEventMessagesToServer = function(ev_messages) {
         larch.__waitingForResponse++;
         $.ajax({
             type: 'POST',
-            url: '/event',
+            url: '/event/' + larch.__session_id,
             data: post_data,
             success: function(msg) {
                 //console.log('EVENT ' + block_id + ': received ' + msg.length);
@@ -994,7 +993,7 @@ larch.__createResource = function(rscId, rscUrl) {
         //console.log('Getting resource ');
         $.ajax({
             type: 'GET',
-            url: rsc.url + '&_idx=' + x,        // Append an index to the URL; this seems to prevent the server from ignoring (!) the request. Why? don't know yet.... The server ignores _idx, so its not like it does anything...
+            url: rsc.url + '?_idx=' + x,        // Append an index to the URL; this seems to prevent the server from ignoring (!) the request. Why? don't know yet.... The server ignores _idx, so its not like it does anything...
             success: handlerFn
         });
     };
@@ -1005,7 +1004,7 @@ larch.__createResource = function(rscId, rscUrl) {
         //console.log('Getting JSON resource ' + x);
         $.ajax({
             type: 'GET',
-            url: rsc.url + '&_idx=' + x,        // Append an index to the URL; this seems to prevent the server from ignoring (!) the request. Why? don't know yet.... The server ignores _idx, so its not like it does anything...
+            url: rsc.url + '?_idx=' + x,        // Append an index to the URL; this seems to prevent the server from ignoring (!) the request. Why? don't know yet.... The server ignores _idx, so its not like it does anything...
             success: handlerFn,
             dataType: 'json'
         });

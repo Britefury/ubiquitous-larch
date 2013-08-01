@@ -31,17 +31,14 @@ def page(request, location):
 
 
 @require_POST
-def event(request):
-	session_id = request.POST['session_id']
+def event(request, session_id):
 	event_data = request.POST['event_data']
 	data = service.event(session_id, event_data)
 	return HttpResponse(data, content_type='application/json')
 
 
 @require_GET
-def rsc(request):
-	session_id = request.GET['session_id']
-	rsc_id = request.GET['rsc_id']
+def rsc(request, session_id, rsc_id):
 	data_and_mime_type = service.resource(session_id, rsc_id)
 	if data_and_mime_type is not None:
 		data, mime_type = data_and_mime_type

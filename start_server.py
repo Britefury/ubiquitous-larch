@@ -36,19 +36,16 @@ def page(location):
 		return 'Page at {0} not found'.format(location)
 
 
-@app.route('/event', method='POST')
-def event():
-	session_id = request.forms.get('session_id')
+@app.route('/event/<session_id>', method='POST')
+def event(session_id):
 	event_data = request.forms.get('event_data')
 	data = service.event(session_id, event_data)
 	response.content_type = 'application/json; charset=UTF8'
 	return data
 
 
-@app.route('/rsc', method='GET')
-def rsc():
-	session_id = request.query.get('session_id')
-	rsc_id = request.query.get('rsc_id')
+@app.route('/rsc/<session_id>/<rsc_id>', method='GET')
+def rsc(session_id, rsc_id):
 	data_and_mime_type = service.resource(session_id, rsc_id)
 	if data_and_mime_type is not None:
 		data, mime_type = data_and_mime_type

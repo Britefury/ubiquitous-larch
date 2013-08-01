@@ -366,7 +366,7 @@ class DynamicPage (object):
 		"""
 		page_rsc = self.__rsc_content_to_rsc.get(rsc_data)
 		if page_rsc is None:
-			rsc_id = 'rsc{0}'.format(self.__rsc_id_counter)
+			rsc_id = 'r{0}'.format(self.__rsc_id_counter)
 			self.__rsc_id_counter += 1
 			page_rsc = DynamicResource(self, rsc_id, rsc_data)
 			self.__rsc_id_to_rsc[rsc_id] = page_rsc
@@ -874,14 +874,14 @@ class DynamicResource (object):
 	def ref(self, context):
 		if self.__ref_count == 0:
 			self.__context = context
-			self.__rsc_data.initialise(context, self.__on_changed)
+			self.__rsc_data.initialise_rscdata(context, self.__on_changed)
 		self.__ref_count += 1
 		return self.__ref_count
 
 	def unref(self):
 		self.__ref_count -= 1
 		if self.__ref_count == 0:
-			self.__rsc_data.dispose(self.__context)
+			self.__rsc_data.dispose_rscdata(self.__context)
 			self.__page._resouce_disposed(self)
 		return self.__ref_count
 
@@ -910,7 +910,7 @@ class DynamicResource (object):
 
 	@property
 	def url(self):
-		return '/rsc?session_id={0}&rsc_id={1}'.format(self.__page._session_id, self.__rsc_id)
+		return '/rsc/{0}/{1}'.format(self.__page._session_id, self.__rsc_id)
 
 
 	def client_side_js(self):

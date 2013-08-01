@@ -186,6 +186,6 @@ class DynamicPageService (object):
 		index = self.__session_counter
 		self.__session_counter += 1
 		salt = self.__rng.randint(0, 1<<31)
-		session_id = 'session_{0}{1}'.format(index, salt)
+		session_id = 's{0}{1}'.format(index, salt)
 		return session_id
 

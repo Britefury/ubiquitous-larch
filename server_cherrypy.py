@@ -19,7 +19,7 @@ config = {'/static':
 
 
 
-class LarchServer (object):
+class LarchService (object):
 	def __init__(self):
 		self.service = larch_app.create_service()
 
@@ -46,28 +46,41 @@ class LarchServer (object):
 
 
 
-	def event(self, session_id, event_data):
-		return self.service.event(session_id, event_data)
+	def event(self, *location_components, **post_data):
+		if len(location_components) == 1:
+			event_data = post_data.get('event_data')
+			if event_data is None:
+				cherrypy.response.status = 400
+				return 'No event data'
+			session_id = location_components[0]
+			return self.service.event(session_id, event_data)
+		else:
+			cherrypy.response.status = 404
+			return 'Invalid event URL'
 
 	event.exposed = True
 
 
-	def rsc(self, session_id, rsc_id):
-		data_and_mime_type = self.service.resource(session_id, rsc_id)
-		if data_and_mime_type is not None:
-			data, mime_type = data_and_mime_type
-			cherrypy.response.headers['Content-Type'] = mime_type
-			return data
+	def rsc(self, *location_components, **kwargs):
+		if len(location_components) == 2:
+			session_id, rsc_id = location_components
+			data_and_mime_type = self.service.resource(session_id, rsc_id)
+			if data_and_mime_type is not None:
+				data, mime_type = data_and_mime_type
+				cherrypy.response.headers['Content-Type'] = mime_type
+				return data
+			else:
+				cherrypy.response.status = 404
+				return 'Resource not found'
 		else:
 			cherrypy.response.status = 404
-			return 'Resource not found'
-
+			return 'Invalid resource URL'
 	rsc.exposed = True
 
 
 
 if __name__ == '__main__':
 	print 'Point your browser at http://127.0.0.1:5000/ to try The Ubiquitous Larch'
-	root = LarchServer()
+	larch = LarchService()
 	cherrypy.server.socket_port = 5000
-	cherrypy.quickstart(root, config=config)
+	cherrypy.quickstart(larch, config=config)
