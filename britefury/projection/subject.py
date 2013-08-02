@@ -83,6 +83,14 @@ class Subject (object):
 		return '/' + '/'.join(trail)
 
 
+	@property
+	def focii(self):
+		"""
+		:return: A list of (unique) focii, in reverse step order
+		"""
+		return self.reduce('focus', lambda cumulative, t: ([t] + cumulative)   if t not in cumulative   else cumulative, [])
+
+
 
 	def add_step(self, **attributes):
 		"""

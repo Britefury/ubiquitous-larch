@@ -47,21 +47,27 @@ if backend_agg is not None:
 	class FigureCanvasLarchAgg (backend_agg.FigureCanvasAgg):
 		def __init__(self, *args, **kwargs):
 			backend_agg.FigureCanvasAgg.__init__(self, *args, **kwargs)
+			# Create a buffer for the PNG library to write into
 			self._buffer = io.BytesIO()
 
 
 
 		def show(self):
+			# Clear the buffer and return to the beginning
 			self._buffer.truncate()
 			self._buffer.seek(0)
 
+			# Draw the image
 			self.draw()
-			renderer = self.get_renderer()
 
+			# Get the renderer, then write the contents of its RGBA buffer in PNG form into the IO buffer
+			renderer = self.get_renderer()
 			_png.write_png(renderer._renderer.buffer_rgba(), renderer.width, renderer.height, self._buffer)
 
+			# Get the data
 			data = self._buffer.getvalue()
 
+			# Create a Larch image resource from the binary data
 			img = resource.ImageFromBinary(data, 'image/png', renderer.width, renderer.height)
 			return img
 
@@ -73,8 +79,7 @@ if backend_agg is not None:
 			backend_bases.FigureManagerBase.__init__(self, canvas, num)
 
 		def show(self):
-			x = self.canvas.show()
-			return x
+			return self.canvas.show()
 
 
 
@@ -82,7 +87,7 @@ if backend_agg is not None:
 		"""
 		Show the current figure
 
-		block argument is ignred
+		block argument is ignored
 		"""
 		manager = Gcf.get_active()
 		if manager is not None:

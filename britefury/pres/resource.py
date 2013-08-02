@@ -17,7 +17,7 @@ __author__ = 'Geoff'
 
 
 class ResourceData (object):
-	def initialise_rscdata(self, context, change_listener):
+	def initialise_rscdata(self, context, change_listener, url):
 		raise NotImplementedError, 'abstract'
 
 	def dispose_rscdata(self, context):
@@ -36,7 +36,7 @@ class ConstResource (Resource):
 			self.data = data
 			self.mime_type = mime_type
 
-		def initialise_rscdata(self, pres_ctx, change_listener):
+		def initialise_rscdata(self, pres_ctx, change_listener, url):
 			pass
 
 		def dispose_rscdata(self, pres_ctx):
@@ -67,7 +67,7 @@ class FnResource (Resource):
 			self.data_fn = data_fn
 			self.mime_type = mime_type
 
-		def initialise_rscdata(self, pres_ctx, change_listener):
+		def initialise_rscdata(self, pres_ctx, change_listener, url):
 			pass
 
 		def dispose_rscdata(self, pres_ctx):
@@ -100,7 +100,7 @@ class LiveFnResource (Resource):
 			self.mime_type = mime_type
 			self.__change_listener = None
 
-		def initialise_rscdata(self, pres_ctx, change_listener):
+		def initialise_rscdata(self, pres_ctx, change_listener, url):
 			self.__change_listener = change_listener
 			self.data_fn.add_listener(self._live_listener)
 
@@ -141,7 +141,7 @@ class ImageFromFile (Resource):
 			self.data = ''
 			self.mime_type = ''
 
-		def initialise_rscdata(self, pres_ctx, change_listener):
+		def initialise_rscdata(self, pres_ctx, change_listener, url):
 			if os.path.exists(self.__filename)  and  os.path.isfile(self.__filename):
 				f = open(self.__filename, 'rb')
 				self.data = f.read()
@@ -195,8 +195,8 @@ class SubjectResource (Resource):
 			self.mime_type = ''
 
 
-		def initialise_rscdata(self, pres_ctx, change_listener):
-			self.data = pres_ctx.fragment_view.service.page(self.__subject)
+		def initialise_rscdata(self, pres_ctx, change_listener, url):
+			self.data = pres_ctx.fragment_view.service.page_for_subject(self.__subject, url.strip('/'))
 			self.mime_type = 'text/html'
 
 		def dispose_rscdata(self, pres_ctx):
@@ -217,10 +217,10 @@ class PresResource (Resource):
 			self.mime_type = ''
 
 
-		def initialise_rscdata(self, pres_ctx, change_listener):
+		def initialise_rscdata(self, pres_ctx, change_listener, url):
 			subj = Subject()
 			subj.add_step(focus=self.__contents, perspective=pres_ctx.perspective, title='Resource')
-			self.data = pres_ctx.fragment_view.service.page(subj)
+			self.data = pres_ctx.fragment_view.service.page_for_subject(subj, url.strip('/'))
 			self.mime_type = 'text/html'
 
 		def dispose_rscdata(self, pres_ctx):

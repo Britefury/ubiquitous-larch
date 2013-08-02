@@ -62,7 +62,7 @@ def _sanitise_filename(name):
 class PageFrame (CompositePres):
 	def __init__(self, subject):
 		self.__page = subject.focus
-		self.__focii = subject.reduce('focus', lambda cumulative, t: [t] + cumulative, [])
+		self.__focii = subject.focii
 
 
 

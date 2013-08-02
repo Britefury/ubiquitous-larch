@@ -38,57 +38,42 @@ class ProjectionService (DynamicPageService):
 		self.__front_page_model = front_page_model
 
 
-	def initialise_page(self, dynamic_page, location):
-		"""
-		Initialise the page
-		:param dynamic_page: The page that will display the required content
-		:param location: The location which we must resolve to find the content to display
-		:return: an IncrementalView
-		"""
-		focus_steps = []
-
-		if isinstance(location, Subject):
-			subject = location
-		else:
-			subject = self.__resolve_location(location, focus_steps)
+	def page(self, location='', get_params=None):
+		session = self.new_session(location, get_params)
+		subject = self.__resolve_location(location)
 
 		# Augment page
-		try:
-			augment_page_fn = subject.augment_page
-		except AttributeError:
-			pass
-		else:
-			augmented_page = augment_page_fn(subject)
-			subject.add_step(focus=augmented_page)
+		self.__augment_page(subject)
 
-		cmds = []
-		for f in reversed(focus_steps):
-			try:
-				method = f.__commands__
-			except AttributeError:
-				pass
-			else:
-				cmds.extend(method())
+		# Attach commands
+		self.__attach_commands(session, subject)
 
-		command_set = command.CommandSet(cmds)
-		command_set.attach_to_page(dynamic_page)
+		# Create the incremental view and attach as session data
+		session.session_data = IncrementalView(subject, session.dynamic_page)
 
-		# Create the incremental view
-		return IncrementalView(subject, dynamic_page)
+		return session.dynamic_page.page_html()
 
 
 
-	def __focus_step(self, steps, focus):
-		"""
-		Adds :param focus: to :param steps: if it is not already there
-		:param steps: a list of focii
-		:param focus: a focus
-		:return: None
-		"""
-		if focus not in steps:
-			steps.append(focus)
+	def page_for_subject(self, subject, location='', get_params=None):
+		session = self.new_session(location, get_params)
 
-	def __resolve_step(self, model, subject, focus_steps):
+		# Augment page
+		self.__augment_page(subject)
+
+		# Attach commands
+		self.__attach_commands(session, subject)
+
+		# Create the incremental view and attach as session data
+		session.session_data = IncrementalView(subject, session.dynamic_page)
+
+		return session.dynamic_page.page_html()
+
+
+
+
+
+	def __resolve_step(self, model, subject):
 		"""
 		Steps the subject forward by invoking __resolve_self__ on :param model: if it is available.
 		This will be performed again on the returned result, until the result is the same as the target
@@ -96,11 +81,9 @@ class ProjectionService (DynamicPageService):
 
 		:param model: The starting model
 		:param subject: The subject
-		:param focus_steps: A list of focii
 		:return: The new model
 		"""
 		while True:
-			self.__focus_step(focus_steps, model)
 			try:
 				__resolve_self__ = model.__resolve_self__
 			except AttributeError:
@@ -124,7 +107,7 @@ class ProjectionService (DynamicPageService):
 			return None
 		return __resolve__(name, subject)
 
-	def __resolve_location(self, location, focus_steps):
+	def __resolve_location(self, location):
 		"""
 		Resolves a location
 
@@ -135,17 +118,41 @@ class ProjectionService (DynamicPageService):
 		subject = Subject()
 		subject.add_step(focus=self.__front_page_model, location_trail=['pages'], perspective=None, title='Service front page')
 		if location == '':
-			self.__resolve_step(self.__front_page_model, subject, focus_steps)
+			self.__resolve_step(self.__front_page_model, subject)
 			return subject
 		else:
 			m = self.__front_page_model
-			m = self.__resolve_step(m, subject, focus_steps)
+			m = self.__resolve_step(m, subject)
 			for n in location.split('/'):
 				m = self.__resolve_name(m, subject, n)
-				self.__focus_step(focus_steps, m)
 				if m is None:
 					raise CouldNotResolveLocationError, 'Could not resolve \'{0}\' in location \'{1}\''.format(n, location)
-				m = self.__resolve_step(m, subject, focus_steps)
+				m = self.__resolve_step(m, subject)
 				if m is None:
 					raise CouldNotResolveLocationError, 'Could not resolve \'{0}\' in location \'{1}\''.format(n, location)
 			return subject
+
+
+	def __augment_page(self, subject):
+		# Augment page
+		try:
+			augment_page_fn = subject.augment_page
+		except AttributeError:
+			pass
+		else:
+			augmented_page = augment_page_fn(subject)
+			subject.add_step(focus=augmented_page)
+
+
+	def __attach_commands(self, session, subject):
+		cmds = []
+		for f in subject.focii:
+			try:
+				method = f.__commands__
+			except AttributeError:
+				pass
+			else:
+				cmds.extend(method())
+
+		command_set = command.CommandSet(cmds)
+		command_set.attach_to_page(session.dynamic_page)

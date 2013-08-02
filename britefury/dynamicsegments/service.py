@@ -13,13 +13,6 @@ __author__ = 'Geoff'
 import random
 
 
-class _Session (object):
-	def __init__(self):
-		self.dynamic_page = None
-		self.session_data = None
-		self.location = None
-
-
 class DynamicPageService (object):
 	"""
 	Abstract dynamic page web service API
@@ -28,6 +21,27 @@ class DynamicPageService (object):
 
 	A web app must use the page, event and resource methods to provide the service.
 	"""
+
+
+	class Session (object):
+		"""
+		Session information
+
+		Attributes:
+			:var dynamic_page: the page
+			:var session_data: the session data, initialised by a service that overrides DynamicPageService
+			:var location: the location
+			:var get_params: the get parameters
+		"""
+		def __init__(self):
+			self.dynamic_page = None
+			self.session_data = None
+			self.location = None
+			self.get_params = None
+
+
+
+
 	def __init__(self):
 		self.__sessions = {}
 		self.__session_counter = 1
@@ -35,15 +49,6 @@ class DynamicPageService (object):
 		self.__rng = random.Random()
 
 
-	def initialise_page(self, dynamic_page, location):
-		"""
-		Override this method in a subclass. This method gives the dynamic page its content.
-
-		:param dynamic_page: The page that must be filled
-		:param location: The location from the web browser
-		:return: Data that will be stored in the session object
-		"""
-		raise NotImplementedError, 'abstract'
 
 
 	def page(self, location='', get_params=None):
@@ -54,8 +59,21 @@ class DynamicPageService (object):
 		:param get_params: The GET parameters received as part of the location
 		:return: The HTML content to be sent to the client browser
 		"""
+		raise NotImplementedError, 'abstract'
+
+
+
+
+	def new_session(self, location='', get_params=None):
+		"""
+		The web service will invoke this method when the user opens a page. The HTML returned must be send to the client.
+
+		:param location: The location being access by the browser, identifying the content that the user wishes to see. You should set up your app so that all paths under a specific URL prefix should take the suffix and pass it as the location.
+		:param get_params: The GET parameters received as part of the location
+		:return: The HTML content to be sent to the client browser
+		"""
 		session_id = self.__new_session_id()
-		session = _Session()
+		session = self.Session()
 		self.__sessions[session_id] = session
 
 		if get_params is None:
@@ -64,17 +82,9 @@ class DynamicPageService (object):
 		dynamic_page = DynamicPage(self, session_id, location, get_params)
 		session.dynamic_page = dynamic_page
 		session.location = location
+		session.get_params = get_params
 
-		try:
-			session_data = self.initialise_page(dynamic_page, location)
-		except:
-			# Problem initialising the session; remove it and re-raise
-			del self.__sessions[session_id]
-			raise
-		else:
-			# Session okay, return HTML content
-			session.session_data = session_data
-			return dynamic_page.page_html()
+		return session
 
 
 

@@ -874,7 +874,7 @@ class DynamicResource (object):
 	def ref(self, context):
 		if self.__ref_count == 0:
 			self.__context = context
-			self.__rsc_data.initialise_rscdata(context, self.__on_changed)
+			self.__rsc_data.initialise_rscdata(context, self.__on_changed, self.url)
 		self.__ref_count += 1
 		return self.__ref_count
 
