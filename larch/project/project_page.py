@@ -3,13 +3,14 @@
 ##-*************************
 import os
 from copy import deepcopy
-from britefury.live import LiveValue
 
 from britefury.pres.controls import menu
 
 from britefury.pres.html import Html
 
-from larch.project.project_node import ProjectNode, RenameNodeGUI
+from larch.project.project_node import ProjectNode
+from larch.project.rename_node_tool import RenameNodeTool
+from larch.project.move_node_tool import MoveNodeTool
 
 
 
@@ -123,13 +124,17 @@ class ProjectPage (ProjectNode):
 	# No need for __load_module__, since __import_resolve_self__ bounces on to the content
 
 
-	def _present_menu_items(self, fragment, gui):
+	def _present_menu_items(self, fragment, tool_container):
 		def on_rename():
-			gui.value = RenameNodeGUI(gui, self)
+			tool_container.value = RenameNodeTool(tool_container, self)
+
+		def on_move():
+			tool_container.value = MoveNodeTool(tool_container, self)
 
 		rename_item = menu.item('Rename', on_rename)
+		move_item = menu.item('Move', on_move)
 
-		return [rename_item]
+		return [rename_item, menu.separator(), move_item]
 
 
 	def _present_header_contents(self, fragment):

@@ -39,3 +39,29 @@
 .project_gui_container {
     margin-left: 2.5em;
 }
+
+a.project_move_to_root {
+    font-family: "Palatino linotype", "Book Antiqua", serif;
+    font-weight: lighter;
+    color: #205e20;
+}
+
+a.project_move_to_root:visited {
+    color: #205e20;
+}
+
+a.project_move_to_package {
+    font-family: "Palatino linotype", "Book Antiqua", serif;
+    font-weight: lighter;
+    color: #5e2020;
+}
+
+a.project_move_to_package:visited {
+    color: #5e2020;
+}
+
+.project_move_dest_list {
+    list-style-type: none;
+    padding-left: 2em;
+}
+

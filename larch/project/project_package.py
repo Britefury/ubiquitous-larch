@@ -7,7 +7,9 @@ from copy import deepcopy
 from britefury.pres.html import Html
 from britefury.pres.controls import menu
 
-from larch.project.project_node import RenameNodeGUI
+from larch.project.rename_node_tool import RenameNodeTool
+from larch.project.move_node_tool import MoveNodeTool
+
 from larch.project.project_container import ProjectContainer
 
 
@@ -74,15 +76,19 @@ class ProjectPackage (ProjectContainer):
 
 
 
-	def _present_menu_items(self, fragment, gui):
-		super_items = super(ProjectPackage, self)._present_menu_items(fragment, gui)
+	def _present_menu_items(self, fragment, tool_container):
+		super_items = super(ProjectPackage, self)._present_menu_items(fragment, tool_container)
 
 		def on_rename():
-			gui.value = RenameNodeGUI(gui, self)
+			tool_container.value = RenameNodeTool(tool_container, self)
+
+		def on_move():
+			tool_container.value = MoveNodeTool(tool_container, self)
 
 		rename_item = menu.item('Rename', on_rename)
+		move_item = menu.item('Move', on_move)
 
-		return [rename_item] + super_items
+		return [rename_item, menu.separator(), move_item, menu.separator()] + super_items
 
 
 	def _present_header_contents(self, fragment):

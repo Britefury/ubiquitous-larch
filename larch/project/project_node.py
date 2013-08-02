@@ -5,47 +5,18 @@ from britefury.incremental import IncrementalValueMonitor
 from britefury.live import LiveValue
 
 from britefury.pres.html import Html
-from britefury.pres.controls import menu, text_entry, button
+from britefury.pres.controls import menu
 
 
 
-class _GUIBox (object):
-	def __init__(self, gui):
-		self.__gui = gui
+
+class Tool (object):
+	def __init__(self, tool_container):
+		self.__tool_container = tool_container
 
 
 	def close(self):
-		self.__gui.value = Html('<span></span>')
-
-
-
-class RenameNodeGUI (_GUIBox):
-	def __init__(self, gui, node):
-		super(RenameNodeGUI, self).__init__(gui)
-		self.__node = node
-		self.__name = node.name
-
-
-	def __present__(self, fragment):
-		def on_edit(text):
-			self.__name = text
-
-		def on_rename():
-			self.__node.name = self.__name
-			self.close()
-
-		def on_cancel():
-			self.close()
-
-		return Html('<div class="gui_box">',
-				'<span class="gui_section_1">Rename</span><br>',
-				'<table>',
-				'<tr><td><span class="gui_label">Name:</span></td><td>', text_entry.text_entry(self.__name, on_edit=on_edit), '</td></tr>',
-				'<tr><td>', button.button('Cancel', on_cancel), '</td><td>', button.button('Rename', on_rename), '</td></tr>',
-				'</table>',
-				'</div>')
-
-
+		self.__tool_container.value = Html('<span></span>')
 
 
 class ProjectNode (object):
@@ -130,7 +101,7 @@ class ProjectNode (object):
 
 
 
-	def _present_menu_items(self, fragment, gui):
+	def _present_menu_items(self, fragment, tool_container):
 		raise NotImplementedError, 'abstract'
 
 	def _present_menu(self, fragment, gui):
@@ -159,6 +130,5 @@ class ProjectNode (object):
 		]
 
 		return Html(*contents)
-
 
 

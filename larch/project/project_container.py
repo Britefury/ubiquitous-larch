@@ -10,41 +10,9 @@ from britefury.pres.html import Html
 from britefury.pres.controls import menu, text_entry, button
 
 from larch import project
-from larch.project.project_node import ProjectNode, _GUIBox
+from larch.project.project_node import ProjectNode
+from larch.project.new_node_tool import NewNodeTool
 from larch.worksheet.worksheet import Worksheet
-
-
-
-
-class NewNodeGUI (_GUIBox):
-	def __init__(self, gui, container, node_type_name, initial_name, node_create_fn):
-		super(NewNodeGUI, self).__init__(gui)
-		self.__name = initial_name
-		self.__container = container
-		self.__node_type_name = node_type_name
-		self.__node_create_fn = node_create_fn
-
-
-	def __present__(self, fragment):
-		def on_edit(text):
-			self.__name = text
-
-		def on_create():
-			self.__container.append(self.__node_create_fn(self.__name))
-			self.close()
-
-		def on_cancel():
-			self.close()
-
-		return Html('<div class="gui_box">',
-				'<span class="gui_section_1">Create {0}</span><br>'.format(self.__node_type_name),
-				'<table>',
-				'<tr><td><span class="gui_label">Name:</span></td><td>', text_entry.text_entry(self.__name, on_edit=on_edit), '</td></tr>',
-				'<tr><td>', button.button('Cancel', on_cancel), '</td><td>', button.button('Create', on_create), '</td></tr>',
-				'</table>',
-				'</div>')
-
-
 
 
 
@@ -214,12 +182,12 @@ class ProjectContainer (ProjectNode):
 
 
 
-	def _present_menu_items(self, fragment, gui):
+	def _present_menu_items(self, fragment, tool_container):
 		def on_new_package():
-			gui.value = NewNodeGUI(gui, self, 'package', 'Package', lambda name: project.project_package.ProjectPackage(name))
+			tool_container.value = NewNodeTool(tool_container, self, 'package', 'Package', lambda name: project.project_package.ProjectPackage(name))
 
 		def on_new_worksheet():
-			gui.value = NewNodeGUI(gui, self, 'worksheet', 'Worksheet', lambda name: project.project_page.ProjectPage(name, Worksheet()))
+			tool_container.value = NewNodeTool(tool_container, self, 'worksheet', 'Worksheet', lambda name: project.project_page.ProjectPage(name, Worksheet()))
 
 
 		new_package_item = menu.item('New package', on_new_package)
