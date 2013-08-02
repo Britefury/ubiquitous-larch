@@ -85,10 +85,14 @@ class ProjectPackage (ProjectContainer):
 		def on_move():
 			tool_container.value = MoveNodeTool(tool_container, self)
 
+		def on_delete():
+			self._parent.remove(self)
+
 		rename_item = menu.item('Rename', on_rename)
 		move_item = menu.item('Move', on_move)
+		delete_item = menu.item('Delete', on_delete)
 
-		return [rename_item, menu.separator(), move_item, menu.separator()] + super_items
+		return super_items + [menu.separator(), rename_item, menu.separator(), move_item, menu.separator(), delete_item]
 
 
 	def _present_header_contents(self, fragment):
