@@ -51,10 +51,12 @@ def present_class(x):
 def present_def_header(x):
 	spec = inspect.getargspec(x)
 	args = []
-	for a in spec.args[:-len(spec.defaults)]:
+	num_defaults = len(spec.defaults)   if spec.defaults is not None   else 0
+	for a in spec.args[:-num_defaults]:
 		args.append(_span('python_name', a))
-	for a, d in zip(spec.args[-len(spec.defaults):], spec.defaults):
-		args.append(Html(*[_span('python_name', a) + _equals, d]))
+	if spec.defaults is not None:
+		for a, d in zip(spec.args[-num_defaults:], spec.defaults):
+			args.append(Html(*[_span('python_name', a) + _equals, d]))
 	if spec.varargs is not None:
 		args.append(_punct_html('*') + _span('python_name', spec.varargs))
 	if spec.keywords is not None:

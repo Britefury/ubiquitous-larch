@@ -73,9 +73,9 @@ class WorksheetBlockText (WorksheetBlock):
 
 
 class WorksheetBlockCode (WorksheetBlock):
-	def __init__(self, worksheet):
+	def __init__(self, worksheet, code=None):
 		super(WorksheetBlockCode, self).__init__(worksheet)
-		self.__code = source_code.PythonCode()
+		self.__code = source_code.PythonCode(code=code)
 		self.__code.on_focus = self._on_focus
 		self.__result = None
 		self.__incr = IncrementalValueMonitor()
@@ -229,8 +229,10 @@ class WorksheetBlockSource (WorksheetBlock):
 
 
 class Worksheet (object):
-	def __init__(self, code=''):
-		self.__blocks = [WorksheetBlockCode(self)]
+	def __init__(self, blocks=None):
+		if blocks is None:
+			blocks = [WorksheetBlockCode(self)]
+		self.__blocks = blocks
 		self.__incr = IncrementalValueMonitor()
 		self._module = None
 		self.__focus_block = None
@@ -258,6 +260,12 @@ class Worksheet (object):
 		self.__focus_block = None
 		self.__execution_state = LiveValue()
 		self.__exec_state_init()
+
+
+
+	def append(self, block):
+		self.__blocks.append(block)
+		self.__incr.on_changed()
 
 
 	def execute(self):
