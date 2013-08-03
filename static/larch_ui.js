@@ -155,3 +155,19 @@ larch.controls.grabFocus = function(node) {
         larch.postEvent(larch.controls.__focus, "gain_focus", null);
     }
 };
+
+
+
+
+larch.controls.initToggleCommandBarButton = function(node) {
+    return $(node).click(function() {
+        if (larch.__commandBar === null) {
+            larch.__showCommandBar();
+        }
+        else {
+            larch.__commandBar.close();
+        }
+    }).button({icons: {primary: 'ui-icon-bullet'}});
+};
+
+

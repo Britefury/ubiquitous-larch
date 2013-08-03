@@ -245,10 +245,10 @@ class Worksheet (object):
 
 
 	def __exec_state_init(self):
-		self.__execution_state.value = Html('<div class="worksheet_exec_state_init">Worksheet not yet executed; place the caret within a code block and press Control-Enter to execute.</div>')
+		self.__execution_state.value = Html('<span class="worksheet_exec_state_init">Not executed.</span>')
 
 	def __exec_state_executed(self):
-		self.__execution_state.value = Html('<div class="worksheet_exec_state_executed">Re-execute code with Control-Enter.</div>')
+		self.__execution_state.value = Html('')
 
 
 	def __getstate__(self):
@@ -428,7 +428,7 @@ class Worksheet (object):
 
 		exec_button = button.button('Execute (Ctrl-Enter)', self.execute)
 
-		return [file_menu, edit_menu, exec_button]
+		return [file_menu, edit_menu, exec_button, self.__execution_state]
 
 
 
@@ -447,15 +447,7 @@ class Worksheet (object):
 
 
 
-		doc = Html('<div class="worksheet_documentation">The blocks within a worksheet are editable; place the cursor within them to edit them. Save with Ctrl-S, execute code with Ctrl-Enter.' + \
-			'The Edit menu contains options for adding and removing blocks.</div>')
-
-		header = Html('<div class="worksheet_header">',
-			      self.__execution_state,
-			      doc,
-			      '</div>')
-
-		contents = [header]
+		contents = []
 
 		for block in self.__blocks:
 			contents.extend(['<div>', block, '</div>'])

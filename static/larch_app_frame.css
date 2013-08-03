@@ -26,11 +26,15 @@ td.__larch_app_frame_menu_bar {
     margin: 0 0.5em 0 0.5em;
 }
 
-.__larch_esc_notification {
+.__larch_cmd_bar_right {
     float: right;
 }
 
 body {
     margin: 0;
+}
+
+.__larch_app_cmd_bar_button {
+    margin: 0 0 0 0.5em;
 }
 

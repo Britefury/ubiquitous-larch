@@ -1,6 +1,8 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
+import cgi
+
 from britefury.pres.pres import Pres
 from britefury.dynamicsegments.segment import HtmlContent
 
@@ -32,6 +34,11 @@ class Html (Pres):
 		else:
 			return Html('<div class={0}>'.format(cls), x, '</div>')
 
+
+
+	@staticmethod
+	def escape_str(x):
+		return cgi.escape(x)
 
 
 

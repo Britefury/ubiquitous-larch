@@ -66,11 +66,28 @@ class PageFrame (CompositePres):
 
 
 
+	def __menu_bar_contents_to_table(self, menu_bar_contents):
+		# Generate the menu bar
+		if len(menu_bar_contents) > 0:
+			contents = ['<table><tr>']
+			for x in menu_bar_contents:
+				contents.extend(['<td class="__larch_app_frame_menu_bar">', x, '</td>'])
+			contents.append('</tr></table>')
+			return Html(*contents)
+		else:
+			return Html()
+
 	def pres(self, pres_ctx):
 		fragment = pres_ctx.fragment_view
 
-		# Build the menu bar contents by iterating through the focii, accumulating them as we go by concatenating the results of calling the __menu_bar_cumulative_contents__ method
 		menu_bar_contents = []
+		right_menu_bar_contents = []
+
+		# Command bar button
+		cmd_bar_button = Html('<button class="__larch_app_cmd_bar_button">Cmd. bar (Esc)</button>').js_function_call("larch.controls.initToggleCommandBarButton")
+		right_menu_bar_contents.append(cmd_bar_button)
+
+		# Build the menu bar contents by iterating through the focii, accumulating them as we go by concatenating the results of calling the __menu_bar_cumulative_contents__ method
 		for f in self.__focii:
 			try:
 				method = f.__menu_bar_cumulative_contents__
@@ -88,19 +105,15 @@ class PageFrame (CompositePres):
 			menu_bar_contents.extend(method(fragment))
 
 		# Generate the menu bar
-		if len(menu_bar_contents) > 0:
-			contents = ['<table><tr>']
-			for x in menu_bar_contents:
-				contents.extend(['<td class="__larch_app_frame_menu_bar">', x, '</td>'])
-			contents.append('</tr></table>')
-			menu_bar = Html(*contents)
-		else:
-			menu_bar = Html()
+		main_menu_bar = self.__menu_bar_contents_to_table(menu_bar_contents)
+		right_menu_bar = self.__menu_bar_contents_to_table(right_menu_bar_contents)
 
 		return Html(
 			'<div class="__larch_app_frame_page_header">',
-			'<span class="__larch_esc_notification">Press ESC for command bar.</span>',
-			menu_bar,
+			'<span class="__larch_cmd_bar_right">',
+			right_menu_bar,
+			'</span>',
+			main_menu_bar,
 			'</div>',
 			'<img src="/static/1px_transparent.png">',
 			'<div class="__larch_app_frame_page_content">',

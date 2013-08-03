@@ -3,27 +3,13 @@
 -* This source code is (C)copyright Geoffrey French 2011-2013.
 -*************************
 */
-.worksheet_header {
-    margin: 1em 0;
-}
-
 .worksheet_exec_state_init {
     font-weight: bold;
     color: #c03000;
     border: 1px solid #c03000;
     border-radius: 7px;
     background: #fff4f0;
-    margin: 0.5em 5em;
-    width: 30em;
-    padding: 3px 10px;
-}
-
-.worksheet_exec_state_executed {
-    color: #507050;
-    margin: 0.5em 5em;
-    border: 1px solid #509050;
-    border-radius: 7px;
-    background: #f6fff6;
+    margin: 0.5em 2em;
     width: 30em;
     padding: 3px 10px;
 }
@@ -130,15 +116,4 @@
 
 .worksheet_src_language_select_table {
     float: right;
-}
-
-.worksheet_documentation {
-    border: 1px solid #84bc77;
-    background: #f1ffed;
-    border-radius: 3px;
-    padding: 5px 15px;
-    margin: 0.5em 2em;
-    font-family: sans-serif;
-    font-size: 0.8em;
-    color: #46663d;
 }

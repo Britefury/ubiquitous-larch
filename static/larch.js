@@ -1063,9 +1063,10 @@ larch.__resourceModified = function(rscId) {
 //
 //
 
-larch.__commands = [];
-larch.__userEnteringCommand = false;
-larch.__partialCommandKeySequence = null;
+
+
+
+larch.__commands = []
 
 
 larch.__invokeCommand = function(cmd) {
@@ -1119,13 +1120,6 @@ larch.__keySequenceStartsWith = function(commandSequence, enteredSequence) {
     return false;
 };
 
-
-
-larch.__commandNoty = null;
-larch.__commandHelpDialog = null;
-
-
-
 larch.__presentKeySequence = function(keySequence) {
     var htmlSrc = '';
     for (var j = 0; j < keySequence.length; j++) {
@@ -1136,7 +1130,27 @@ larch.__presentKeySequence = function(keySequence) {
     return htmlSrc;
 };
 
-larch.__createCommandDialog = function(commands) {
+
+
+
+//
+//
+// COMMAND BAR HELP DIALOG
+//
+//
+
+larch.__createCommandHelpDialog = function(commands) {
+    // The help dialog structure
+    var helpDialog = {
+        dialog: null,
+
+        close: function() {
+            helpDialog.dialog.dialog("close");
+        }
+    };
+
+
+    // Build the help dialog contents
     var table = $('<table class="command_table"></table>');
 
     var heading = $('<tr class="command_table_heading_row"><th><span class="command_table_heading">Key sequence</span></th><th><span class="command_table_heading">Description</span></th></tr>');
@@ -1145,7 +1159,7 @@ larch.__createCommandDialog = function(commands) {
     var makeLinkListener = function(cmd) {
         return function() {
             larch.__invokeCommand(cmd);
-            larch.__commandFinished();
+            larch.__commandBar.close()
             return true;
         };
     };
@@ -1165,121 +1179,176 @@ larch.__createCommandDialog = function(commands) {
     div.append('<p>The following commands are available:</p>');
     div.append(table);
 
-    larch.__commandHelpDialog = $(div).dialog();
-};
 
-larch.__closeCommandHelpDialog = function() {
-    if (larch.__commandHelpDialog !== null) {
-        larch.__commandHelpDialog.dialog("close");
-        larch.__commandHelpDialog = null;
-    }
+    // Set the dialog attribute of the structure
+    helpDialog.dialog = $(div).dialog();
+
+    return helpDialog;
 };
 
 
 
-larch.__closeCommandNoty = function() {
-    if (larch.__commandNoty !== null) {
-        larch.__commandNoty.close();
-        larch.__commandNoty = null;
-    }
-};
+//
+//
+// COMMAND BAR
+//
+//
+
+larch.__createCommandBar = function(onClose) {
+    var cmdBar = {
+        partialCommandKeySequence: [],
+        barNoty: null,
+        helpDialog: null,
 
 
-larch.__commandFinished = function() {
-    larch.__userEnteringCommand = false;
-    larch.__partialCommandKeySequence = null;
+        //
+        // SHOW HELP DIALOG
+        //
+        showHelpDialog: function() {
+            if (cmdBar.helpDialog === null) {
+                // Find all matching commands
+                var matchingCommands = [];
 
-    larch.__closeCommandNoty();
-    larch.__closeCommandHelpDialog();
-};
+                for (var i = 0; i < larch.__commands.length; i++) {
+                    var match = larch.__commands[i];
+                    if (larch.__keySequenceStartsWith(match.keySequence, cmdBar.partialCommandKeySequence)) {
+                        matchingCommands.push(match);
+                    }
+                }
 
-larch.__setupCommandListeners = function() {
-    document.body.onkeydown = function(event) {
-        if (larch.__userEnteringCommand) {
-            // Check for Escape
-            event.preventDefault();
+                cmdBar.helpDialog = larch.__createCommandHelpDialog(matchingCommands);
+            }
+        },
+
+        //
+        // CLOSE HELP DIALOG
+        //
+        closeHelpDialog: function() {
+            if (cmdBar.helpDialog !== null) {
+                cmdBar.helpDialog.close();
+                cmdBar.helpDialog = null;
+            }
+        },
+
+        //
+        // TOGGLE HELP DIALOG
+        //
+        toggleHelpDialog: function() {
+            if (cmdBar.helpDialog !== null) {
+                cmdBar.closeHelpDialog();
+            }
+            else {
+                cmdBar.showHelpDialog();
+            }
+        },
+
+        //
+        // CLOSE COMMAND BAR
+        //
+        close: function() {
+            cmdBar.closeHelpDialog();
+            cmdBar.barNoty.close();
+        },
+
+
+        //
+        // ADD KEY
+        //
+        addKey: function(key) {
+            var matchingCommand = null;
+            cmdBar.partialCommandKeySequence.push(key);
+
+            for (var i = 0; i < larch.__commands.length; i++) {
+                var cmd = larch.__commands[i];
+                if (larch.__compareKeySequences(cmd.keySequence, cmdBar.partialCommandKeySequence)) {
+                    matchingCommand = cmd;
+                    break;
+                }
+            }
+
+            if (matchingCommand !== null) {
+                // Found a command
+
+                // Invoke it
+                larch.__invokeCommand(matchingCommand);
+
+                // We are done
+                cmdBar.close();
+            }
+
+            // Partial command; update the noty:
+            var notyText = 'Command: ';
+            notyText += larch.__presentKeySequence(cmdBar.partialCommandKeySequence);
+            notyText += ' - or <span class="command_special_key">ESC</span> to cancel or <span class="command_special_key">H</span> for help';
+
+            cmdBar.barNoty.setText(notyText);
+        },
+
+        //
+        // KEY RESPONSE FUNCTION
+        //
+        onKeyDown: function(event) {
             if (event.keyCode === 27) {
-                // ESC - Quit the command
-                larch.__commandFinished();
-
-                return false;
+                // ESC - Close the command bar
+                cmdBar.close();
             }
             else if (event.keyCode === 72) {
                 // H - Toggle help dialog
 
-                if (larch.__commandHelpDialog !== null) {
-                    larch.__closeCommandHelpDialog();
-                }
-                else {
-                    // Find all matching commands
-                    var matchingCommands = [];
-
-                    for (var i = 0; i < larch.__commands.length; i++) {
-                        var match = larch.__commands[i];
-                        if (larch.__keySequenceStartsWith(match.keySequence, larch.__partialCommandKeySequence)) {
-                            matchingCommands.push(match);
-                        }
-                    }
-
-                    larch.__createCommandDialog(matchingCommands);
-                }
+                cmdBar.toggleHelpDialog();
             }
             else {
                 // Another key in the sequence
                 var k = larch.__eventToKey(event);
-                var matchingCommand = null;
-                larch.__partialCommandKeySequence.push(k);
-
-                for (var i = 0; i < larch.__commands.length; i++) {
-                    var cmd = larch.__commands[i];
-                    if (larch.__compareKeySequences(cmd.keySequence, larch.__partialCommandKeySequence)) {
-                        matchingCommand = cmd;
-                        break;
-                    }
-                }
-
-                if (matchingCommand !== null) {
-                    // Found a command
-
-                    // Invoke it
-                    larch.__invokeCommand(matchingCommand);
-
-                    // We are done
-                    larch.__commandFinished();
-
-                    return false;
-                }
-
-                // Partial command; update the noty:
-                var notyText = 'Command: ';
-                notyText += larch.__presentKeySequence(larch.__partialCommandKeySequence);
-                notyText += ' - or <span class="command_special_key">ESC</span> to cancel or <span class="command_special_key">H</span> for help';
-
-                if (larch.__commandNoty != null) {
-                    larch.__commandNoty.setText(notyText);
-                }
+                cmdBar.addKey(k);
             }
+        }
+    };
+
+
+    // We have started a command
+    cmdBar.barNoty = noty({
+        text: 'Command started  --  enter key sequence or <span class="command_special_key">ESC</span> to cancel or <span class="command_special_key">H</span> for help',
+        type: 'information',
+        layout: 'bottom',
+        closeWith: ['click'],
+        callback: {
+            onClose: function() {
+                onClose();
+            }
+        }
+    });
+
+    return cmdBar;
+};
+
+
+larch.__commandBar = null;
+
+larch.__showCommandBar = function() {
+    larch.__commandBar = larch.__createCommandBar(function() {
+            larch.__commandBar = null;
+        }
+    );
+};
+
+
+
+
+larch.__setupCommandListeners = function() {
+    document.body.onkeydown = function(event) {
+        if (larch.__commandBar !== null) {
+            // The command bar is active: send the event there
+            event.preventDefault();
+            larch.__commandBar.onKeyDown(event);
+            return false;
         }
         else {
             // Check for ESC
             if (event.keyCode === 27) {
                 event.preventDefault();
-                // We have started a command
-                larch.__userEnteringCommand = true;
-                larch.__partialCommandKeySequence = [];
-
-                larch.__commandNoty = noty({
-                    text: 'Command started  --  enter key sequence or <span class="command_special_key">ESC</span> to cancel or <span class="command_special_key">H</span> for help',
-                    type: 'information',
-                    layout: 'bottom',
-                    closeWith: ['click'],
-                    callback: {
-                        onClose: function() {
-                            larch.__userEnteringCommand = false;
-                            larch.__partialCommandKeySequence = null;
-                        }
-                    }
-                });
+                // Show the command bar
+                larch.__showCommandBar();
 
                 return false;
             }

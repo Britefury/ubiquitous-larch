@@ -67,8 +67,11 @@ def present_def_header(x):
 		for a in args[1:]:
 			separated_args.append(_comma_space)
 			separated_args.append(a)
+	doc = Html()
+	if x.__doc__ is not None  and  x.__doc__ != '':
+		doc = Html(Html.escape_str(x.__doc__))
 
-	return Html( *(['<p>' + _span('python_keyword', 'def') + ' ' + _span('python_defname', x.__name__) + ' ' + _open_paren] + separated_args + [_close_paren + '</p>']))
+	return Html( *(['<div>' + _span('python_keyword', 'def') + ' ' + _span('python_defname', x.__name__) + ' ' + _open_paren] + separated_args + [_close_paren + '</div>', doc]))
 
 def present_function(x):
 	header = present_def_header(x)

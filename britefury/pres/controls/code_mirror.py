@@ -1,7 +1,6 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-import cgi
 from britefury.pres.html import Html
 
 __code_mirror_theme = None
@@ -75,7 +74,7 @@ def code_mirror(text, immediate_events=False, config=None, on_edit=None, on_focu
 		config = {}
 	if modes is None:
 		modes = []
-	textarea = Html(u'<textarea>{text}</textarea>'.format(text=cgi.escape(text)))
+	textarea = Html(u'<textarea>{text}</textarea>'.format(text=Html.escape_str(text)))
 	textarea = textarea.js_function_call('larch.controls.initCodeMirror', config, immediate_events)
 	p = Html('<div>', textarea, '</div>')
 	p = p.use_css('/static/codemirror-3.14/lib/codemirror.css')
