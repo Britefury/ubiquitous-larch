@@ -29,17 +29,23 @@
 }
 
 .worksheet_block {
-    margin: 0.5em 0;
+    margin-left: 0.25em;
+    margin-right: 0.25em;
     border: 1px solid #e0e0e0;
     border-radius: 5px;
     padding: 5px;
 }
 
+.worksheet_richtext {
+  background-image: url('/static/paper.png');
+}
+
 .worksheet_code_block {
-    margin: 0.5em 0 1.0em 0;
+    margin-left: 0.25em;
+    margin-right: 0.25em;
     border: 1px solid #c9c9d1;
     border-radius: 5px;
-    box-shadow: 0 7px 5px #dcdcdc;
+    /*box-shadow: 0 7px 5px #dcdcdc;*/
 }
 
 .worksheet_python_code_header {

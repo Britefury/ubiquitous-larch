@@ -8,7 +8,7 @@ from britefury.incremental import IncrementalValueMonitor
 from britefury.live import LiveValue
 from britefury.pres.html import Html
 from britefury.pres.key_event import KeyAction
-from britefury.pres.controls import ckeditor, menu, button, text_entry
+from britefury.pres.controls import ckeditor, menu, button, text_entry, focusable
 from britefury.projection.subject import Subject
 from britefury import command
 from larch import source_code
@@ -66,9 +66,11 @@ class WorksheetBlockText (WorksheetBlock):
 			self.__text = text
 			self.__incr.on_changed()
 
-		p = ckeditor.ckeditor(self.__text, on_edit=on_edit, on_focus=self._on_focus)
+		p = ckeditor.ckeditor(self.__text, on_edit=on_edit)
 
-		return Html('<div class="worksheet_block">', p, '</div>')
+		p = Html('<div class="worksheet_block worksheet_richtext">', p, '</div>')
+		p = focusable.focusable(p, on_gain_focus=self._on_focus)
+		return p
 
 
 
@@ -76,7 +78,6 @@ class WorksheetBlockCode (WorksheetBlock):
 	def __init__(self, worksheet, code=None):
 		super(WorksheetBlockCode, self).__init__(worksheet)
 		self.__code = source_code.PythonCode(code=code)
-		self.__code.on_focus = self._on_focus
 		self.__result = None
 		self.__incr = IncrementalValueMonitor()
 
@@ -91,7 +92,6 @@ class WorksheetBlockCode (WorksheetBlock):
 		self.__code = state.get('code')
 		if self.__code is None:
 			self.__code = source_code.PythonCode()
-		self.__code.on_focus = self._on_focus
 		self.__result = None
 		self.__incr = IncrementalValueMonitor()
 
@@ -107,7 +107,10 @@ class WorksheetBlockCode (WorksheetBlock):
 		header = Html('<div class="worksheet_python_code_header">Python code (executable)</div>')
 		code = Html('<div class="worksheet_python_code_container">', self.__code, '</div>')
 		res = ['<div class="worksheet_result_container">', self.__result, '</div>']   if self.__result is not None  else []
-		return Html(*(['<div class="worksheet_code_block">', header, '<div class="worksheet_code_block_body">', code] + res + ['</div></div>']))
+		p = Html(*(['<div class="worksheet_code_block">', header, '<div class="worksheet_code_block_body">', code] + res + ['</div></div>']))
+		p = focusable.focusable(p, on_gain_focus=self._on_focus)
+		return p
+
 
 
 
@@ -142,7 +145,6 @@ class WorksheetBlockSource (WorksheetBlock):
 			raise ValueError, 'Invalid language {0}'.format(language)
 
 		self.__code = code_type()
-		self.__code.on_focus = self._on_focus
 		self.__var_name = var_name
 		self.__incr = IncrementalValueMonitor()
 
@@ -156,7 +158,6 @@ class WorksheetBlockSource (WorksheetBlock):
 	def __setstate__(self, state):
 		super(WorksheetBlockSource, self).__setstate__(state)
 		self.__code = state.get('code')
-		self.__code.on_focus = self._on_focus
 		self.__var_name = state.get('var_name')
 		self.__incr = IncrementalValueMonitor()
 
@@ -223,7 +224,10 @@ class WorksheetBlockSource (WorksheetBlock):
 			      '</tr></table>',
 			      '</div>')
 		code = Html('<div class="worksheet_{0}_code_container">'.format(language), self.__code, '</div>')
-		return Html('<div class="worksheet_code_block">', header, '<div class="worksheet_code_block_body">', code, '</div></div>')
+		p = Html('<div class="worksheet_code_block">', header, '<div class="worksheet_code_block_body">', code, '</div></div>')
+		p = focusable.focusable(p, on_gain_focus=self._on_focus)
+		return p
+
 
 
 

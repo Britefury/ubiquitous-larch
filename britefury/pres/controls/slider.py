@@ -53,7 +53,7 @@ def slider(release_fn=None, slide_fn=None, width=None, value=None, min=None, max
 	div = div.with_event_handler("slider_change", on_change)
 	if slide_fn is not None:
 		div = div.with_event_handler("slider_slide", on_slide)
-	div = div.use_js('/static/bridge_jqueryui.js')
+	div = div.use_js('/static/larch_ui.js').use_css('/static/larch_ui.css')
 	return div
 
 
@@ -108,7 +108,7 @@ def range_slider(release_fn=None, slide_fn=None, width=None, values=None, min=No
 	div = div.with_event_handler("slider_change", on_change)
 	if slide_fn is not None:
 		div = div.with_event_handler("slider_slide", on_slide)
-	div = div.use_js('/static/bridge_jqueryui.js')
+	div = div.use_js('/static/larch_ui.js').use_css('/static/larch_ui.css')
 	return div
 
 

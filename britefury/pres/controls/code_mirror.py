@@ -88,7 +88,7 @@ def code_mirror(text, immediate_events=False, config=None, on_edit=None, on_focu
 		p = p.use_css('/static/codemirror-3.14/addon/{0}'.format(addon))
 	if __code_mirror_theme is not None:
 		p = p.use_css('/static/codemirror-3.14/theme/{0}.css'.format(__code_mirror_theme))
-	p = p.use_js('/static/bridge_codemirror.js')
+	p = p.use_js('/static/larch_ui.js').use_css('/static/larch_ui.css')
 	if on_edit is not None:
 		p = p.with_event_handler('code_mirror_edit', lambda event_name, ev_data: on_edit(ev_data))
 	if on_focus is not None:

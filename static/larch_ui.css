@@ -1,0 +1,7 @@
+.larch_ui_focusable {
+    margin-bottom: 0.8em;
+}
+
+.larch_ui_focused {
+    box-shadow: 0 6px 20px #707880;
+}
