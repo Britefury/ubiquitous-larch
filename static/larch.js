@@ -897,6 +897,7 @@ larch.__warnUserUnableToGetSegmentIDForElement = function(element) {
 
 larch.__alertBox = {
     visible: false,
+    showQueued: false,
     alerts: [],
     body: null,
     selectorSpinner: null,
@@ -909,6 +910,7 @@ larch.__alertBox = {
 
     notifyClosed: function() {
         larch.__alertBox.visible = false;
+        larch.__alertBox.showQueued = false;
         larch.__alertBox.alerts = [];
         larch.__alertBox.body = null;
         larch.__alertBox.selectorSpinner = null;
@@ -918,55 +920,65 @@ larch.__alertBox = {
 larch.showAlert = function(contents) {
     larch.__alertBox.alerts.push(contents);
 
-    if (!larch.__alertBox.visible) {
-        larch.__alertBox.visible = true;
+    if (!larch.__alertBox.showQueued) {
+        larch.__alertBox.showQueued = true;
 
-        larch.__alertBox.selectorSpinner = $('<input name="value" value="0">');
-        var header = $('<div class="alert_selector_header">Show alert </div>');
-        header.append(larch.__alertBox.selectorSpinner);
+        var openAlert = function() {
+            larch.__alertBox.visible = true;
+            larch.__alertBox.selectorSpinner = $('<input name="value" value="0">');
+            var header = $('<div class="alert_selector_header">Show alert </div>');
+            header.append(larch.__alertBox.selectorSpinner);
 
-        larch.__alertBox.body = $('<div class="alert_body"></div>');
-        var pageFn = larch.__alertBox.alerts[0];
-        larch.__alertBox.body.append(pageFn());
+            var lastPageIndex = larch.__alertBox.alerts.length - 1;
 
-        var text = $('<div class="alert_box"></div>')
-        text.append(header);
-        text.append(larch.__alertBox.body);
+            larch.__alertBox.body = $('<div class="alert_body"></div>');
+            var pageFn = larch.__alertBox.alerts[lastPageIndex];
+            larch.__alertBox.body.append(pageFn());
 
-        noty({
-            text: text,
-            layout: "bottom",
-            type: "alert",
-            closeWith: [],
-            callback: {
-                onClose: function() {
-                    larch.__alertBox.notifyClosed();
-                }
-            },
-            buttons: [
-                {
-                    addClass: 'btn btn-primary',
-                    text: 'Ok',
-                    onClick: function(notification) {
-                         notification.close();
+            var text = $('<div class="alert_box"></div>')
+            text.append(header);
+            text.append(larch.__alertBox.body);
+
+            noty({
+                text: text,
+                layout: "bottom",
+                type: "alert",
+                closeWith: [],
+                callback: {
+                    onClose: function() {
+                        larch.__alertBox.notifyClosed();
                     }
-                }
-            ]
-        });
+                },
+                buttons: [
+                    {
+                        addClass: 'btn btn-primary',
+                        text: 'Ok',
+                        onClick: function(notification) {
+                             notification.close();
+                        }
+                    }
+                ]
+            });
 
-        larch.__alertBox.selectorSpinner.spinner({
-            spin: function(event, ui) {
-                larch.__alertBox.changePage(ui.value);
-            },
-            min: 0,
-            max: 0
-        });
+            larch.__alertBox.selectorSpinner.spinner({
+                spin: function(event, ui) {
+                    larch.__alertBox.changePage(ui.value);
+                },
+                value: lastPageIndex,
+                min: 0,
+                max: lastPageIndex
+            });
+        };
+
+        setTimeout(openAlert, 0);
     }
     else {
-        var lastPageIndex = larch.__alertBox.alerts.length - 1;
-        larch.__alertBox.selectorSpinner.spinner("option", "max", lastPageIndex);
-        larch.__alertBox.selectorSpinner.spinner("value", lastPageIndex);
-        larch.__alertBox.changePage(lastPageIndex);
+        if (larch.__alertBox.visible) {
+            var lastPageIndex = larch.__alertBox.alerts.length - 1;
+            larch.__alertBox.selectorSpinner.spinner("option", "max", lastPageIndex);
+            larch.__alertBox.selectorSpinner.spinner("value", lastPageIndex);
+            larch.__alertBox.changePage(lastPageIndex);
+        }
     }
 };
 
