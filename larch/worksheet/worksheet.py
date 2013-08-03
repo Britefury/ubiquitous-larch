@@ -105,7 +105,7 @@ class WorksheetBlockCode (WorksheetBlock):
 	def __present__(self, fragment):
 		self.__incr.on_access()
 		header = Html('<div class="worksheet_python_code_header">Python code (executable)</div>')
-		code = Html('<div class="worksheet_python_code_container">', self.__code, '</div>')
+		code = Html('<div class="worksheet_python_code_container worksheet_code_container">', self.__code, '</div>')
 		res = ['<div class="worksheet_result_container">', self.__result, '</div>']   if self.__result is not None  else []
 		p = Html(*(['<div class="worksheet_code_block">', header, '<div class="worksheet_code_block_body">', code] + res + ['</div></div>']))
 		p = focusable.focusable(p, on_gain_focus=self._on_focus)
@@ -223,7 +223,7 @@ class WorksheetBlockSource (WorksheetBlock):
 			      '<td>', var_name, '</td>',
 			      '</tr></table>',
 			      '</div>')
-		code = Html('<div class="worksheet_{0}_code_container">'.format(language), self.__code, '</div>')
+		code = Html('<div class="worksheet_{0}_code_container worksheet_code_container">'.format(language), self.__code, '</div>')
 		p = Html('<div class="worksheet_code_block">', header, '<div class="worksheet_code_block_body">', code, '</div></div>')
 		p = focusable.focusable(p, on_gain_focus=self._on_focus)
 		return p

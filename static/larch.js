@@ -602,51 +602,45 @@ larch.__messageHandlers = {
     },
 
     error_handling_event: function(message) {
-        var eventName = '<span class="event_error_event_name">' + message.event_name + '</span>';
-        var header;
-        if (message.event_seg_id !== null) {
-            var srcSegment = $('<span class="event_error_segment">segment</span>');
-            srcSegment.mouseover(function() {larch.__highlightSegment(message.event_seg_id)}).mouseout(function() {larch.__unhighlightSegment(message.event_seg_id)});
+        larch.showAlert(function() {
+            var eventName = '<span class="event_error_event_name">' + message.event_name + '</span>';
+            var header;
+            if (message.event_seg_id !== null) {
+                var eventSegID = message.event_seg_id, handlerSegID = message.handler_seg_id;
+                var srcSegment = $('<span class="event_error_segment">segment</span>');
+                srcSegment.mouseover(function() {larch.__highlightSegment(eventSegID)}).mouseout(function() {larch.__unhighlightSegment(eventSegID)});
 
-            var hdlSegment = $('<span class="event_error_segment">segment</span>');
-            hdlSegment.mouseover(function() {larch.__highlightSegment(message.handler_seg_id)}).mouseout(function() {larch.__unhighlightSegment(message.handler_seg_id)});
+                var hdlSegment = $('<span class="event_error_segment">segment</span>');
+                hdlSegment.mouseover(function() {larch.__highlightSegment(handlerSegID)}).mouseout(function() {larch.__unhighlightSegment(handlerSegID)});
 
-            var sentFrom = $('<span>sent from a </span>');
-            sentFrom.append(srcSegment);
-            sentFrom.append(' belonging to an instance of <span class="event_error_model_type">' + message.event_model_type_name + '</span>, ');
+                var sentFrom = $('<span>sent from a </span>');
+                sentFrom.append(srcSegment);
+                sentFrom.append(' belonging to an instance of <span class="event_error_model_type">' + message.event_model_type_name + '</span>, ');
 
-            var handledAt = $('<span>handled at a </span>');
-            handledAt.append(hdlSegment);
-            handledAt.append(' belonging to an instance of <span class="event_error_model_type">' + message.handler_model_type_name + '</span>');
+                var handledAt = $('<span>handled at a </span>');
+                handledAt.append(hdlSegment);
+                handledAt.append(' belonging to an instance of <span class="event_error_model_type">' + message.handler_model_type_name + '</span>');
 
-            header = $('<div class="event_error_header">Error handling event ' + eventName + ', </div>');
-            header.append(sentFrom);
-            header.append(handledAt);
-        }
-        else {
-            header = $('<div class="event_error_header">Error handling page event ' + eventName + '</div>');
-        }
+                header = $('<div class="event_error_header">Error handling event ' + eventName + ', </div>');
+                header.append(sentFrom);
+                header.append(handledAt);
+            }
+            else {
+                header = $('<div class="event_error_header">Error handling page event ' + eventName + '</div>');
+            }
 
-        var text = $('<div class="exception_in_noty"></div>');
-        text.append(header);
-        text.append(message.err_html);
-
-        noty({
-            text: text,
-            layout: "bottom",
-            type: "alert",
-            closeWith: ["click"]
+            var text = $('<div class="exception_in_alert"></div>');
+            text.append(header);
+            text.append(message.err_html);
+            return text;
         });
     },
 
     error_during_update: function(message) {
-        var headerHtml = '<div class="event_error_header">Error while updating after handling events</div>';
-        noty({
-            text: '<div class="exception_in_noty">' + headerHtml + message.err_html + '</div>',
-            layout: "bottom",
-            type: "alert",
-            modal: true,
-            closeWith: ["click"]
+        larch.showAlert(function() {
+            var headerHtml = '<div class="event_error_header">Error while updating after handling events</div>';
+            var text = '<div class="exception_in_alert">' + headerHtml + message.err_html + '</div>';
+            return text;
         });
     },
 
@@ -654,28 +648,29 @@ larch.__messageHandlers = {
         var fixes_by_model = message.fixes_by_model;
 
         for (var i = 0; i < fixes_by_model.length; i++) {
-            var fix_set = fixes_by_model[i];
-            var model_type_name = fix_set.model_type_name;
-            var fixes = fix_set.fixes;
+            larch.showAlert(function() {
+                var fix_set = fixes_by_model[i];
+                var model_type_name = fix_set.model_type_name;
+                var fixes = fix_set.fixes;
 
-            var heading = $('<div>The following HTML structure problems were detected in a presentation of a <span class="event_error_model_type">' + model_type_name  + '</span></div>');
-            var fixHTML = $('<div></div>');
+                var heading = $('<div>The following HTML structure problems were detected in a presentation of a <span class="event_error_model_type">' + model_type_name  + '</span></div>');
+                var fixHTML = $('<div></div>');
 
-            for (var j = 0; j < fixes.length; j++) {
-                var fix = fixes[j];
-                if (fix.fix_type === 'close_unclosed_tag') {
-                    fixHTML.append($('<div>Added missing end tag<span class="event_error_model_type">&lt;/' + fix.tag  + '&gt;</span></div>'))
+                for (var j = 0; j < fixes.length; j++) {
+                    var fix = fixes[j];
+                    if (fix.fix_type === 'close_unclosed_tag') {
+                        fixHTML.append($('<div>Added missing end tag<span class="event_error_model_type">&lt;/' + fix.tag  + '&gt;</span></div>'))
+                    }
+                    else if (fix.fix_type === 'drop_close_tag_with_no_matching_open_tag') {
+                        fixHTML.append($('<div>Dropped orphan end tag<span class="event_error_model_type">&lt;/' + fix.tag  + '&gt;</span></div>'))
+                    }
                 }
-                else if (fix.fix_type === 'drop_close_tag_with_no_matching_open_tag') {
-                    fixHTML.append($('<div>Dropped orphan end tag<span class="event_error_model_type">&lt;/' + fix.tag  + '&gt;</span></div>'))
-                }
-            }
 
-            var text = $('<div></div>');
-            text.append(heading);
-            text.append(fixHTML);
-
-            larch.showAlert(text);
+                var text = $('<div></div>');
+                text.append(heading);
+                text.append(fixHTML);
+                return text;
+            });
         }
     }
 };
@@ -879,14 +874,15 @@ larch.hasQueuedEventFactory = function(src_element, event_name) {
 //
 
 larch.__warnUserUnableToGetSegmentIDForElement = function(element) {
-    var elem = $('<span class="event_error_segment">element</span>');
-    elem.mouseover(function() {larch.__highlightElement(element);}).mouseout(function() {larch.__unhighlightElement(element);});
+    larch.showAlert(function() {
+        var elem = $('<span class="event_error_segment">element</span>');
+        elem.mouseover(function() {larch.__highlightElement(element);}).mouseout(function() {larch.__unhighlightElement(element);});
 
-    var text = $('<span>Unable to get find the segment containing </span>');
-    text.append(elem);
-    text.append('<br>This is likely due to DOM manipulation operations moving the element outside the Larch document flow');
-
-    larch.showAlert(text);
+        var text = $('<span>Unable to get find the segment containing </span>');
+        text.append(elem);
+        text.append('<br>This is likely due to DOM manipulation operations moving the element outside the Larch document flow');
+        return text;
+    });
 };
 
 
@@ -907,7 +903,8 @@ larch.__alertBox = {
 
     changePage: function(pageIndex) {
         larch.__alertBox.body.children().remove();
-        larch.__alertBox.body.append(larch.__alertBox.alerts[pageIndex]);
+        var pageFn = larch.__alertBox.alerts[pageIndex];
+        larch.__alertBox.body.append(pageFn());
     },
 
     notifyClosed: function() {
@@ -929,7 +926,8 @@ larch.showAlert = function(contents) {
         header.append(larch.__alertBox.selectorSpinner);
 
         larch.__alertBox.body = $('<div class="alert_body"></div>');
-        larch.__alertBox.body.append(larch.__alertBox.alerts[0]);
+        var pageFn = larch.__alertBox.alerts[0];
+        larch.__alertBox.body.append(pageFn());
 
         var text = $('<div class="alert_box"></div>')
         text.append(header);

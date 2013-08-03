@@ -171,13 +171,14 @@ h6 {
     font-family: monospace;
 }
 
-.exception_in_noty {
+.exception_in_alert {
     text-align: left;
 }
 
 .segment_highlight {
-    border: 1px solid #c0c000;
-    background: #e8e8ff;
+    border: 1px solid #c0c000 !important;
+    background: #e8e8ff !important;
+    outline: 2px solid #c04040 !important;
 }
 
 .exception_during_presentation {
