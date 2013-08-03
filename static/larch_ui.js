@@ -134,7 +134,11 @@ larch.controls.initSelect = function(node) {
 larch.controls.__focus = null;
 
 larch.controls.makeFocusable = function(node) {
-    $(node).addClass("larch_ui_focusable");
+    var q = $(node);
+    q.addClass("larch_ui_focusable");
+    q.click(function() {
+        larch.controls.grabFocus(node);
+    });
 };
 
 larch.controls.grabFocus = function(node) {
