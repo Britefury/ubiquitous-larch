@@ -437,6 +437,15 @@ larch.__unhighlightElement = function(element) {
 //
 
 
+larch.__createKey = function(keyCode, altKey, ctrlKey, shiftKey, metaKey) {
+    return {
+        keyCode: keyCode,
+        altKey: altKey,
+        ctrlKey: ctrlKey,
+        shiftKey: shiftKey,
+        metaKey: metaKey
+    };
+};
 
 larch.__matchKeyEvent = function(event, key) {
     if (key.keyCode === undefined  ||  event.keyCode == key.keyCode) {
@@ -862,6 +871,7 @@ larch.hasQueuedEventFactory = function(src_element, event_name) {
     }
     else {
         larch.__warnUserUnableToGetSegmentIDForElement(src_element);
+        return false;
     }
 };
 
@@ -873,16 +883,20 @@ larch.hasQueuedEventFactory = function(src_element, event_name) {
 //
 //
 
-larch.__warnUserUnableToGetSegmentIDForElement = function(element) {
-    larch.showAlert(function() {
-        var elem = $('<span class="event_error_segment">element</span>');
-        elem.mouseover(function() {larch.__highlightElement(element);}).mouseout(function() {larch.__unhighlightElement(element);});
+larch.__enableAdditionalClientSideDebugging = false;
 
-        var text = $('<span>Unable to get find the segment containing </span>');
-        text.append(elem);
-        text.append('<br>This is likely due to DOM manipulation operations moving the element outside the Larch document flow');
-        return text;
-    });
+larch.__warnUserUnableToGetSegmentIDForElement = function(element) {
+    if (larch.__enableAdditionalClientSideDebugging) {
+        larch.showAlert(function() {
+            var elem = $('<span class="event_error_segment">element</span>');
+            elem.mouseover(function() {larch.__highlightElement(element);}).mouseout(function() {larch.__unhighlightElement(element);});
+
+            var text = $('<span>Unable to get find the segment containing </span>');
+            text.append(elem);
+            text.append('<br>This is likely due to DOM manipulation operations moving the element outside the Larch document flow');
+            return text;
+        });
+    }
 };
 
 
@@ -1069,20 +1083,26 @@ larch.__resourceModified = function(rscId) {
 larch.__commands = []
 
 
-larch.__invokeCommand = function(cmd) {
-    larch.postDocumentEvent('command', cmd.commandId);
-};
-
-larch.__invokeCommandById = function(commandId) {
-    larch.postDocumentEvent('command', commandId);
-};
-
-
 larch.registerCommand = function(keySequence, commandId, description) {
     var cmd = {
         keySequence: keySequence,
         commandId: commandId,
-        description: description
+        description: description,
+        invoke: function() {
+            larch.postDocumentEvent('command', cmd.commandId);
+        }
+    };
+    larch.__commands.push(cmd);
+};
+
+larch.registerClientSideCommand = function(keySequence, invokeFn, description) {
+    var cmd = {
+        keySequence: keySequence,
+        invokeFn: invokeFn,
+        description: description,
+        invoke: function() {
+            cmd.invokeFn();
+        }
     };
     larch.__commands.push(cmd);
 };
@@ -1139,7 +1159,7 @@ larch.__presentKeySequence = function(keySequence) {
 //
 //
 
-larch.__createCommandHelpDialog = function(commands) {
+larch.__createCommandHelpDialog = function(commands, onClose) {
     // The help dialog structure
     var helpDialog = {
         dialog: null,
@@ -1158,7 +1178,7 @@ larch.__createCommandHelpDialog = function(commands) {
 
     var makeLinkListener = function(cmd) {
         return function() {
-            larch.__invokeCommand(cmd);
+            cmd.invoke();
             larch.__commandBar.close()
             return true;
         };
@@ -1175,13 +1195,17 @@ larch.__createCommandHelpDialog = function(commands) {
         var rowQ = $('<tr></tr>').append(cmdSeqQ).append(descriptionQ);
         table.append(rowQ);
     }
-    var div = $('<div></div>');
+    var div = $('<div class="command_table_container"></div>');
     div.append('<p>The following commands are available:</p>');
     div.append(table);
 
 
     // Set the dialog attribute of the structure
-    helpDialog.dialog = $(div).dialog();
+    helpDialog.dialog = $(div).dialog({
+        close: function(event, ui) {
+            onClose();
+        }
+    });
 
     return helpDialog;
 };
@@ -1198,6 +1222,8 @@ larch.__createCommandBar = function(onClose) {
     var cmdBar = {
         partialCommandKeySequence: [],
         barNoty: null,
+        barNotyAppearing: true,
+        closeQueued: false,
         helpDialog: null,
 
 
@@ -1216,7 +1242,9 @@ larch.__createCommandBar = function(onClose) {
                     }
                 }
 
-                cmdBar.helpDialog = larch.__createCommandHelpDialog(matchingCommands);
+                cmdBar.helpDialog = larch.__createCommandHelpDialog(matchingCommands, function() {
+                    cmdBar.helpDialog = null;
+                });
             }
         },
 
@@ -1226,7 +1254,6 @@ larch.__createCommandBar = function(onClose) {
         closeHelpDialog: function() {
             if (cmdBar.helpDialog !== null) {
                 cmdBar.helpDialog.close();
-                cmdBar.helpDialog = null;
             }
         },
 
@@ -1247,7 +1274,14 @@ larch.__createCommandBar = function(onClose) {
         //
         close: function() {
             cmdBar.closeHelpDialog();
-            cmdBar.barNoty.close();
+
+            if (cmdBar.barNotyAppearing) {
+                // Noty is in the process of appearing; it cannot be closed yet; queue the close
+                cmdBar.closeQueued = true;
+            }
+            else {
+                cmdBar.barNoty.close();
+            }
         },
 
 
@@ -1270,7 +1304,7 @@ larch.__createCommandBar = function(onClose) {
                 // Found a command
 
                 // Invoke it
-                larch.__invokeCommand(matchingCommand);
+                matchingCommand.invoke();
 
                 // We are done
                 cmdBar.close();
@@ -1315,6 +1349,17 @@ larch.__createCommandBar = function(onClose) {
         callback: {
             onClose: function() {
                 onClose();
+            },
+            afterShow: function() {
+                // Finished appearing
+                cmdBar.barNotyAppearing = false;
+
+                if (cmdBar.closeQueued) {
+                    // A close request has been queued; queue a close
+                    setTimeout(function() {
+                        cmdBar.close();
+                    }, 0);
+                }
             }
         }
     });
@@ -1376,5 +1421,21 @@ larch.__onDocumentReady = function(initialisers) {
         larch.__setupCommandListeners();
     }
     larch.__postModificationCleanup();
+
+    // Activate additional client side debugging toggle command: C-D
+    larch.registerClientSideCommand([larch.__createKey(67), larch.__createKey(68)],
+        function() {
+            larch.__enableAdditionalClientSideDebugging = true;
+        },
+         'Enable additional client side debugging'
+    );
+
+    // Deactivate additional client side debugging toggle command: C-X
+    larch.registerClientSideCommand([larch.__createKey(67), larch.__createKey(88)],
+        function() {
+            larch.__enableAdditionalClientSideDebugging = false;
+        },
+         'Disable additional client side debugging'
+    );
 };
 

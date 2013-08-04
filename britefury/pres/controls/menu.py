@@ -21,7 +21,7 @@ def item(item_content, on_select=None):
 	:param on_select: a callback invoked when the menu item is activated by the user
 	:return: the menu item control
 	"""
-	p = Html('<li><a href="#">', item_content, '</a></li>')
+	p = Html('<li><a>', item_content, '</a></li>')
 	if on_select is not None:
 		p = p.with_event_handler('menu_select', lambda event_name, ev_data: on_select())
 	return p
@@ -36,7 +36,7 @@ def sub_menu(item_content, items):
 	:return: the menu item control
 	"""
 	sub = ['<ul class="popup_box">'] + list(items) + ['</ul>']
-	return Html(*['<li class="popup_box"><a href="#">', item_content, '</a>'] + sub + ['</li>'])
+	return Html(*['<li class="popup_box"><a>', item_content, '</a>'] + sub + ['</li>'])
 
 
 def menu(items, drop_down=False):

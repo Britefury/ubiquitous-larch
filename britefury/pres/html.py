@@ -17,6 +17,18 @@ class Html (Pres):
 				self.__contents.append(Pres.coerce(c))
 
 
+	def append(self, *contents):
+		return self.extend(contents)
+
+	def extend(self, contents):
+		for c in contents:
+			if isinstance(c, str) or isinstance(c, unicode):
+				self.__contents.append(c)
+			else:
+				self.__contents.append(Pres.coerce(c))
+		return self
+
+
 	def build(self, pres_ctx):
 		cs = []
 		for c in self.__contents:

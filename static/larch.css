@@ -92,6 +92,10 @@ h6 {
     color: #585858;
 }
 
+body {
+    color: #404040;
+    font-family: "Oxygen", "Tahoma", "Geneva", sans-serif;
+}
 
 .gui_box {
     width: 100%;
@@ -257,6 +261,10 @@ span.command_table_desc {
 
 span.command_table_desc:hover {
     color: #0080ff;
+}
+
+.command_table_container {
+    overflow-y: auto;
 }
 
 .invalid_page_style {
