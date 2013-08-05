@@ -793,22 +793,15 @@ larch.__sendEventMessagesToServer = function(ev_messages) {
 larch.__postEventMessage = function(ev_msg) {
     var messages = [];
 
-    if (larch.__eventFactoryQueue.length > 0) {
-        // Create events from factory queue
-        for (var i = 0; i < larch.__eventFactoryQueue.length; i++) {
-            var key = larch.__eventFactoryQueue[i];
-            var fac = larch.__eventFactoriesBySrcAndName[key];
-            var ev_data = fac.event_factory();
-            var msg = larch.__buildElementEventMessage(fac.segment_id, fac.event_name, ev_data);
-            messages.push(msg);
-        }
-        // Clear factory queue
-        larch.__eventFactoryQueue = [];
-        larch.__eventFactoriesBySrcAndName = {};
+    if (larch.__eventFactoryQueue !== null) {
+        messages = larch.__eventFactoryQueue.buildMessageList();
+        larch.__eventFactoryQueue.clear();
     }
 
     // Add the message that we are posting
-    messages.push(ev_msg);
+    if (ev_msg !== null) {
+        messages.push(ev_msg);
+    }
 
     // Send
     larch.__sendEventMessagesToServer(messages);
@@ -840,39 +833,109 @@ larch.postDocumentEvent = function(event_name, event_data) {
 };
 
 
-larch.__eventFactoryQueue = [];
-larch.__eventFactoriesBySrcAndName = {};
+larch.__eventFactoryQueue = null;
+
+
+larch.__createEventFactoryQueue = function(onClear) {
+    var q = {
+        eventFactories: [],
+        factoriesBySrcAndName: {},
+        timeoutID: null,
+
+        hasQueuedEventFactory: function(src_element, event_name) {
+            var segment_id = larch.__getSegmentIDForEvent(src_element);
+
+            if (segment_id !== null) {
+                var key = segment_id + '__' + event_name;
+
+                return q.factoriesBySrcAndName.hasOwnProperty(key);
+            }
+            else {
+                larch.__warnUserUnableToGetSegmentIDForElement(src_element);
+                return false;
+            }
+        },
+
+        queueEventFactory: function(src_element, event_name, event_factory) {
+            var segment_id = larch.__getSegmentIDForEvent(src_element);
+
+            if (segment_id !== null) {
+                var key = segment_id + '__' + event_name;
+
+                var fac = {segment_id: segment_id, event_name: event_name, event_factory: event_factory};
+                if (!q.hasQueuedEventFactory(src_element, event_name)) {
+                    q.eventFactories.push(key);
+                }
+                q.factoriesBySrcAndName[key] = fac;
+            }
+            else {
+                larch.__warnUserUnableToGetSegmentIDForElement(src_element);
+            }
+        },
+
+        buildMessageList: function() {
+            var messages = [];
+
+            if (q.eventFactories.length > 0) {
+                // Create events from factory queue
+                for (var i = 0; i < q.eventFactories.length; i++) {
+                    var key = q.eventFactories[i];
+                    var fac = q.factoriesBySrcAndName[key];
+                    var ev_data = fac.event_factory();
+                    var msg = larch.__buildElementEventMessage(fac.segment_id, fac.event_name, ev_data);
+                    messages.push(msg);
+                }
+            }
+
+            return messages;
+        },
+
+
+        clear: function() {
+            // Clear factory queue
+            q.eventFactories = [];
+            q.factoriesBySrcAndName = {};
+            if (q.timeoutID !== null) {
+                clearTimeout(q.timeoutID);
+                q.timeoutID = null;
+            }
+            onClear();
+        },
+
+
+        setupTimeout: function() {
+            if (q.timeoutID !== null) {
+                clearTimeout(q.timeoutID);
+            }
+
+            q.timeoutID = setTimeout(function() {
+                q.timeoutID = null;
+                q.__sendAndClear();
+            }, 1000);
+        },
+
+
+        __sendAndClear: function() {
+            var messages = q.buildMessageList();
+            q.clear();
+            larch.__sendEventMessagesToServer(messages);
+        }
+    };
+
+    return q;
+};
+
+
 
 
 larch.queueEventFactory = function(src_element, event_name, event_factory) {
-    var segment_id = larch.__getSegmentIDForEvent(src_element);
-
-    if (segment_id !== null) {
-        var key = segment_id + '__' + event_name;
-
-        var fac = {segment_id: segment_id, event_name: event_name, event_factory: event_factory};
-        if (!larch.hasQueuedEventFactory(src_element, event_name)) {
-            larch.__eventFactoryQueue.push(key);
-        }
-        larch.__eventFactoriesBySrcAndName[key] = fac;
+    if (larch.__eventFactoryQueue === null) {
+        larch.__eventFactoryQueue = larch.__createEventFactoryQueue(function() {
+            larch.__eventFactoryQueue = null;
+        });
     }
-    else {
-        larch.__warnUserUnableToGetSegmentIDForElement(src_element);
-    }
-};
-
-larch.hasQueuedEventFactory = function(src_element, event_name) {
-    var segment_id = larch.__getSegmentIDForEvent(src_element);
-
-    if (segment_id !== null) {
-        var key = segment_id + '__' + event_name;
-
-        return larch.__eventFactoriesBySrcAndName.hasOwnProperty(key);
-    }
-    else {
-        larch.__warnUserUnableToGetSegmentIDForElement(src_element);
-        return false;
-    }
+    larch.__eventFactoryQueue.queueEventFactory(src_element, event_name, event_factory);
+    larch.__eventFactoryQueue.setupTimeout();
 };
 
 
