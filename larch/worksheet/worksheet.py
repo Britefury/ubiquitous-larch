@@ -64,7 +64,6 @@ class WorksheetBlockText (WorksheetBlock):
 
 		def on_edit(text):
 			self.__text = text
-			self.__incr.on_changed()
 
 		p = ckeditor.ckeditor(self.__text, on_edit=on_edit)
 
