@@ -1,9 +1,7 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-import json
-import traceback
-import sys
+import json, traceback, sys, tempfile, os
 from britefury.dynamicpage.page import DynamicPage, EventHandleError
 from britefury.dynamicpage import messages
 from britefury.inspector import present_exception
@@ -11,6 +9,15 @@ from britefury.inspector import present_exception
 __author__ = 'Geoff'
 
 import random
+
+
+
+class UploadedFile (object):
+	def __init__(self, upload_name, fp):
+		self.upload_name = upload_name
+		self.file = fp
+
+
 
 
 class DynamicPageService (object):
@@ -91,9 +98,9 @@ class DynamicPageService (object):
 
 	def event(self, session_id, event_data):
 		"""
-		Event response. Map the URL /event to this. You will need to extract the session_id and event_data fields from the POST data and pass them through
+		Event response. Map the URL /event/<session_id> to this. You will need to extract the session_id from the URL and the event_data field from the POST data and pass them through
 
-		:param session_id: session_id field from POST data
+		:param session_id: session_id field from URL
 		:param event_data: event_data field from POST data
 		:return: JSON string to send to the client browser
 		"""
@@ -110,13 +117,49 @@ class DynamicPageService (object):
 
 		dynamic_page = session.dynamic_page
 
-		dynamic_page.lock()
-
 		# Get the event messages
 		block_json = json.loads(event_data)
 		events_json = block_json['messages']
 
+		return self.__handle_events(dynamic_page, events_json)
+
+
+
+	def form(self, session_id, form_data):
+		"""
+		Form response. Map the URL /form/<session_id> to this. You will need to extract the session_id from the URL and pass it as the first argument, along with the POST data as the second
+
+		:param session_id: session_id field from URL
+		:param form_data: the post data
+		:return: JSON string to send to the client browser
+		"""
+
+		# Get the page for the given session
+		try:
+			session = self.__sessions[session_id]
+		except KeyError:
+			msg = messages.invalid_page_message()
+			client_messages = [msg]
+			result = json.dumps(client_messages)
+			return result
+
+
+		dynamic_page = session.dynamic_page
+
+		# Build the form event
+		ev_data = {}
+		ev_data.update(form_data)
+		segment_id = ev_data.pop('__larch_segment_id')
+		events_json = [{'segment_id': segment_id, 'event_name': 'form_submit', 'ev_data': ev_data}]
+
+		return self.__handle_events(dynamic_page, events_json)
+
+
+
+	def __handle_events(self, dynamic_page, events_json):
 		error_messages = []
+
+		dynamic_page.lock()
 
 		# Handle the events
 		for ev_json in events_json:
@@ -144,6 +187,8 @@ class DynamicPageService (object):
 		dynamic_page.unlock()
 
 		return result
+
+
 
 
 	def resource(self, session_id, rsc_id):
@@ -176,6 +221,11 @@ class DynamicPageService (object):
 			dynamic_page.unlock()
 
 		return result
+
+
+
+	def new_uploaded_file(self, upload_name):
+		return UploadedFile(upload_name)
 
 
 

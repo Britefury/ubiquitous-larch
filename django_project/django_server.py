@@ -37,6 +37,13 @@ def event(request, session_id):
 	return HttpResponse(data, content_type='application/json')
 
 
+@require_POST
+def form(request, session_id):
+	raise NotImplementedError, 'Form handling not implemented yet'
+	# data = service.event(session_id, event_data)
+	# return HttpResponse(data, content_type='application/json')
+
+
 @require_GET
 def rsc(request, session_id, rsc_id):
 	data_and_mime_type = service.resource(session_id, rsc_id)

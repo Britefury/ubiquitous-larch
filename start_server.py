@@ -5,6 +5,7 @@
 
 from bottle import Bottle, run, static_file, request, response
 
+from britefury.dynamicpage.service import UploadedFile
 from britefury.projection.projection_service import CouldNotResolveLocationError
 
 from larch import larch_app
@@ -40,6 +41,24 @@ def page(location):
 def event(session_id):
 	event_data = request.forms.get('event_data')
 	data = service.event(session_id, event_data)
+	response.content_type = 'application/json; charset=UTF8'
+	return data
+
+
+@app.route('/form/<session_id>', method='POST')
+def form(session_id):
+	form_data = {}
+
+	for k in request.forms.keys():
+		form_data[k] = request.forms.get(k)
+	for k in request.files.keys():
+		upload = request.files.get(k)
+		src_file = upload.make_file()
+		f = UploadedFile(upload.filename, src_file)
+		form_data[k] = f
+
+	data = service.form(session_id, form_data)
+
 	response.content_type = 'application/json; charset=UTF8'
 	return data
 

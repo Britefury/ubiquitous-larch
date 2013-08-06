@@ -61,6 +61,25 @@ class LarchService (object):
 	event.exposed = True
 
 
+	def form(self, *location_components, **post_data):
+		if len(location_components) == 1:
+			session_id = location_components[0]
+
+			raise NotImplementedError, 'CherryPy form handling not implemented; don\'t know how to differentiate file uploads yet'
+
+			# event_data = post_data.get('event_data')
+			# if event_data is None:
+			# 	cherrypy.response.status = 400
+			# 	return 'No event data'
+			#
+			# return self.service.event(session_id, event_data)
+		else:
+			cherrypy.response.status = 404
+			return 'Invalid form URL'
+
+	form.exposed = True
+
+
 	def rsc(self, *location_components, **kwargs):
 		if len(location_components) == 2:
 			session_id, rsc_id = location_components

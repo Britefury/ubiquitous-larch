@@ -171,3 +171,21 @@ larch.controls.initToggleCommandBarButton = function(node) {
 };
 
 
+
+larch.controls.initForm = function(node) {
+    var form = $(node);
+    form.submit(function() {
+        var segment_id = larch.__getSegmentIDForEvent(node);
+        form.ajaxSubmit({
+            data: {__larch_segment_id: segment_id},
+            url: '/form/' + larch.__session_id,
+            dataType: 'json',
+            type: 'POST',
+            success: function(msg) {
+                larch.__handleMessagesFromServer(msg);
+            }
+        });
+        return false;
+    });
+    form.ajaxForm();
+};

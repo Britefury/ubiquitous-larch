@@ -1349,12 +1349,10 @@ larch.__createCommandBar = function(onClose) {
 
 
         //
-        // ADD KEY
+        // KEY SEQUENCE MODIFIED
         //
-        addKey: function(key) {
+        __keySequenceModified: function() {
             var matchingCommand = null;
-            cmdBar.partialCommandKeySequence.push(key);
-
             for (var i = 0; i < larch.__commands.length; i++) {
                 var cmd = larch.__commands[i];
                 if (larch.__compareKeySequences(cmd.keySequence, cmdBar.partialCommandKeySequence)) {
@@ -1381,6 +1379,24 @@ larch.__createCommandBar = function(onClose) {
             cmdBar.barNoty.setText(notyText);
         },
 
+
+        //
+        // ADD KEY
+        //
+        addKey: function(key) {
+            cmdBar.partialCommandKeySequence.push(key);
+            cmdBar.__keySequenceModified();
+        },
+
+
+        //
+        // REMOVE KEY
+        //
+        removeKey: function() {
+            cmdBar.partialCommandKeySequence.pop();
+            cmdBar.__keySequenceModified();
+        },
+
         //
         // KEY RESPONSE FUNCTION
         //
@@ -1393,6 +1409,11 @@ larch.__createCommandBar = function(onClose) {
                 // H - Toggle help dialog
 
                 cmdBar.toggleHelpDialog();
+            }
+            else if (event.keyCode === 8) {
+                // Backspace - delete a key
+
+                cmdBar.removeKey();
             }
             else {
                 // Another key in the sequence

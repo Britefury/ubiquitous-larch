@@ -18,4 +18,5 @@ def focusable(contents, on_gain_focus=None, on_lose_focus=None):
 		p = p.with_event_handler('gain_focus', lambda event_name, ev_data: on_gain_focus())
 	if on_lose_focus is not None:
 		p = p.with_event_handler('lose_focus', lambda event_name, ev_data: on_lose_focus())
+	p = p.use_js('/static/larch_ui.js').use_css('/static/larch_ui.css')
 	return p

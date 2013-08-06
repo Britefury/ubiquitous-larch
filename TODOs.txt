@@ -1,3 +1,9 @@
+- Exceptions encountered while evaluating a function that generates data for a resource only appears in the console; they are not reported to the user
+- IPython importer
+- Forms / file upload
+- Popup presentations
+
+
 Live inspection (variables in scope)
 
 Access to documentation

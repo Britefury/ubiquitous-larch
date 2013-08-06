@@ -9,6 +9,7 @@ urlpatterns = patterns('',
 	url('^$', django_server.index, name='index'),
 	url('^pages/(?P<location>.+)', django_server.page, name='pages'),
 	url('^event/(?P<session_id>[^/]+)', django_server.event, name='event'),
+	url('^form/(?P<session_id>[^/]+)', django_server.form, name='form'),
 	url('^rsc/(?P<session_id>[^/]+)/(?P<rsc_id>[^/]+)', django_server.rsc, name='resource'),
 	# Examples:
 	# url(r'^$', 'django_project.views.home', name='home'),

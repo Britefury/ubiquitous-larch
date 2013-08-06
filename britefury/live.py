@@ -109,6 +109,11 @@ class LiveFunction (AbstractLive):
 		self.__incr.on_changed()
 
 
+	@property
+	def __name__(self):
+		return self.__fn.__name__
+
+
 
 
 	@property
