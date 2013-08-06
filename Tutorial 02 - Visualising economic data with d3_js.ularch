@@ -257,6 +257,6 @@ Rp97
 g12
 g4
 sg13
-V<h2>In Summary</h2><p>Within this worksheet we have:</p><ul><li>Grabbed economic and health data from Google Docs spreadsheets</li><li>Used interpolation to fill in blank entries in the data</li><li>Visualised it using d3.js, with the interactivity provided by Python code</li></ul><p>The graphics are constructed by Javascript code using the d3.js library, while the interactivity is provided by Python code; each time you drag the slider, the value contained by the LiveValue Python object is updated, which in turn causes the&nbsp;data_for_chosen_year live function to trigger an update. This update request is sent to the client, which responds by getting the updated data and modifying the chart.</p>
+V<h2>In Summary</h2><p>Within this worksheet we have:</p><ul><li>Grabbed economic and health data over the web from a Google Docs spreadsheet</li><li>Used interpolation to fill in blank entries in the data</li><li>Visualised it using d3.js, with the interactivity provided by Python code</li></ul><p>The graphics are constructed by Javascript code using the d3.js library, while the interactivity is provided by Python code; each time you drag the slider, the value contained by the LiveValue Python object is updated, which in turn causes the&nbsp;data_for_chosen_year live function to trigger an update. This update request is sent to the client, which responds by getting the updated data and modifying the chart.</p>
 p99
 sbasb.

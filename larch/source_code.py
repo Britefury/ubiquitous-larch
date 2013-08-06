@@ -2,7 +2,8 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 import _ast
-import sys
+import sys, re
+
 from collections import namedtuple
 from britefury.incremental import IncrementalValueMonitor
 from britefury.inspector.present_exception import present_exception
@@ -59,6 +60,19 @@ class AbstractSourceCode (object):
 
 
 
+	def _filter_source_text(self, text):
+		"""
+		Filter te source text when we receive a change event from the CodeMirror widget
+
+		Override this method in cases where you need to modify the incoming source before it is stored in this object
+
+		:param text: The incoming text
+		:return: The filtered text
+		"""
+		return text
+
+
+
 
 
 	def __present__(self, fragment):
@@ -68,7 +82,7 @@ class AbstractSourceCode (object):
 		self.__incr.on_access()
 
 		def on_change(ev_data):
-			self.__code = ev_data
+			self.__code = self._filter_source_text(ev_data)
 
 		config = {}
 		config.update(self.__codemirror_config__)
@@ -197,6 +211,10 @@ _stream_style_map = {
 
 
 class PythonCode (AbstractSourceCode):
+	__whitespace = re.compile('[ \t]+')
+	__spaces_per_indent = 4
+	__indent_replacement = ' ' * __spaces_per_indent
+
 	__codemirror_modes__ = ['python']
 	__codemirror_config__ = {
 			'mode': {
@@ -209,6 +227,32 @@ class PythonCode (AbstractSourceCode):
 			'tabMode': "shift",
 			'matchBrackets': True
 	}
+
+
+	def __filter_line(self, line):
+		# Match leading whitespace
+		m = self.__whitespace.match(line)
+		# Match succeeded and line is not all whitespace
+		if m is not None  and  m.end(0) < len(line):
+			# Replace the tabs with spaces
+			g = m.group(0)
+			ws = g.replace('\t', self.__indent_replacement)
+			return ws + line[len(g):]
+		else:
+			return line
+
+	def _filter_source_text(self, text):
+		"""
+		Within leading whitespace, replace tabs with spaces
+
+		Sometimes CodeMirror can return a combination of both which results in IndentationError when the code is passed to the interpreter for execution
+		:param text: Incoming source text
+		:return: Filtered text
+		"""
+		# Filter each line in turn
+		lines = text.split('\n')
+		lines = [self.__filter_line(line)   for line in lines]
+		return '\n'.join(lines)
 
 
 	def execute_in_module(self, module):
