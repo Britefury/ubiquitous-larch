@@ -4,8 +4,8 @@
 import json
 import traceback
 import sys
-from britefury.dynamicsegments.page import DynamicPage, EventHandleError
-from britefury.dynamicsegments import messages
+from britefury.dynamicpage.page import DynamicPage, EventHandleError
+from britefury.dynamicpage import messages
 from britefury.inspector import present_exception
 
 __author__ = 'Geoff'

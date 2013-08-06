@@ -3,8 +3,8 @@
 ##-*************************
 import json
 
-from britefury.dynamicsegments.segment import HtmlContent
-from britefury.dynamicsegments import dependencies
+from britefury.dynamicpage.segment import HtmlContent
+from britefury.dynamicpage import dependencies
 from britefury.pres.presctx import PresentationContext
 from britefury.pres.key_event import KeyAction
 from britefury.pres import js

@@ -4,7 +4,7 @@
 import cgi
 
 from britefury.pres.pres import Pres
-from britefury.dynamicsegments.segment import HtmlContent
+from britefury.dynamicpage.segment import HtmlContent
 
 
 class Html (Pres):

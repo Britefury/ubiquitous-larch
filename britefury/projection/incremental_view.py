@@ -4,13 +4,13 @@
 import sys
 from collections import deque
 
-from britefury.attribute_table.simple_attribute_table import SimpleAttributeTable
+from britefury.util.simple_attribute_table import SimpleAttributeTable
 from britefury.pres.presctx import PresentationContext
 from britefury.pres.pres import Pres
 from britefury.pres.html import Html
 from britefury.incremental import IncrementalMonitor, IncrementalFunctionMonitor
 from britefury.inspector.present_exception import present_exception
-from britefury.dynamicsegments.segment import  HtmlContent
+from britefury.dynamicpage.segment import  HtmlContent
 
 
 

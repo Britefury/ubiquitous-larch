@@ -10,9 +10,9 @@ import json
 
 from copy import copy
 
-from britefury.dynamicsegments.segment import DynamicSegment, SegmentRef
-from britefury.dynamicsegments import messages, dependencies
-from britefury.dynamicsegments import global_dependencies
+from britefury.dynamicpage.segment import DynamicSegment, SegmentRef
+from britefury.dynamicpage import messages, dependencies
+from britefury.dynamicpage import global_dependencies
 from britefury.inspector import present_exception
 
 from britefury.pres import js

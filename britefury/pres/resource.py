@@ -6,7 +6,7 @@ import os
 
 import mimetypes
 
-from britefury.dynamicsegments.segment import HtmlContent
+from britefury.dynamicpage.segment import HtmlContent
 from britefury.live import LiveFunction
 from britefury.pres.pres import Resource
 from britefury.projection.subject import Subject

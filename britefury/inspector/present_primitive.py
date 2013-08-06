@@ -1,7 +1,7 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-from britefury.dynamicsegments.global_dependencies import GlobalCSS
+from britefury.dynamicpage.global_dependencies import GlobalCSS
 
 from britefury.pres.html import Html
 

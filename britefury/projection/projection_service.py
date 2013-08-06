@@ -1,7 +1,7 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-from britefury.dynamicsegments.service import DynamicPageService
+from britefury.dynamicpage.service import DynamicPageService
 from britefury.projection.incremental_view import IncrementalView
 from britefury.projection.subject import Subject
 from britefury import command
