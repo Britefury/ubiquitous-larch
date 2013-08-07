@@ -18,3 +18,14 @@ def form(contents, on_submit=None):
 	p = Html('<form enctype="multipart/form-data">', contents, '</form>').js_function_call('larch.controls.initForm').with_event_handler('form_submit', _submit)
 	p = p.use_js('/static/jquery/js/jquery.form.min.js').use_js('/static/larch_ui.js').use_css('/static/larch_ui.css')
 	return p
+
+
+
+def submit_button(text):
+	"""
+	Create a submit button with the given text
+
+	:param text: The text contained in the button
+	:return: the control
+	"""
+	return Html('<input type="submit" value="{0}"/>'.format(text)).js_eval('$(node).button();')

@@ -8,6 +8,8 @@ try:
 except ImportError:
 	markdown = None
 
+from britefury.pres.html import Html
+
 from larch.worksheet import worksheet
 
 
@@ -95,3 +97,17 @@ def load(fp):
 	:return: (worksheets, notebook_name)  where worksheets in a list of worksheets and notebook_name is the name of the notebook
 	"""
 	return load_json(json.load(fp))
+
+
+
+def markdown_warning():
+	if markdown is not None:
+		return None
+	else:
+		return Html('<div class="warning_box">',
+			    '<p><span class="warning_text">Warning:</span> the Python <a href="https://pypi.python.org/pypi/Markdown">Markdown</a> library is not installed.</p>'
+			    '<p>Many Python installations will allow you to install it from the command-line by typing:</p>',
+			    '<p><span class="code">pip install markdown</span></p>',
+			    '<p>Otherwise, instructions can be obtained from the documentation linked from the Markdown project page.</p>',
+			    '</div>'
+		)

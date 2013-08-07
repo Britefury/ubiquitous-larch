@@ -136,6 +136,23 @@ body {
     font-style: italic;
 }
 
+.code {
+    font-family: monospace
+}
+
+.warning_box {
+    margin: 1em;
+    border: 1px solid #ffd000;
+    border-radius: 8px;
+    background: #fffaf0;
+    padding: 8px 15px;
+}
+
+.warning_text {
+    font-weight: bold;
+    color: #ff8000;
+}
+
 .error_text {
     font-family: "Garamond", "Georgia", serif;
     color: #800000;

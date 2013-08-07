@@ -556,16 +556,22 @@ class UploadIPynbTool (Tool):
 				self.__doc_list.new_document_for_content(filename, worksheets[0])
 			self.close()
 
-
+		def on_cancel():
+			self.close()
 
 
 		upload_form_contents = Html('<div><input type="file" name="file" size="50"/></div>',
-					    '<div><input type="submit" value="Upload"></div>')
+					    '<table>',
+					    '<tr><td>', button.button('Cancel', on_cancel), '</td><td>', form.submit_button('Upload'), '</td></tr>',
+					    '</table>')
 		upload_form = form.form(upload_form_contents, _on_upload)
+
+		warning = ipynb_filter.markdown_warning()
 
 		return Html('<div class="tool_box">',
 				'<span class="gui_section_1">Upload IPython Noteook</span><br>',
 				upload_form,
+				warning   if warning is not None   else '',
 				'</div>')
 
 
@@ -603,6 +609,8 @@ class DownloadIPynbFromWebTool (Tool):
 		def on_cancel():
 			self.close()
 
+		warning = ipynb_filter.markdown_warning()
+
 		return Html('<div class="tool_box">',
 				'<span class="gui_section_1">Download IPython notebook from the web</span><br>',
 				'<div><span class="gui_label">Web address (Github/Bitbucket RAW, etc):</span></div>',
@@ -610,6 +618,7 @@ class DownloadIPynbFromWebTool (Tool):
 				'<table>',
 				'<tr><td>', button.button('Cancel', on_cancel), '</td><td>', button.button('Import', on_import), '</td></tr>',
 				'</table>',
+				warning   if warning is not None   else '',
 				'</div>')
 
 
@@ -697,7 +706,8 @@ class LarchApplication (object):
 		import_ipynb_menu = menu.menu([import_ipynb_item], drop_down=True)
 
 
-		document_controls = Html('<table class="larch_app_controls_row"><tr><td class="larch_app_control">', new_document_menu, '</td><td class="larch_app_control">', import_ipynb_menu, '</td></tr></table>')
+		document_controls = Html('<table class="larch_app_controls_row"><tr><td class="larch_app_control">', new_document_menu, '</td>',
+					 '<td class="larch_app_control">', import_ipynb_menu, '</td></tr></table>')
 
 
 		def on_new_console():
