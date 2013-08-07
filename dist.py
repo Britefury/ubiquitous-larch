@@ -5,6 +5,13 @@ import py_compile
 import zipfile
 
 
+ularch_files = [
+	'Quick tour*.ularch',
+	'Tutorial*.ularch',
+	'Documentation*.ularch',
+]
+
+
 if len( sys.argv ) != 2:
 	print 'Usage:'
 	print '\t%s <version>'  %  sys.argv[0]
@@ -35,8 +42,7 @@ rootFiles = [
 	'start_server.py',
 	'LICENSE-*.txt',
 	'README.txt',
-	'*.ularch'
-]
+] + ularch_files
 
 
 def copyFile(z, src, dst):
