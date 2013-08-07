@@ -569,7 +569,7 @@ larch.__messageHandlers = {
         if (!larch.__connectionToPageLost) {
             larch.__connectionToPageLost = true;
             noty({
-                text: '<p class="invalid_page_style">Connection to page lost. Click to reload.</p>',
+                text: '<p class="invalid_page_style">Connection to page lost. Click to reload.<br><br><span class="emph">(the server may have been restarted)</span></p>',
                 layout: "center",
                 type: "error",
                 modal: true,

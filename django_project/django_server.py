@@ -3,9 +3,12 @@
 ##-*************************
 import webbrowser
 
+import tempfile, os
+
 from django.http import HttpResponse, Http404
 from django.views.decorators.http import require_POST, require_GET
 
+from britefury.dynamicpage.service import UploadedFile
 from britefury.projection.projection_service import CouldNotResolveLocationError
 
 from larch import larch_app
@@ -39,9 +42,37 @@ def event(request, session_id):
 
 @require_POST
 def form(request, session_id):
-	raise NotImplementedError, 'Form handling not implemented yet'
-	# data = service.event(session_id, event_data)
-	# return HttpResponse(data, content_type='application/json')
+	form_data = {}
+
+	for k in request.POST.keys():
+		form_data[k] = request.POST[k]
+
+	files = []
+	for k in request.FILES:
+		upload = request.FILES[k]
+
+		fd, temp_file_path = tempfile.mkstemp()
+		os.close(fd)
+		os.remove(temp_file_path)
+
+		f = open(temp_file_path, 'wb')
+		for chunk in upload.chunks():
+			f.write(chunk)
+		f.close()
+
+		f = UploadedFile(upload.name, open(temp_file_path, 'rb'), flask_upload=upload)
+
+		form_data[k] = f
+
+		files.append((f, temp_file_path))
+
+	data = service.form(session_id, form_data)
+
+	for f in files:
+		f[0].file.close()
+		os.remove(f[1])
+
+	return HttpResponse(data, content_type='application/json')
 
 
 @require_GET

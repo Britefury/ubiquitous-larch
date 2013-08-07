@@ -58,7 +58,7 @@ def form(session_id):
 
 		upload.save(temp_file_path)
 
-		f = UploadedFile(upload.name, open(temp_file_path, 'rb'))
+		f = UploadedFile(upload.filename, open(temp_file_path, 'rb'))
 
 		form_data[k] = f
 		files.append((f, temp_file_path))

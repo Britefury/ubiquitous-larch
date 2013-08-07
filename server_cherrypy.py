@@ -5,7 +5,9 @@ import os
 import webbrowser
 
 import cherrypy
+from cherrypy import _cpreqbody
 
+from britefury.dynamicpage.service import UploadedFile
 from britefury.projection.projection_service import CouldNotResolveLocationError
 
 from larch import larch_app
@@ -65,14 +67,15 @@ class LarchService (object):
 		if len(location_components) == 1:
 			session_id = location_components[0]
 
-			raise NotImplementedError, 'CherryPy form handling not implemented; don\'t know how to differentiate file uploads yet'
+			form_data = {}
 
-			# event_data = post_data.get('event_data')
-			# if event_data is None:
-			# 	cherrypy.response.status = 400
-			# 	return 'No event data'
-			#
-			# return self.service.event(session_id, event_data)
+			for k, v in post_data.items():
+				if isinstance(v, _cpreqbody.Entity):
+					form_data[k] = UploadedFile(v.filename, v.file, cherrypy_upload=v)
+				else:
+					form_data[k] = v
+
+			return self.service.form(session_id, form_data)
 		else:
 			cherrypy.response.status = 404
 			return 'Invalid form URL'

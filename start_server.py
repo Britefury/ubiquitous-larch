@@ -53,8 +53,7 @@ def form(session_id):
 		form_data[k] = request.forms.get(k)
 	for k in request.files.keys():
 		upload = request.files.get(k)
-		src_file = upload.make_file()
-		f = UploadedFile(upload.filename, src_file)
+		f = UploadedFile(upload.filename, upload.file)
 		form_data[k] = f
 
 	data = service.form(session_id, form_data)

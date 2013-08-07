@@ -13,10 +13,10 @@ import random
 
 
 class UploadedFile (object):
-	def __init__(self, upload_name, fp):
+	def __init__(self, upload_name, fp, **kwargs):
 		self.upload_name = upload_name
 		self.file = fp
-
+		self.__dict__.update(kwargs)
 
 
 
