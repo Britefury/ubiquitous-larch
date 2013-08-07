@@ -81,7 +81,7 @@ Ntp33
 Rp34
 (dp35
 g19
-Vgdp_key = 'phAwcNAVuyj1jiMAkmq1iMg'\u000alife_ex_key = 'phAwcNAVuyj2tPLxKvvnNPA'\u000a\u000a# I might have forgotten to uncomment the lines below. I dowloaded the CSV files to my local machine to avoid hitting Google's servers too much...\u000a\u000a#gdp_fp = google_spreadsheet_as_csv_file(gdp_key)\u000a#life_ex_fp = google_spreadsheet_as_csv_file(life_ex_key)\u000a\u000agdp_fp = open('income.csv', 'rb')\u000alife_ex_fp = open('life_ex.csv', 'rb')
+Vgdp_key = 'phAwcNAVuyj1jiMAkmq1iMg'\u000alife_ex_key = 'phAwcNAVuyj2tPLxKvvnNPA'\u000a\u000a# Ensure these two lines are uncommented to fetch the data from Google and comment the last two.\u000a\u000agdp_fp = google_spreadsheet_as_csv_file(gdp_key)\u000alife_ex_fp = google_spreadsheet_as_csv_file(life_ex_key)\u000a\u000a# Ensure these two lines are uncommented to get the data from local files (download them into the Larch directory first) and comment the previous two.\u000a\u000a#gdp_fp = open('income.csv', 'rb')\u000a#life_ex_fp = open('life_ex.csv', 'rb')
 p36
 sg25
 I01
@@ -257,6 +257,6 @@ Rp97
 g12
 g4
 sg13
-V<h2>In Summary</h2><p>Within this worksheet we have:</p><ul><li>Grabbed economic and health data over the web from a Google Docs spreadsheet</li><li>Used interpolation to fill in blank entries in the data</li><li>Visualised it using d3.js, with the interactivity provided by Python code</li></ul><p>The graphics are constructed by Javascript code using the d3.js library, while the interactivity is provided by Python code; each time you drag the slider, the value contained by the LiveValue Python object is updated, which in turn causes the&nbsp;data_for_chosen_year live function to trigger an update. This update request is sent to the client, which responds by getting the updated data and modifying the chart.</p>
+V<p>Drag the slider just below the chart to change the year. You will see the GDP and life expectancy of the countries develop throughout the time period of 1800 to 2012.</p><h2>In Summary</h2><p>Within this worksheet we have:</p><ul><li>Grabbed economic and health data over the web from a Google Docs spreadsheet</li><li>Used interpolation to fill in blank entries in the data</li><li>Visualised it using d3.js, with the interactivity provided by Python code</li></ul><p>The graphics are constructed by Javascript code using the d3.js library, while the interactivity is provided by Python code; each time you drag the slider, the value contained by the LiveValue Python object is updated, which in turn causes the&nbsp;data_for_chosen_year live function to trigger an update. This update request is sent to the client, which responds by getting the updated data and modifying the chart.</p>
 p99
 sbasb.
