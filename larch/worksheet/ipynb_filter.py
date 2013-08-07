@@ -3,10 +3,22 @@
 ##-*************************
 import json
 
+try:
+	import markdown
+except ImportError:
+	markdown = None
+
 from larch.worksheet import worksheet
 
 
+
 def load_json(ipynb):
+	"""
+	Imports an IPython notebook, in JSON form
+
+	:param ipynb: IPython notebook in JSON form
+	:return: (worksheets, notebook_name)  where worksheets in a list of worksheets and notebook_name is the name of the notebook
+	"""
 	# Get the name
 	notebook_name = ipynb['metadata']['name']
 	nbformat, nbformat_minor = ipynb['nbformat'], ipynb['nbformat_minor']
@@ -40,9 +52,10 @@ def load_json(ipynb):
 				else:
 					raise ValueError, 'unknown language {0}'.format(cell['language'])
 			elif cell_type == 'markdown':
-				print 'Cannot currently convert markdown'
 				source = cell['source']
 				text = ''.join(source)
+				if markdown is not None:
+					text = markdown.markdown(text)
 				block = worksheet.WorksheetBlockText(larch_ws, text=text)
 				larch_ws.append(block)
 			elif cell_type == 'raw':
@@ -65,8 +78,20 @@ def load_json(ipynb):
 
 
 def loads(s):
+	"""
+	Imports an IPython notebook from a string
+
+	:param s: IPython notebook JSON serialised as a string
+	:return: (worksheets, notebook_name)  where worksheets in a list of worksheets and notebook_name is the name of the notebook
+	"""
 	return load_json(json.loads(s))
 
 
 def load(fp):
+	"""
+	Imports an IPython notebook from a file
+
+	:param fp: a file object that reads as an IPython notebook
+	:return: (worksheets, notebook_name)  where worksheets in a list of worksheets and notebook_name is the name of the notebook
+	"""
 	return load_json(json.load(fp))

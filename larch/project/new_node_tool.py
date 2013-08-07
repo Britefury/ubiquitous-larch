@@ -28,7 +28,7 @@ class NewNodeTool (Tool):
 		def on_cancel():
 			self.close()
 
-		return Html('<div class="gui_box">',
+		return Html('<div class="tool_box">',
 				'<span class="gui_section_1">Create {0}</span><br>'.format(self.__node_type_name),
 				'<table>',
 				'<tr><td><span class="gui_label">Name:</span></td><td>', text_entry.text_entry(self.__name, on_edit=on_edit), '</td></tr>',

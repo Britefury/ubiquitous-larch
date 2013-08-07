@@ -77,9 +77,12 @@
     margin: 3em 0;
 }
 
-.larch_app_menu {
+.larch_app_controls_row {
     margin: 0.5em 0;
-    width: 10em;
+}
+
+.larch_app_control {
+    margin: 0 0.25em;
 }
 
 .larch_app_doc_name_in_use {

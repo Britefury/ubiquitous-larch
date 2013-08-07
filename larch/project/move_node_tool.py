@@ -27,7 +27,7 @@ class MoveNodeTool (Tool):
 		def on_cancel():
 			self.close()
 
-		return Html('<div class="gui_box">',
+		return Html('<div class="tool_box">',
 				'<span class="gui_section_1">Move to:</span><br>',
 				'<ul class="project_move_dest_list">',
 				self.__container_dest(self.__root, on_move),

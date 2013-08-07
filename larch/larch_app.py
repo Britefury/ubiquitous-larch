@@ -7,17 +7,18 @@ import glob
 import pickle
 import imp
 import sys
+import urllib2
 
 from britefury.projection.projection_service import ProjectionService
 from britefury.incremental import IncrementalValueMonitor
 from britefury import command
 from larch.console import console
-from larch.worksheet import worksheet
+from larch.worksheet import worksheet, ipynb_filter
 from larch.project import project_root
 
 from britefury.pres.pres import CompositePres
 from britefury.pres.html import Html
-from britefury.pres.controls import menu, button, text_entry
+from britefury.pres.controls import menu, button, text_entry, form
 
 
 
@@ -49,7 +50,7 @@ larch_app_css = '/static/larch_app.css'
 
 
 
-_filename_chars = string.ascii_letters + string.digits + ' _-'
+_filename_chars = string.ascii_letters + string.digits + ' _-.'
 
 def _sanitise_filename_char(x):
 	return x   if x in _filename_chars   else '_'
@@ -329,6 +330,16 @@ class DocumentList (object):
 	def doc_for_filename(self, filename):
 		return self.__docs_by_filename.get(filename)
 
+	def unused_filename(self, filename):
+		if filename not in self.__docs_by_filename:
+			return filename
+
+		index = 0
+		while True:
+			name = filename + '_' + str(index)
+			if name not in self.__docs_by_filename:
+				return name
+			index += 1
 
 
 	def __add_document(self, doc):
@@ -475,19 +486,19 @@ class ConsoleList (object):
 
 
 
-class GUIBox (object):
+class Tool (object):
 	def __init__(self):
-		self._gui_list = None
+		self._tool_list = None
 
 
 	def close(self):
-		self._gui_list.close(self)
+		self._tool_list.close(self)
 
 
 
-class DocNameInUseGui (GUIBox):
+class DocNameInUseTool (Tool):
 	def __init__(self, filename):
-		super(DocNameInUseGui, self).__init__()
+		super(DocNameInUseTool, self).__init__()
 		self.filename = filename
 
 	def __present__(self, fragment):
@@ -495,9 +506,9 @@ class DocNameInUseGui (GUIBox):
 			    button.button('Close', self.close), '</div>')
 
 
-class NewDocumentGUI (GUIBox):
+class NewDocumentTool (Tool):
 	def __init__(self, doc_list, document_factory, initial_name):
-		super(NewDocumentGUI, self).__init__()
+		super(NewDocumentTool, self).__init__()
 		self.__doc_list = doc_list
 		self.__document_factory = document_factory
 		self.__name = initial_name
@@ -510,7 +521,7 @@ class NewDocumentGUI (GUIBox):
 		def on_create():
 			filename = _sanitise_filename(self.__name)
 			if self.__doc_list.doc_for_filename(filename) is not None:
-				self._gui_list.add(DocNameInUseGui(filename))
+				self._tool_list.add(DocNameInUseTool(filename))
 			else:
 				document = self.__document_factory()
 				self.__doc_list.new_document_for_content(self.__name, document)
@@ -519,24 +530,98 @@ class NewDocumentGUI (GUIBox):
 		def on_cancel():
 			self.close()
 
-		return Html('<div class="gui_box">',
+		return Html('<div class="tool_box">',
 				'<span class="gui_section_1">Create document</span><br>',
 				'<table>',
-				'<tr><td><span class="gui_label">Name:</span></td><td>', text_entry.text_entry(self.__name, on_edit=on_edit), '</td></tr>',
+				'<tr><td><span class="gui_label">Name:</span></td><td>', text_entry.text_entry(self.__name, on_edit=on_edit, width="40em"), '</td></tr>',
 				'<tr><td>', button.button('Cancel', on_cancel), '</td><td>', button.button('Create', on_create), '</td></tr>',
 				'</table>',
 				'</div>')
 
 
+class UploadIPynbTool (Tool):
+	def __init__(self, doc_list):
+		super(UploadIPynbTool, self).__init__()
+		self.__doc_list = doc_list
 
-class GUIList (object):
+
+	def __present__(self, fragment):
+		def _on_upload(form_data):
+			f = form_data.get('file')
+			if f is not None:
+				worksheets, notebook_name = ipynb_filter.load(f.file)
+
+				filename = _sanitise_filename(notebook_name)
+				filename = self.__doc_list.unused_filename(filename)
+				self.__doc_list.new_document_for_content(filename, worksheets[0])
+			self.close()
+
+
+
+
+		upload_form_contents = Html('<div><input type="file" name="file" size="50"/></div>',
+					    '<div><input type="submit" value="Upload"></div>')
+		upload_form = form.form(upload_form_contents, _on_upload)
+
+		return Html('<div class="tool_box">',
+				'<span class="gui_section_1">Upload IPython Noteook</span><br>',
+				upload_form,
+				'</div>')
+
+
+
+class DownloadIPynbFromWebTool (Tool):
+	def __init__(self, doc_list):
+		super(DownloadIPynbFromWebTool, self).__init__()
+		self.__doc_list = doc_list
+		self.__url = ''
+
+
+
+	def __present__(self, fragment):
+		def on_edit(text):
+			self.__url = text
+
+		def on_import():
+			url = self.__url
+			url_l = url.lower()
+			if not url_l.startswith('http://')  and  not url_l.startswith('https://'):
+				url = 'http://' + url
+			request = urllib2.Request(self.__url)
+			request.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.13 (KHTML, like Gecko) Chrome/24.0.1284.0 Safari/537.13')
+			opener = urllib2.build_opener()
+			fp = opener.open(request)
+
+			worksheets, notebook_name = ipynb_filter.load(fp)
+
+			filename = _sanitise_filename(notebook_name)
+			filename = self.__doc_list.unused_filename(filename)
+			self.__doc_list.new_document_for_content(filename, worksheets[0])
+
+			self.close()
+
+		def on_cancel():
+			self.close()
+
+		return Html('<div class="tool_box">',
+				'<span class="gui_section_1">Download IPython notebook from the web</span><br>',
+				'<div><span class="gui_label">Web address (Github/Bitbucket RAW, etc):</span></div>',
+				'<div><span>', text_entry.text_entry(self.__url, on_edit=on_edit, width="40em"), '</span></div>',
+				'<table>',
+				'<tr><td>', button.button('Cancel', on_cancel), '</td><td>', button.button('Import', on_import), '</td></tr>',
+				'</table>',
+				'</div>')
+
+
+
+class ToolList (object):
 	def __init__(self):
 		self.contents = []
 		self.__incr = IncrementalValueMonitor()
 
 
 	def add(self, box):
-		box._gui_list = self
+		box._tool_list = self
 		self.contents.append(box)
 		self.__incr.on_changed()
 
@@ -564,7 +649,7 @@ class LarchApplication (object):
 		self.__docs.enable_import_hooks()
 		self.__consoles = ConsoleList()
 
-		self.__doc_gui = GUIList()
+		self.__tools = ToolList()
 
 
 	@property
@@ -600,12 +685,20 @@ class LarchApplication (object):
 		reset_button = button.button('Reload', _on_reload)
 		reset_section = Html('<div class="larch_app_menu">', reset_button, '</div>')
 
-		add_worksheet = menu.item('Worksheet', lambda: self.__doc_gui.add(NewDocumentGUI(self.__docs, lambda: worksheet.Worksheet(), 'Worksheet')))
-		add_project = menu.item('Project', lambda: self.__doc_gui.add(NewDocumentGUI(self.__docs, lambda: project_root.ProjectRoot(), 'Project')))
+		add_worksheet = menu.item('Worksheet', lambda: self.__tools.add(NewDocumentTool(self.__docs, lambda: worksheet.Worksheet(), 'Worksheet')))
+		add_project = menu.item('Project', lambda: self.__tools.add(NewDocumentTool(self.__docs, lambda: project_root.ProjectRoot(), 'Project')))
 		new_item = menu.sub_menu('New', [add_worksheet, add_project])
-
 		new_document_menu = menu.menu([new_item], drop_down=True)
-		new_document_menu = Html('<div class="larch_app_menu">', new_document_menu, '</div>')
+
+
+		upload_ipynb = menu.item('Upload', lambda: self.__tools.add(UploadIPynbTool(self.__docs)))
+		web_ipynb = menu.item('Download from web', lambda: self.__tools.add(DownloadIPynbFromWebTool(self.__docs)))
+		import_ipynb_item = menu.sub_menu('Import IPython notebook', [upload_ipynb, web_ipynb])
+		import_ipynb_menu = menu.menu([import_ipynb_item], drop_down=True)
+
+
+		document_controls = Html('<table class="larch_app_controls_row"><tr><td class="larch_app_control">', new_document_menu, '</td><td class="larch_app_control">', import_ipynb_menu, '</td></tr></table>')
+
 
 		def on_new_console():
 			self.__consoles.new_console()
@@ -623,8 +716,8 @@ class LarchApplication (object):
 			""",
 			reset_section,
 			self.__docs,
-			new_document_menu,
-			self.__doc_gui,
+			document_controls,
+			self.__tools,
 			"""</section>
 			<section class="larch_app_consoles_section">
 				<h2>Consoles:</h2>
