@@ -103,7 +103,7 @@ Ntp42
 Rp43
 (dp44
 g19
-V# We need random\u000aimport random\u000a\u000a# We need Html further down\u000afrom britefury.pres.html import Html\u000a\u000adata = [random.gauss(50.0, 10.0)   for i in xrange(33)]\u000a\u000a# The chart consists of an SVG element\u000achart = Html('<svg class="chart" width=660 height=80></svg>')\u000a# Initialise it with the function declared above. Additional arguments:\u000a# the resource object to give it the data, the bar width and height and the number of data values\u000achart = chart.js_function_call('init_chart', data, 20, 80, len(data))\u000a# We need the JS and CSS declared above\u000achart = chart.use_js(source=bar_chart_js).use_css(source=bar_chart_css)\u000a# We need d3.js\u000achart = chart.use_js('/static/d3.v3.min.js')\u000a\u000a# Display\u000achart\u000a
+V# We need random\u000aimport random\u000a\u000a# We need Html further down\u000afrom larch.pres.html import Html\u000a\u000adata = [random.gauss(50.0, 10.0)   for i in xrange(33)]\u000a\u000a# The chart consists of an SVG element\u000achart = Html('<svg class="chart" width=660 height=80></svg>')\u000a# Initialise it with the function declared above. Additional arguments:\u000a# the resource object to give it the data, the bar width and height and the number of data values\u000achart = chart.js_function_call('init_chart', data, 20, 80, len(data))\u000a# We need the JS and CSS declared above\u000achart = chart.use_js(source=bar_chart_js).use_css(source=bar_chart_css)\u000a# We need d3.js\u000achart = chart.use_js('/static/d3.v3.min.js')\u000a\u000a# Display\u000achart\u000a
 p45
 sg25
 I01
@@ -134,7 +134,7 @@ Ntp53
 Rp54
 (dp55
 g19
-V# Import JsonFnResource\u000afrom britefury.pres.resource import JsonFnResource\u000a\u000adef make_data():\u000a    #import random\u000a    return [random.gauss(50.0, 10.0)   for i in xrange(33)]\u000a\u000adata_resource = JsonFnResource(make_data)\u000a\u000adata_resource
+V# Import JsonFnResource\u000afrom larch.pres.resource import JsonFnResource\u000a\u000adef make_data():\u000a    #import random\u000a    return [random.gauss(50.0, 10.0)   for i in xrange(33)]\u000a\u000adata_resource = JsonFnResource(make_data)\u000a\u000adata_resource
 p56
 sg25
 I01

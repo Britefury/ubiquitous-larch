@@ -62,7 +62,7 @@ Ntp29
 Rp30
 (dp31
 g27
-Vfrom britefury.pres.controls import slider\u000a\u000aslider.range_slider(values=[1.0, 9.0], min=0.0, max=10.0, step=0.01)
+Vfrom larch.controls import slider\u000a\u000aslider.range_slider(values=[1.0, 9.0], min=0.0, max=10.0, step=0.01)
 p32
 sS'editable'
 p33
@@ -83,7 +83,7 @@ Ntp37
 Rp38
 (dp39
 g27
-Vfrom britefury.pres.controls import button\u000a\u000abutton.button(text='Hello world', primary_icon='ui-icon-plus')
+Vfrom larch.controls import button\u000a\u000abutton.button(text='Hello world', primary_icon='ui-icon-plus')
 p40
 sg33
 I01
@@ -103,7 +103,7 @@ Ntp44
 Rp45
 (dp46
 g27
-Vfrom britefury.pres.controls import expander\u000a\u000aexpander.dropdown_expander('Hello world', 'The end')
+Vfrom larch.controls import expander\u000a\u000aexpander.dropdown_expander('Hello world', 'The end')
 p47
 sg33
 I01

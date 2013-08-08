@@ -49,7 +49,7 @@ Ntp21
 Rp22
 (dp23
 g19
-V# First, we need to import LiveValue and LiveFunction\u000afrom britefury.live import LiveValue, LiveFunction\u000a\u000a\u000a# A quick test:\u000a# Create a live value containing the value 0\u000ax = LiveValue(0)\u000a\u000a# Display it\u000ax
+V# First, we need to import LiveValue and LiveFunction\u000afrom larch.live import LiveValue, LiveFunction\u000a\u000a\u000a# A quick test:\u000a# Create a live value containing the value 0\u000ax = LiveValue(0)\u000a\u000a# Display it\u000ax
 p24
 sS'editable'
 p25
@@ -81,7 +81,7 @@ Ntp33
 Rp34
 (dp35
 g19
-Vfrom britefury.pres.controls.button import button\u000a\u000adef on_click():\u000a    x.value = x.value + 1\u000a\u000ab = button('Increment', on_click)\u000a\u000ab
+Vfrom larch.controls.button import button\u000a\u000adef on_click():\u000a    x.value = x.value + 1\u000a\u000ab = button('Increment', on_click)\u000a\u000ab
 p36
 sg25
 I01
@@ -196,7 +196,7 @@ Ntp75
 Rp76
 (dp77
 g19
-V# We need random\u000aimport random\u000a\u000a# We need Html further down\u000afrom britefury.pres.html import Html\u000a
+V# We need random\u000aimport random\u000a\u000a# We need Html further down\u000afrom larch.pres.html import Html\u000a
 p78
 sg25
 I01
@@ -289,7 +289,7 @@ Ntp108
 Rp109
 (dp110
 g19
-V# We need the slider control\u000afrom britefury.pres.controls.slider import live_slider\u000a\u000a# Create the sliders\u000amean_slider = live_slider(mean, True, min=10.0, max=90.0, step=0.1, width=400)\u000astdev_slider = live_slider(standard_deviation, True, min=0.0, max=50.0, step=0.1, width=400)\u000a\u000a# Put them in a table\u000asliders = Html('<table><tr><td>Mean:</td><td>', mean_slider, '</td><tr><td>Standard deviation:</td><td>', stdev_slider, '</td></tr></table>')
+V# We need the slider control\u000afrom larch.controls.slider import live_slider\u000a\u000a# Create the sliders\u000amean_slider = live_slider(mean, True, min=10.0, max=90.0, step=0.1, width=400)\u000astdev_slider = live_slider(standard_deviation, True, min=0.0, max=50.0, step=0.1, width=400)\u000a\u000a# Put them in a table\u000asliders = Html('<table><tr><td>Mean:</td><td>', mean_slider, '</td><tr><td>Standard deviation:</td><td>', stdev_slider, '</td></tr></table>')
 p111
 sg25
 I01
