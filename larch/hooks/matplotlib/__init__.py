@@ -12,7 +12,7 @@ else:
 	def init():
 		global __pyplot_hacked
 
-		matplotlib.use('module://larch.bridges.matplotlib.backend_larch')
+		matplotlib.use('module://larch.hooks.matplotlib.backend_larch')
 
 		# Hack pyplot to make show() return something
 
