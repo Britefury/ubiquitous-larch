@@ -6,7 +6,7 @@ import sys, re
 
 from collections import namedtuple
 from britefury.incremental import IncrementalValueMonitor
-from britefury.inspector.present_exception import present_exception
+from britefury.inspector.present_exception import present_exception_with_traceback
 from britefury.pres.html import Html
 from britefury.pres.pres import Pres
 from britefury.pres.controls import code_mirror
@@ -198,7 +198,7 @@ class ExecutionResultException (ExecutionResultEmpty):
 
 
 	def __present__(self, fragment):
-		return Html(self.streams, present_exception(self.exc_instance, self.trace_back))
+		return Html(self.streams, present_exception_with_traceback(self.exc_instance, self.trace_back))
 
 
 

@@ -9,7 +9,7 @@ from britefury.pres.presctx import PresentationContext
 from britefury.pres.pres import Pres
 from britefury.pres.html import Html
 from britefury.incremental import IncrementalMonitor, IncrementalFunctionMonitor
-from britefury.inspector.present_exception import present_exception
+from britefury.inspector.present_exception import present_exception_with_traceback
 from britefury.dynamicpage.segment import  HtmlContent
 
 
@@ -546,13 +546,13 @@ class FragmentFactory (object):
 		try:
 			fragment_pres = self.__perspective.present_object(model, fragment_view)
 		except Exception, e:
-			fragment_pres = _exception_during_presentation(present_exception(e, sys.exc_info()[2]))
+			fragment_pres = _exception_during_presentation(present_exception_with_traceback(e, sys.exc_info()[2]))
 
 		try:
 			if not isinstance(fragment_pres, Pres):
 				raise TypeError, 'Presentation functions must return an object of type Pres, an object of type {0} was received'.format(type(fragment_pres).__name__)
 		except Exception, e:
-			fragment_pres = _exception_during_presentation(present_exception(e, sys.exc_info()[2]))
+			fragment_pres = _exception_during_presentation(present_exception_with_traceback(e, sys.exc_info()[2]))
 
 		try:
 			html_content = self.__pres_to_html_content(fragment_pres, fragment_view)
@@ -560,7 +560,7 @@ class FragmentFactory (object):
 			# The HTML content may have been partially built before the exception was raised, in which case fragment view nodes - and
 			# their respective segments - may have been created. They are now orphaned and need to be disposed of
 			fragment_view._clear_existing_content()
-			fragment_pres = _exception_during_presentation_to_html(present_exception(e, sys.exc_info()[2]))
+			fragment_pres = _exception_during_presentation_to_html(present_exception_with_traceback(e, sys.exc_info()[2]))
 			html_content = self.__pres_to_html_content(fragment_pres, fragment_view)
 
 		return html_content

@@ -194,7 +194,7 @@ def is_primitive(x):
 	return type(x) in _present_fn_table
 
 
-def present_primitive(x):
+def present_primitive_object(x):
 	fn = _present_fn_table.get(type(x))
 	if fn is not None:
 		return fn(x)

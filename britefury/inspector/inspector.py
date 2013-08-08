@@ -3,14 +3,14 @@
 ##-*************************
 from britefury.projection.abstract_perspective import AbstractPerspective
 from britefury.inspector.llinspector import llinspect
-from britefury.inspector.present_primitive import present_primitive
-from britefury.inspector.present_python import present_python
+from britefury.inspector.primitive import present_primitive_object
+from britefury.inspector.python_constructs import present_python
 
 
 class InspectorPerspective (AbstractPerspective):
 	def present_model(self, model, fragment_view):
 
-		p = present_primitive(model)
+		p = present_primitive_object(model)
 		if p is not None:
 			return p
 

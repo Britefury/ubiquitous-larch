@@ -15,7 +15,7 @@ def present_exception_no_traceback(exc):
 	return error_box('Exception', content)
 
 
-def present_exception(exc, tb):
+def present_exception_with_traceback(exc, tb):
 	traceback_str = '<br>\n'.join(Html.escape_str(traceback.format_exc(tb)).split('\n'))
 	content = Html('<span class="exception_name">{0}</span>'.format(type(exc).__name__), '<br>',
 		       '<span class="exception_message">{0}</span>'.format(Html.escape_str(exc.message)), '<br>',

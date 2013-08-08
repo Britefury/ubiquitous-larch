@@ -6,7 +6,7 @@ from copy import deepcopy
 from britefury.incremental import IncrementalValueMonitor, IncrementalFunctionMonitor
 from britefury.pres.pres import Pres, CompositePres, InnerFragment
 from britefury.pres.obj_pres import error_box
-from britefury.inspector import present_primitive, present_exception
+from britefury.inspector import primitive, present_exception
 
 
 class AbstractLive (CompositePres):

@@ -2,7 +2,7 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 from britefury.projection.abstract_perspective import AbstractPerspective
-from britefury.inspector.present_primitive import present_primitive_data, is_small_primitive_data, present_string
+from britefury.inspector.primitive import present_primitive_data, is_small_primitive_data, present_string
 from britefury.pres.controls.expander import dropdown_expander
 from britefury.pres.obj_pres import horizontal_field, vertical_field
 from britefury.pres.html import Html
