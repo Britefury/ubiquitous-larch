@@ -21,9 +21,11 @@ class AbstractLive (CompositePres):
 				value = self.__live.value
 			except Exception, e:
 				exception_view = present_exception.present_exception_no_traceback(e)
-				return error_box('Exception during live evaluation', exception_view)
+				p = error_box('Exception during live evaluation', exception_view)
+			else:
+				p = Pres.coerce(value)
 
-			return Pres.coerce(value).build(pres_ctx)
+			return p.build(pres_ctx)
 
 
 	@property
