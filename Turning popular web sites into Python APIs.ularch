@@ -78,7 +78,7 @@ Ntp37
 Rp38
 (dp39
 g35
-Vfrom britefury.pres.html import Html\u000a\u000a\u000adef embed_track(track_id):\u000a	return Html('<iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=http://api.soundcloud.com/tracks/{0}"></iframe>'.format(track_id))\u000a\u000a
+Vfrom larch.pres.html import Html\u000a\u000a\u000adef embed_track(track_id):\u000a    return Html('<iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=http://api.soundcloud.com/tracks/{0}"></iframe>'.format(track_id))\u000a\u000a
 p40
 sS'editable'
 p41
@@ -120,7 +120,7 @@ Ntp54
 Rp55
 (dp56
 g35
-Vfrom britefury.pres.html import Html\u000a\u000a\u000adef embed_video(video_id, width=420, height=315, autoplay=False):\u000a	ap = '?autoplay=1'   if autoplay   else ''\u000a	return Html('<iframe width="{1}" height="{2}" src="//www.youtube.com/embed/{0}{3}" frameborder="0" allowfullscreen></iframe>'.format(video_id, width, height, ap))\u000a    \u000a
+Vfrom larch.pres.html import Html\u000a\u000a\u000adef embed_video(video_id, width=420, height=315, autoplay=False):\u000a    ap = '?autoplay=1'   if autoplay   else ''\u000a    return Html('<iframe width="{1}" height="{2}" src="//www.youtube.com/embed/{0}{3}" frameborder="0" allowfullscreen></iframe>'.format(video_id, width, height, ap))\u000a    \u000a
 p57
 sg41
 I01
@@ -205,7 +205,7 @@ Ntp86
 Rp87
 (dp88
 g35
-Vfrom britefury.pres.html import Html\u000afrom britefury.pres.controls import expander\u000afrom webaspy.sites import youtube\u000a\u000a\u000avid = youtube.embed_video('IAISUDbjXj0', autoplay=True)\u000aexpander.dropdown_expander('Click to show to future of world energy production...', Html('<div>', vid, '</div><p>I bet you saw that coming....</p>'))\u000a
+Vfrom larch.pres.html import Html\u000afrom larch.controls import expander\u000afrom webaspy.sites import youtube\u000a\u000a\u000avid = youtube.embed_video('IAISUDbjXj0', autoplay=True)\u000aexpander.dropdown_expander('Click to show to future of world energy production...', Html('<div>', vid, '</div><p>I bet you saw that coming....</p>'))\u000a
 p89
 sg41
 I01

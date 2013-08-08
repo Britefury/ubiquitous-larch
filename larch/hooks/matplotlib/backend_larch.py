@@ -20,7 +20,7 @@ if backend_agg is not None:
 	from matplotlib.figure import Figure
 	from matplotlib._pylab_helpers import Gcf
 	from matplotlib import _png
-	from britefury.pres import resource
+	from larch.pres import resource
 	import io
 
 

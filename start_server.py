@@ -5,10 +5,10 @@
 
 from bottle import Bottle, run, static_file, request, response
 
-from britefury.dynamicpage.service import UploadedFile
-from britefury.projection.projection_service import CouldNotResolveLocationError
+from larch.core.dynamicpage.service import UploadedFile
+from larch.core.projection_service import CouldNotResolveLocationError
 
-from larch import larch_app
+from larch.apps import larch_app
 
 
 service = larch_app.create_service()

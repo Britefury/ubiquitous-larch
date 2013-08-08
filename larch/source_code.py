@@ -2,16 +2,16 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 import _ast
-import sys, re
-
+import sys
+import re
 from collections import namedtuple
-from britefury.incremental import IncrementalValueMonitor
-from britefury.inspector.present_exception import present_exception_with_traceback
-from britefury.pres.html import Html
-from britefury.pres.pres import Pres
-from britefury.pres.controls import code_mirror
 
+from larch.incremental import IncrementalValueMonitor
 
+from larch.inspector.present_exception import present_exception_with_traceback
+from larch.pres.html import Html
+from larch.pres.pres import Pres
+from larch.controls import code_mirror
 
 
 class AbstractSourceCode (object):

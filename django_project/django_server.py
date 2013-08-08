@@ -1,17 +1,15 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-import webbrowser
 
-import tempfile, os
+import tempfile
+import os
 
 from django.http import HttpResponse, Http404
 from django.views.decorators.http import require_POST, require_GET
-
-from britefury.dynamicpage.service import UploadedFile
-from britefury.projection.projection_service import CouldNotResolveLocationError
-
-from larch import larch_app
+from larch.core.dynamicpage.service import UploadedFile
+from larch.core.projection_service import CouldNotResolveLocationError
+from larch.apps import larch_app
 
 
 service = larch_app.create_service()

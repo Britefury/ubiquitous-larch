@@ -2,12 +2,12 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 import sys
-from britefury.live import LiveValue, LiveFunction
+from larch.live import LiveValue, LiveFunction
 
-from britefury.live import TrackedLiveList
+from larch.live import TrackedLiveList
 
-from britefury.pres.html import Html
-from britefury.pres.controls import menu, text_entry, button
+from larch.pres.html import Html
+from larch.controls import menu
 
 from larch import project
 from larch.project.project_node import ProjectNode

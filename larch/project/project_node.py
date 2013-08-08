@@ -1,13 +1,11 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-from britefury.incremental import IncrementalValueMonitor
-from britefury.live import LiveValue
+from larch.incremental import IncrementalValueMonitor
+from larch.live import LiveValue
 
-from britefury.pres.html import Html
-from britefury.pres.controls import menu
-
-
+from larch.pres.html import Html
+from larch.controls import menu
 
 
 class Tool (object):

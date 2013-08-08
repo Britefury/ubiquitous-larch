@@ -4,14 +4,13 @@
 import imp
 import sys
 
-from britefury.incremental import IncrementalValueMonitor
-from britefury.live import LiveValue
-from britefury.pres.html import Html
-from britefury.pres.key_event import KeyAction
-from britefury.pres.controls import ckeditor, menu, button, text_entry, focusable
-from britefury.projection.subject import Subject
-from britefury import command
-from larch import source_code
+from larch.incremental import IncrementalValueMonitor
+from larch import command, source_code
+from larch.live import LiveValue
+from larch.pres.html import Html
+from larch.pres.key_event import KeyAction
+from larch.controls import ckeditor, menu, text_entry, focusable
+from larch.controls import button
 
 
 __author__ = 'Geoff'

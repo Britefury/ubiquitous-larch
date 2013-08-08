@@ -302,7 +302,7 @@ CodeMirror.defineMode("css-base", function(config, parserConfig) {
   }
 
   var atMediaTypes = keySet([
-    "all", "aural", "braille", "handheld", "print", "projection", "screen",
+    "all", "aural", "braille", "handheld", "print", "core", "screen",
     "tty", "tv", "embossed"
   ]);
 
