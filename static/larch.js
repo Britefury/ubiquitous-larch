@@ -656,9 +656,8 @@ larch.__messageHandlers = {
     html_structure_fixes: function(message) {
         var fixes_by_model = message.fixes_by_model;
 
-        for (var i = 0; i < fixes_by_model.length; i++) {
-            larch.showAlert(function() {
-                var fix_set = fixes_by_model[i];
+        var makeAlertFactory = function(fix_set) {
+            return function() {
                 var model_type_name = fix_set.model_type_name;
                 var fixes = fix_set.fixes;
 
@@ -679,7 +678,11 @@ larch.__messageHandlers = {
                 text.append(heading);
                 text.append(fixHTML);
                 return text;
-            });
+            };
+        };
+
+        for (var i = 0; i < fixes_by_model.length; i++) {
+            larch.showAlert(makeAlertFactory(fixes_by_model[i]));
         }
     }
 };
