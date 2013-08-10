@@ -249,10 +249,24 @@ class _FragmentView (object):
 
 
 	def queue_refresh(self):
+		"""
+		Manually queue a refresh. Use when automatic refresh is disabled.
+		:return: None
+		"""
 		self.__incr.on_changed()
 
 
 	def disable_auto_refresh(self):
+		"""
+		Disable automatic refresh
+
+		This fragment will no longer refresh its presentation in response to changes detected by the incremental computation system;
+		changes reported from data that this fragment depends on (IncrementValueMonitor, LiveValue, etc) will be ignored
+
+		Queue a refresh with the queue_refresh method
+
+		:return: None
+		"""
 		self.__incr.block_and_clear_incoming_dependencies()
 
 
