@@ -5,13 +5,10 @@ import os
 import sys
 from copy import deepcopy
 
-from britefury.pres.html import Html
-from britefury.pres.controls import text_entry
+from larch.pres.html import Html
+from larch.controls import text_entry
 
 from larch.project.project_container import ProjectContainer
-from larch.project.project_package import ProjectPackage
-from larch.project.project_page import ProjectPage
-
 
 
 class ProjectRoot (ProjectContainer):

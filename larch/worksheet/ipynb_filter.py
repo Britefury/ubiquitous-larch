@@ -8,7 +8,7 @@ try:
 except ImportError:
 	markdown = None
 
-from britefury.pres.html import Html
+from larch.pres.html import Html
 
 from larch.worksheet import worksheet
 

@@ -131,13 +131,26 @@ larch.controls.initSelect = function(node) {
 
 
 
+
+//
+// FOCUS
+//
+
 larch.controls.__focus = null;
 
-larch.controls.makeFocusable = function(node) {
+larch.controls.initFocusable = function(node) {
     var q = $(node);
     q.addClass("larch_ui_focusable");
     q.click(function() {
         larch.controls.grabFocus(node);
+    });
+};
+
+larch.controls.shutdownFocusable = function(node) {
+    var q = $(node);
+    q.addClass("larch_ui_focusable");
+    q.click(function() {
+        larch.controls.ungrabFocus(node);
     });
 };
 
@@ -153,6 +166,17 @@ larch.controls.grabFocus = function(node) {
         larch.controls.__focus = focusable.get(0);
         focusable.addClass("larch_ui_focused");
         larch.postEvent(larch.controls.__focus, "gain_focus", null);
+    }
+};
+
+larch.controls.ungrabFocus = function(node) {
+    var focusable = $(node).closest(".larch_ui_focusable");
+
+    if (focusable.length === 1) {
+        if (focusable.hasClass("larch_ui_focused")) {
+            focusable.removeClass("larch_ui_focused");
+            larch.postEvent(focusable.get(0), "lose_focus", null);
+        }
     }
 };
 

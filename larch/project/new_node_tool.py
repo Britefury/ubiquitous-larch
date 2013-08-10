@@ -1,10 +1,10 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-from britefury.pres.html import Html
-from britefury.pres.controls import text_entry, button, action_link
+from larch.pres.html import Html
+from larch.controls import text_entry
 
-from larch import project
+from larch.controls import button
 from larch.project.project_node import Tool
 
 

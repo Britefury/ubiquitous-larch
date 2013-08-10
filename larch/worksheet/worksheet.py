@@ -4,14 +4,13 @@
 import imp
 import sys
 
-from britefury.incremental import IncrementalValueMonitor
-from britefury.live import LiveValue
-from britefury.pres.html import Html
-from britefury.pres.key_event import KeyAction
-from britefury.pres.controls import ckeditor, menu, button, text_entry, focusable
-from britefury.projection.subject import Subject
-from britefury import command
-from larch import source_code
+from larch.incremental import IncrementalValueMonitor
+from larch import command, source_code
+from larch.live import LiveValue
+from larch.pres.html import Html
+from larch.pres.key_event import KeyAction
+from larch.controls import ckeditor, menu, text_entry, focusable
+from larch.controls import button
 
 
 __author__ = 'Geoff'
@@ -27,10 +26,6 @@ class WorksheetBlock (object):
 
 	def __setstate__(self, state):
 		self._worksheet = state.get('worksheet')
-
-
-	def _on_focus(self):
-		self._worksheet._notify_focus(self)
 
 
 	def execute(self, module):
@@ -68,7 +63,7 @@ class WorksheetBlockText (WorksheetBlock):
 		p = ckeditor.ckeditor(self.__text, on_edit=on_edit)
 
 		p = Html('<div class="worksheet_block worksheet_richtext">', p, '</div>')
-		p = focusable.focusable(p, on_gain_focus=self._on_focus)
+		p = focusable.focusable(p)
 		return p
 
 
@@ -107,7 +102,7 @@ class WorksheetBlockCode (WorksheetBlock):
 		code = Html('<div class="worksheet_python_code_container worksheet_code_container">', self.__code, '</div>')
 		res = ['<div class="worksheet_result_container">', self.__result, '</div>']   if self.__result is not None  else []
 		p = Html(*(['<div class="worksheet_code_block">', header, '<div class="worksheet_code_block_body">', code] + res + ['</div></div>']))
-		p = focusable.focusable(p, on_gain_focus=self._on_focus)
+		p = focusable.focusable(p)
 		return p
 
 
@@ -224,7 +219,7 @@ class WorksheetBlockSource (WorksheetBlock):
 			      '</div>')
 		code = Html('<div class="worksheet_{0}_code_container worksheet_code_container">'.format(language), self.__code, '</div>')
 		p = Html('<div class="worksheet_code_block">', header, '<div class="worksheet_code_block_body">', code, '</div></div>')
-		p = focusable.focusable(p, on_gain_focus=self._on_focus)
+		p = focusable.focusable(p)
 		return p
 
 
@@ -238,7 +233,6 @@ class Worksheet (object):
 		self.__blocks = blocks
 		self.__incr = IncrementalValueMonitor()
 		self._module = None
-		self.__focus_block = None
 		self.__execution_state = LiveValue()
 		self.__exec_state_init()
 
@@ -260,7 +254,6 @@ class Worksheet (object):
 			self.__blocks = []
 		self.__incr = IncrementalValueMonitor()
 		self._module = None
-		self.__focus_block = None
 		self.__execution_state = LiveValue()
 		self.__exec_state_init()
 
@@ -283,22 +276,18 @@ class Worksheet (object):
 
 
 
-	def _notify_focus(self, block):
-		self.__focus_block = block
-
-
-	def _insert_block(self, block_to_insert, below):
+	def _insert_block(self, block_to_insert, below, focus_block):
 		index = len(self.__blocks)
-		if self.__focus_block is not None  and  self.__focus_block in self.__blocks:
-			index = self.__blocks.index(self.__focus_block)
+		if focus_block is not None  and  focus_block in self.__blocks:
+			index = self.__blocks.index(focus_block)
 			if below:
 				index += 1
 		self.__blocks.insert(index, block_to_insert)
 		self.__incr.on_changed()
 
-	def _delete_block(self):
-		if self.__focus_block is not None  and  self.__focus_block in self.__blocks:
-			self.__blocks.remove(self.__focus_block)
+	def _delete_block(self, focus_block):
+		if focus_block is not None  and  focus_block in self.__blocks:
+			self.__blocks.remove(focus_block)
 			self.__incr.on_changed()
 
 
@@ -328,25 +317,32 @@ class Worksheet (object):
 			return save()
 
 
+	def __focused_block(self, page):
+		seg = page.focused_segment
+		if seg is not None:
+			frag = seg.owner
+			return frag.find_enclosing_model(WorksheetBlock)
+		else:
+			return None
 
 
 	def __commands__(self):
 		return [
-			command.Command([command.Key(ord('R'))], 'Insert rich text below', lambda page: self._insert_block(WorksheetBlockText(self), True)),
-			command.Command([command.Key(ord('P'))], 'Insert Python code below', lambda page: self._insert_block(WorksheetBlockCode(self), True)),
-			command.Command([command.Key(ord('J'))], 'Insert Javascript source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'js', 'js'), True)),
-			command.Command([command.Key(ord('C'))], 'Insert CSS source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'css', 'css'), True)),
-			command.Command([command.Key(ord('T'))], 'Insert HTML source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'html', 'html'), True)),
-			command.Command([command.Key(ord('G'))], 'Insert GLSL source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'glsl', 'glsl'), True)),
+			command.Command([command.Key(ord('R'))], 'Insert rich text below', lambda page: self._insert_block(WorksheetBlockText(self), True, self.__focused_block(page))),
+			command.Command([command.Key(ord('P'))], 'Insert Python code below', lambda page: self._insert_block(WorksheetBlockCode(self), True, self.__focused_block(page))),
+			command.Command([command.Key(ord('J'))], 'Insert Javascript source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'js', 'js'), True, self.__focused_block(page))),
+			command.Command([command.Key(ord('C'))], 'Insert CSS source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'css', 'css'), True, self.__focused_block(page))),
+			command.Command([command.Key(ord('T'))], 'Insert HTML source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'html', 'html'), True, self.__focused_block(page))),
+			command.Command([command.Key(ord('G'))], 'Insert GLSL source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'glsl', 'glsl'), True, self.__focused_block(page))),
 
-			command.Command([command.Key(ord('A')), command.Key(ord('R'))], 'Insert rich text below', lambda page: self._insert_block(WorksheetBlockText(self), False)),
-			command.Command([command.Key(ord('A')), command.Key(ord('P'))], 'Insert Python code below', lambda page: self._insert_block(WorksheetBlockCode(self), False)),
-			command.Command([command.Key(ord('A')), command.Key(ord('J'))], 'Insert Javascript source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'js', 'js'), False)),
-			command.Command([command.Key(ord('A')), command.Key(ord('C'))], 'Insert CSS source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'css', 'css'), False)),
-			command.Command([command.Key(ord('A')), command.Key(ord('T'))], 'Insert HTML source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'html', 'html'), False)),
-			command.Command([command.Key(ord('A')), command.Key(ord('G'))], 'Insert GLSL source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'glsl', 'glsl'), False)),
+			command.Command([command.Key(ord('A')), command.Key(ord('R'))], 'Insert rich text below', lambda page: self._insert_block(WorksheetBlockText(self), False, self.__focused_block(page))),
+			command.Command([command.Key(ord('A')), command.Key(ord('P'))], 'Insert Python code below', lambda page: self._insert_block(WorksheetBlockCode(self), False, self.__focused_block(page))),
+			command.Command([command.Key(ord('A')), command.Key(ord('J'))], 'Insert Javascript source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'js', 'js'), False, self.__focused_block(page))),
+			command.Command([command.Key(ord('A')), command.Key(ord('C'))], 'Insert CSS source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'css', 'css'), False, self.__focused_block(page))),
+			command.Command([command.Key(ord('A')), command.Key(ord('T'))], 'Insert HTML source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'html', 'html'), False, self.__focused_block(page))),
+			command.Command([command.Key(ord('A')), command.Key(ord('G'))], 'Insert GLSL source below', lambda page: self._insert_block(WorksheetBlockSource(self, 'glsl', 'glsl'), False, self.__focused_block(page))),
 
-			command.Command([command.Key(ord('X'))], 'Remove block', lambda page: self._delete_block()),
+			command.Command([command.Key(ord('X'))], 'Remove block', lambda page: self._delete_block(self.__focused_block(page))),
 		]
 
 	def __menu_bar_contents__(self, fragment):
@@ -370,22 +366,22 @@ class Worksheet (object):
 		#
 
 		def _insert_rich_text(below):
-			self._insert_block(WorksheetBlockText(self), below)
+			self._insert_block(WorksheetBlockText(self), below, self.__focused_block(fragment.page))
 
 		def _insert_code(below):
-			self._insert_block(WorksheetBlockCode(self), below)
+			self._insert_block(WorksheetBlockCode(self), below, self.__focused_block(fragment.page))
 
 		def _insert_js(below):
-			self._insert_block(WorksheetBlockSource(self, 'js', 'js'), below)
+			self._insert_block(WorksheetBlockSource(self, 'js', 'js'), below, self.__focused_block(fragment.page))
 
 		def _insert_css(below):
-			self._insert_block(WorksheetBlockSource(self, 'css', 'css'), below)
+			self._insert_block(WorksheetBlockSource(self, 'css', 'css'), below, self.__focused_block(fragment.page))
 
 		def _insert_glsl(below):
-			self._insert_block(WorksheetBlockSource(self, 'glsl', 'glsl'), below)
+			self._insert_block(WorksheetBlockSource(self, 'glsl', 'glsl'), below, self.__focused_block(fragment.page))
 
 		def _insert_html(below):
-			self._insert_block(WorksheetBlockSource(self, 'html', 'html'), below)
+			self._insert_block(WorksheetBlockSource(self, 'html', 'html'), below, self.__focused_block(fragment.page))
 
 		insert_rich_text_above = menu.item('Insert rich text above', lambda: _insert_rich_text(False))
 		insert_code_above = menu.item('Insert executable Python code above', lambda: _insert_code(False))
@@ -401,7 +397,7 @@ class Worksheet (object):
 		insert_html_below = menu.item('Insert HTML source below', lambda: _insert_html(True))
 		insert_glsl_below = menu.item('Insert GLSL source below', lambda: _insert_glsl(True))
 
-		remove_block = menu.item('Remove block', lambda: self._delete_block())
+		remove_block = menu.item('Remove block', lambda: self._delete_block(self.__focused_block(fragment.page)))
 		edit_menu_contents = menu.sub_menu('Edit', [
 			insert_rich_text_above,
 			insert_code_above,

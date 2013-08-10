@@ -1,8 +1,8 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-from britefury.pres import js
-from britefury.pres.html import Html
+from larch.pres import js
+from larch.pres.html import Html
 
 
 

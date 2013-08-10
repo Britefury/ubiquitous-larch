@@ -4,7 +4,7 @@
   var charsets = ["ascii", "utf-8", "utf-16", "latin1", "latin1"];
   var methods = ["get", "post", "put", "delete"];
   var encs = ["application/x-www-form-urlencoded", "multipart/form-data", "text/plain"];
-  var media = ["all", "screen", "print", "embossed", "braille", "handheld", "print", "projection", "screen", "tty", "tv", "speech",
+  var media = ["all", "screen", "print", "embossed", "braille", "handheld", "print", "core", "screen", "tty", "tv", "speech",
                "3d-glasses", "resolution [>][<][=] [X]", "device-aspect-ratio: X/Y", "orientation:portrait",
                "orientation:landscape", "device-height: [X]", "device-width: [X]"];
   var s = { attrs: {} }; // Simple tag, reused for a whole lot of tags

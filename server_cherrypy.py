@@ -2,15 +2,14 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 import os
-import webbrowser
 
 import cherrypy
 from cherrypy import _cpreqbody
 
-from britefury.dynamicpage.service import UploadedFile
-from britefury.projection.projection_service import CouldNotResolveLocationError
+from larch.core.dynamicpage.service import UploadedFile
+from larch.core.projection_service import CouldNotResolveLocationError
 
-from larch import larch_app
+from larch.apps import larch_app
 
 
 config = {'/static':

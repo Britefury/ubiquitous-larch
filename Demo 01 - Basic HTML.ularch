@@ -49,7 +49,7 @@ Ntp21
 Rp22
 (dp23
 g19
-V# Import the HTML presentation combinator\u000a\u000afrom britefury.pres.html import Html\u000a\u000a# Construct an Html object, with the content in a string.\u000a\u000aHtml('<h3>Hello world</h3>')
+V# Import the HTML presentation combinator\u000a\u000afrom larch.pres.html import Html\u000a\u000a# Construct an Html object, with the content in a string.\u000a\u000aHtml('<h3>Hello world</h3>')
 p24
 sS'editable'
 p25

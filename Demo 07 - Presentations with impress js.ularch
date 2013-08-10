@@ -89,7 +89,7 @@ Ntp37
 Rp38
 (dp39
 g19
-Vfrom britefury.pres.html import Html\u000a\u000as0 = Html('''<div class="step" data-x="0" data-y="0"><div class="slide_contents"><p>Slide 0</p></div></div>''')\u000as1 = Html('''<div class="step" data-x="1200" data-y="0"><div class="slide_contents"><p>Slide 1</p></div></div>''')\u000as2 = Html('''<div class="step" data-x="1200" data-y="1000"><div class="slide_contents"><p>Slide 2</p></div></div>''')\u000as3 = Html('''<div class="step" data-x="1200" data-y="2000"><div class="slide_contents"><p>Slide 3</p></div></div>''')\u000as4 = Html('''<div class="step" data-x="0" data-y="2000"><div class="slide_contents"><p>Slide 4</p></div></div>''')
+Vfrom larch.pres.html import Html\u000a\u000as0 = Html('''<div class="step" data-x="0" data-y="0"><div class="slide_contents"><p>Slide 0</p></div></div>''')\u000as1 = Html('''<div class="step" data-x="1200" data-y="0"><div class="slide_contents"><p>Slide 1</p></div></div>''')\u000as2 = Html('''<div class="step" data-x="1200" data-y="1000"><div class="slide_contents"><p>Slide 2</p></div></div>''')\u000as3 = Html('''<div class="step" data-x="1200" data-y="2000"><div class="slide_contents"><p>Slide 3</p></div></div>''')\u000as4 = Html('''<div class="step" data-x="0" data-y="2000"><div class="slide_contents"><p>Slide 4</p></div></div>''')
 p40
 sg25
 I01
@@ -244,7 +244,7 @@ Ntp92
 Rp93
 (dp94
 g19
-Vfrom britefury.pres.resource import PresIFrame\u000a\u000apresentation = PresIFrame(slides, 1280, 800)\u000apresentation
+Vfrom larch.pres.resource import PresIFrame\u000a\u000apresentation = PresIFrame(slides, 1280, 800)\u000apresentation
 p95
 sg25
 I01

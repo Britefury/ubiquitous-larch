@@ -4,9 +4,9 @@
 import os
 from copy import deepcopy
 
-from britefury.pres.controls import menu
+from larch.controls import menu
 
-from britefury.pres.html import Html
+from larch.pres.html import Html
 
 from larch.project.project_node import ProjectNode
 from larch.project.rename_node_tool import RenameNodeTool
