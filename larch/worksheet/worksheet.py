@@ -366,22 +366,22 @@ class Worksheet (object):
 		#
 
 		def _insert_rich_text(below):
-			self._insert_block(WorksheetBlockText(self), below)
+			self._insert_block(WorksheetBlockText(self), below, self.__focused_block(fragment.page))
 
 		def _insert_code(below):
-			self._insert_block(WorksheetBlockCode(self), below)
+			self._insert_block(WorksheetBlockCode(self), below, self.__focused_block(fragment.page))
 
 		def _insert_js(below):
-			self._insert_block(WorksheetBlockSource(self, 'js', 'js'), below)
+			self._insert_block(WorksheetBlockSource(self, 'js', 'js'), below, self.__focused_block(fragment.page))
 
 		def _insert_css(below):
-			self._insert_block(WorksheetBlockSource(self, 'css', 'css'), below)
+			self._insert_block(WorksheetBlockSource(self, 'css', 'css'), below, self.__focused_block(fragment.page))
 
 		def _insert_glsl(below):
-			self._insert_block(WorksheetBlockSource(self, 'glsl', 'glsl'), below)
+			self._insert_block(WorksheetBlockSource(self, 'glsl', 'glsl'), below, self.__focused_block(fragment.page))
 
 		def _insert_html(below):
-			self._insert_block(WorksheetBlockSource(self, 'html', 'html'), below)
+			self._insert_block(WorksheetBlockSource(self, 'html', 'html'), below, self.__focused_block(fragment.page))
 
 		insert_rich_text_above = menu.item('Insert rich text above', lambda: _insert_rich_text(False))
 		insert_code_above = menu.item('Insert executable Python code above', lambda: _insert_code(False))
@@ -397,7 +397,7 @@ class Worksheet (object):
 		insert_html_below = menu.item('Insert HTML source below', lambda: _insert_html(True))
 		insert_glsl_below = menu.item('Insert GLSL source below', lambda: _insert_glsl(True))
 
-		remove_block = menu.item('Remove block', lambda: self._delete_block())
+		remove_block = menu.item('Remove block', lambda: self._delete_block(self.__focused_block(fragment.page)))
 		edit_menu_contents = menu.sub_menu('Edit', [
 			insert_rich_text_above,
 			insert_code_above,
