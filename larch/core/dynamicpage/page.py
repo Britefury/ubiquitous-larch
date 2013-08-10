@@ -354,23 +354,23 @@ class DynamicPage (object):
 	#
 	#
 
-	def resource_for(self, rsc_data, context):
+	def resource_for(self, rsc_data, pres_ctx):
 		"""Create a new resource
 
-		rsc_data - A resource data object that provides:
+		:param rsc_data: a resource data object that provides:
 			initialise(context, change_listener) and dispose(context) methods. These are called before the resource is first used and when it is no longer needed, respectively.
 					The context parameter of these methods receives the value passed to context of this method
 			data and mime_type attributes/properties: the data and its MIME type
-		context - context data, used by the resource data object at initialisation and disposal time
+		:param pres_ctx: context data, used by the resource data object at initialisation and disposal time
 		"""
 		page_rsc = self.__rsc_content_to_rsc.get(rsc_data)
 		if page_rsc is None:
 			rsc_id = 'r{0}'.format(self.__rsc_id_counter)
 			self.__rsc_id_counter += 1
-			page_rsc = DynamicResource(self, rsc_id, rsc_data)
+			page_rsc = DynamicPageResource(self, rsc_id, rsc_data)
 			self.__rsc_id_to_rsc[rsc_id] = page_rsc
 
-		page_rsc.ref(context)
+		page_rsc.ref(pres_ctx)
 
 		return page_rsc
 
@@ -861,26 +861,26 @@ class _SegmentTable (object):
 
 
 
-class DynamicResource (object):
+class DynamicPageResource (object):
 	def __init__(self, page, rsc_id, rsc_data):
 		self.__page = page
 		self.__rsc_id = rsc_id
 		self.__rsc_data = rsc_data
-		self.__context = None
+		self.__pres_ctx = None
 		self.__ref_count = 0
 
 
-	def ref(self, context):
+	def ref(self, pres_ctx):
 		if self.__ref_count == 0:
-			self.__context = context
-			self.__rsc_data.initialise_rscdata(context, self.__on_changed, self.url)
+			self.__pres_ctx = pres_ctx
+			self.__rsc_data.initialise_rscdata(pres_ctx, self.__on_changed, self.url)
 		self.__ref_count += 1
 		return self.__ref_count
 
 	def unref(self):
 		self.__ref_count -= 1
 		if self.__ref_count == 0:
-			self.__rsc_data.dispose_rscdata(self.__context)
+			self.__rsc_data.dispose_rscdata(self.__pres_ctx)
 			self.__page._resouce_disposed(self)
 		return self.__ref_count
 

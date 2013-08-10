@@ -17,10 +17,10 @@ __author__ = 'Geoff'
 
 
 class ResourceData (object):
-	def initialise_rscdata(self, context, change_listener, url):
+	def initialise_rscdata(self, pres_ctx, change_listener, url):
 		raise NotImplementedError, 'abstract'
 
-	def dispose_rscdata(self, context):
+	def dispose_rscdata(self, pres_ctx):
 		raise NotImplementedError, 'abstract'
 
 

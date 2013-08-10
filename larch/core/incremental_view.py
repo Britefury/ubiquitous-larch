@@ -186,8 +186,8 @@ class _FragmentView (object):
 
 
 
-	def create_resource(self, rsc_data, context):
-		page_rsc = self.__inc_view.dynamic_page.resource_for(rsc_data, context)
+	def create_resource(self, rsc_data, pres_ctx):
+		page_rsc = self.__inc_view.dynamic_page.resource_for(rsc_data, pres_ctx)
 		self.__resources.append(page_rsc)
 		return page_rsc
 

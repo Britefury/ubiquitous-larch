@@ -1,7 +1,6 @@
 - Exceptions encountered while evaluating a function that generates data for a resource only appears in the console; they are not reported to the user
-- IPython importer
-- Forms / file upload
 - Popup presentations
+- Presentations accessed via resources will probably break due to have a null presentation context
 
 
 Live inspection (variables in scope)
