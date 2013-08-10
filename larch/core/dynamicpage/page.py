@@ -27,6 +27,7 @@ _page_content = u"""
 
 		<script type="text/javascript" src="/static/jquery/js/jquery-1.9.1.js"></script>
 		<script type="text/javascript" src="/static/jquery/js/jquery-ui-1.10.2.custom.min.js"></script>
+		<script type="text/javascript" src="/static/jquery/js/jquery.cookie.js"></script>
 		<script type="text/javascript" src="/static/noty/jquery.noty.js"></script>
 		<script type="text/javascript" src="/static/noty/layouts/bottom.js"></script>
 		<script type="text/javascript" src="/static/noty/layouts/bottomLeft.js"></script>
