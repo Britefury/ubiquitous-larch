@@ -144,6 +144,29 @@ class _FragmentView (object):
 		return size
 
 
+	def find_enclosing_model(self, filter_fn_or_type):
+		"""
+		Walk the fragment tree through parents towards the root. Return the first model that matches the filter
+
+		:param filter_fn_or_type: either a function of the form function(model) -> boolean   or   a type
+		:return: the matching model or None
+		"""
+		if isinstance(filter_fn_or_type, type):
+			filter_fn = lambda model: isinstance(model, filter_fn_or_type)
+		else:
+			filter_fn = filter_fn_or_type
+
+		fragment = self
+		while fragment is not None:
+			m = fragment.model
+			if filter_fn(m):
+				return m
+			fragment = fragment.parent
+
+		return None
+
+
+
 
 	#
 	#

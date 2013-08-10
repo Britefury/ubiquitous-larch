@@ -230,7 +230,7 @@ class JSInitEval (JSEval):
 class JSShutdownEval (JSEval):
 	def initialise_segment(self, seg, pres_ctx):
 		expr_src = self._expr.build_js(pres_ctx)
-		seg.add_shutddown_script(expr_src)
+		seg.add_shutdown_script(expr_src)
 
 
 

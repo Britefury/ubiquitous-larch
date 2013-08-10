@@ -152,6 +152,14 @@ class DynamicPagePublicAPI (object):
 		self.page_js_eval(js.JSCall(js_fn_name, args))
 
 
+	@property
+	def focused_segment(self):
+		"""
+		The focused segment
+		"""
+		return self.__page.focused_segment
+
+
 
 
 
@@ -215,6 +223,9 @@ class DynamicPage (object):
 
 		# The root segment
 		self.__root_segment = None
+
+		# Focused segment
+		self.__focused_segment = None
 
 		# Resources
 		self.__rsc_id_counter = 1
@@ -340,6 +351,9 @@ class DynamicPage (object):
 	def remove_segment(self, segment):
 		"""Remove a segment from the page. You should remove segments when you don't need them anymore.
 		"""
+		if segment is self.__focused_segment:
+			self.__focused_segment = None
+
 		if self._enable_structure_fixing:
 			if segment in self.__segments_with_invalid_html_structure:
 				self.__segments_with_invalid_html_structure.remove(segment)
@@ -433,6 +447,15 @@ class DynamicPage (object):
 		if isinstance(seg, SegmentRef):
 			seg = seg.segment
 		self.__root_segment = seg
+
+
+	@property
+	def focused_segment(self):
+		"""
+		Focused segment
+		:return: The segment that has focus, or None
+		"""
+		return self.__focused_segment
 
 
 
@@ -539,6 +562,11 @@ class DynamicPage (object):
 				return False
 
 			segment = event_segment
+
+			if event_name == 'gain_focus':
+				self.__focused_segment = segment
+			elif event_name == 'lose_focus'  and  segment is self.__focused_segment:
+				self.__focused_segment = None
 
 			while segment is not None:
 				try:
