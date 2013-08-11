@@ -4,12 +4,11 @@
 import threading
 import sys
 
-from collections import deque
-
 import json
 
 from copy import copy
 
+from larch.util import priority_list
 from larch.core.dynamicpage.segment import DynamicSegment, SegmentRef
 from larch.core.dynamicpage import messages, dependencies, global_dependencies
 from larch.inspector import present_exception
@@ -165,6 +164,7 @@ class DynamicPagePublicAPI (object):
 
 class DynamicPage (object):
 	__FIX_HTML_STRUCTURE_PARAM_NAME = 'fix_html_structure'
+	_REFRESH_PRIORITY = -1000000
 
 	"""
 	A dynamic web page, composed of segments.
@@ -191,7 +191,7 @@ class DynamicPage (object):
 
 		self._table = _SegmentTable(self)
 
-		self.__queued_tasks = deque()
+		self.__queued_tasks = priority_list.PriorityList()
 
 		self.__title = 'Ubiquitous Larch'
 
@@ -590,12 +590,14 @@ class DynamicPage (object):
 
 
 
-	def queue_task(self, task):
-		"""Queue a task
-
-		task must be callable
+	def queue_task(self, task, priority=0):
 		"""
-		self.__queued_tasks.append(task)
+		Queue a task
+
+		:param task: callable
+		:param priority: [optional] task priority
+		"""
+		self.__queued_tasks.add(priority, task)
 
 
 
@@ -714,7 +716,7 @@ class DynamicPage (object):
 		:return: None
 		"""
 		while len(self.__queued_tasks) > 0:
-			f = self.__queued_tasks.popleft()
+			f = self.__queued_tasks.pop()
 			f()
 
 
@@ -726,7 +728,7 @@ class DynamicPage (object):
 		# Segment changes notification. Called by _HtmlSegment.
 		if not self.__page_modified:
 			self.__page_modified = True
-			self.queue_task(self.__refresh_page)
+			self.queue_task(self.__refresh_page, self._REFRESH_PRIORITY)
 
 
 	def __refresh_page(self):

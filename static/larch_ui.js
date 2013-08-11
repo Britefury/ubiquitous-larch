@@ -73,7 +73,7 @@ larch.controls.initButton = function(node, options) {
     $(node).button(options);
 };
 
-larch.controls.initSlider = function(node, respondToSlide, options) {
+larch.controls.initSlider = function(node, respondToSlide, options, channel) {
     options.change = function(event, ui) {
         larch.postEvent(node, "slider_change", ui.value)
     };
@@ -82,7 +82,12 @@ larch.controls.initSlider = function(node, respondToSlide, options) {
             larch.postEvent(node, "slider_slide", ui.value)
         };
     }
-    $(node).slider(options);
+    var control = $(node).slider(options);
+    if (channel !== undefined) {
+        channel.addListener(function(message) {
+            control.slider('value', message);
+        });
+    }
 };
 
 larch.controls.initRangeSlider = function(node, respondToSlide, options) {

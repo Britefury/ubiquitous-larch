@@ -10,6 +10,7 @@ from larch.pres.pres import Pres
 from larch.pres.html import Html
 from larch.incremental import IncrementalMonitor, IncrementalFunctionMonitor
 from larch.inspector.present_exception import present_exception_with_traceback
+from larch.core.dynamicpage.page import  DynamicPage
 from larch.core.dynamicpage.segment import  HtmlContent
 
 
@@ -72,6 +73,16 @@ class _FragmentView (object):
 			self.__inc_view.dynamic_page.remove_segment(sub_seg)
 		self.__inc_view.dynamic_page.remove_segment(self.__segment)
 
+
+
+	def queue_task(self, task, priority=0):
+		"""
+		Queue a task
+
+		:param task: callable
+		:param priority: [optional] task priority
+		"""
+		self.__inc_view.queue_task(task, priority)
 
 
 	#
@@ -827,6 +838,17 @@ class IncrementalView (object):
 
 
 
+	def queue_task(self, task, priority=0):
+		"""
+		Queue a task
+
+		:param task: callable
+		:param priority: [optional] task priority
+		"""
+		self.__dynamic_page.queue_task(task, priority)
+
+
+
 
 	#
 	#
@@ -863,7 +885,7 @@ class IncrementalView (object):
 	def _queue_refresh(self):
 		if not self.__refresh_required:
 			self.__refresh_required = True
-			self.__dynamic_page.queue_task(self._refresh)
+			self.__dynamic_page.queue_task(self._refresh, DynamicPage._REFRESH_PRIORITY)
 
 
 
