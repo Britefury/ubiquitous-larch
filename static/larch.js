@@ -535,7 +535,7 @@ larch.__onkeypress = function(event, keys) {
 
 larch.__connectionToPageLost = false;
 
-larch.__messageHandlers = {
+larch.__serverMessageHandlers = {
     modify_page: function(message) {
         larch.__applyChanges(message.changes);
     },
@@ -551,10 +551,11 @@ larch.__messageHandlers = {
         }
     },
 
-    resources_modified: function(message) {
-        var resource_ids = message.resource_ids;
-        for (var i = 0; i < resource_ids.length; i++) {
-            larch.__resourceModified(resource_ids[i]);
+    resource_messages: function(message) {
+        var messages = message.messages;
+        for (var i = 0; i < messages.length; i++) {
+            var msg = messages[i];
+            larch.__resourceMessage(msg.resource_id, msg.message);
         }
     },
 
@@ -687,23 +688,27 @@ larch.__messageHandlers = {
     }
 };
 
+larch.__handleMessage = function(handlerMap, msg, targetDescription, sourceDescription) {
+    var handler = handlerMap[msg.msgtype];
+    if (handler !== undefined) {
+        handler(msg);
+    }
+    else {
+        noty({
+            text: '<p class="invalid_page_style">' + targetDescription + ' received an unrecognised message from ' + sourceDescription + ' (message type <span class="emph">' + msg.msgtype + '</span>)</p>',
+            layout: "center",
+            type: "error",
+            modal: true,
+            closeWith: ["click"]
+        });
+        throw ('Larch: unrecognised message: ' + msg.msgtype);
+    }
+};
+
 larch.__handleMessagesFromServer = function(messages) {
     for (var i = 0; i < messages.length; i++) {
         var msg = messages[i];
-        var handler = larch.__messageHandlers[msg.msgtype];
-        if (handler !== undefined) {
-            handler(msg);
-        }
-        else {
-            noty({
-                text: '<p class="invalid_page_style">Ubiquitous Larch received an unrecognised message from the server (message type <span class="emph">' + msg.msgtype + '</span>)</p>',
-                layout: "center",
-                type: "error",
-                modal: true,
-                closeWith: ["click"]
-            });
-            throw ('Larch: unrecognised message: ' + msg.msgtype);
-        }
+        larch.__handleMessage(larch.__serverMessageHandlers, msg, 'Ubiquitous Larch', 'server');
     }
 
     larch.__postModificationCleanup();
@@ -1071,9 +1076,39 @@ larch.showAlert = function(contents) {
 larch.__resourceIdToResource = {};
 larch.__rscFetchCount = 0;
 
+larch.__createResource = function(rscId) {
+    var rsc = {
+        __rscId: rscId,
+        __messageHandlers: {},
+
+        __handleMessage: function(message) {
+            larch.__handleMessage(rsc.__messageHandlers, message, 'URL resource', 'server');
+        },
+
+        sendMessage: function(message) {
+            larch.postDocumentEvent('resource_message', {
+                resource_id: rsc.__rscId,
+                message: message
+            });
+        }
+    };
+
+    larch.__resourceIdToResource[rscId] = rsc;
+    return rsc;
+};
+
+larch.__destroyResource = function(rscId) {
+   delete larch.__resourceIdToResource[rscId];
+};
+
+larch.__resourceMessage = function(resourceId, message) {
+    larch.__resourceIdToResource[resourceId].__handleMessage(message);
+};
+
+
+
 larch.__createURLResource = function(rscId, rscUrl) {
-    var rsc = {};
-    rsc.__rscId = rscId;
+    var rsc = larch.__createResource(rscId);
     rsc.url = rscUrl;
     rsc.__listeners = [];
 
@@ -1119,21 +1154,49 @@ larch.__createURLResource = function(rscId, rscUrl) {
         }
     };
 
-    larch.__resourceIdToResource[rscId] = rsc;
+    rsc.__messageHandlers.modified = function(message) {
+        for (var i = 0; i < rsc.__listeners.length; i++) {
+            rsc.__listeners[i]();
+        }
+    };
+
     return rsc;
 };
 
-larch.__destroyResource = function(rscId) {
-   delete larch.__resourceIdToResource[rscId];
+
+
+larch.__createChannelResource = function(rscId) {
+    var rsc = larch.__createResource(rscId);
+    rsc.__listeners = [];
+
+    rsc.addListener = function(listener) {
+        for (var i = 0; i < rsc.__listeners.length; i++) {
+            if (rsc.__listeners[i] === listener) {
+                return;
+            }
+        }
+
+        rsc.__listeners.push(listener);
+    };
+
+    rsc.removeListener = function(listener) {
+        for (var i = 0; i < rsc.__listeners.length; i++) {
+            if (rsc.__listeners[i] === listener) {
+                delete rsc.__listeners[i];
+                return;
+            }
+        }
+    };
+
+    rsc.__messageHandlers.message = function(message) {
+        for (var i = 0; i < rsc.__listeners.length; i++) {
+            rsc.__listeners[i](message.message);
+        }
+    };
+
+    return rsc;
 };
 
-larch.__resourceModified = function(rscId) {
-    var rsc = larch.__resourceIdToResource[rscId];
-
-    for (var i = 0; i < rsc.__listeners.length; i++) {
-        rsc.__listeners[i]();
-    }
-};
 
 
 

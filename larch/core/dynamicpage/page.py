@@ -232,7 +232,7 @@ class DynamicPage (object):
 		self.__rsc_id_to_rsc_instance = {}
 		self.__url_rsc_id_to_rsc_instance = {}
 		self.__resource_to_resource_instance = {}
-		self.__modified_rsc_instances = set()
+		self.__resource_id_and_message_pairs = []
 		self.__disposed_rsc_instances = set()
 
 		# Segment dispose listeners
@@ -244,6 +244,7 @@ class DynamicPage (object):
 
 		# Register the broken HTML structure event handler
 		self.add_page_event_handler('broken_html_structure', self.__on_broken_html_structure)
+		self.add_page_event_handler('resource_message', self.__on_resource_message)
 
 
 
@@ -293,7 +294,7 @@ class DynamicPage (object):
 	#
 	#
 
-	def __on_broken_html_structure(self, public_api, broken_segment_ids):
+	def __on_broken_html_structure(self, public_api, event_name, broken_segment_ids):
 		if self.__FIX_HTML_STRUCTURE_PARAM_NAME not in self.__get_params:
 			get_params = {}
 			get_params.update(self.__get_params)
@@ -418,10 +419,11 @@ class DynamicPage (object):
 			del self.__rsc_id_to_rsc_instance[rsc_instance.id]
 
 
-	def _resource_modified(self, rsc_instance):
+	def _send_resource_message(self, rsc_instance, message):
 		"""Notify of resource modification
 		"""
-		self.__modified_rsc_instances.add(rsc_instance.id)
+		pair = (rsc_instance.id, message)
+		self.__resource_id_and_message_pairs.append(pair)
 
 
 	def _resource_disposed(self, rsc_instance):
@@ -430,10 +432,21 @@ class DynamicPage (object):
 		self.__disposed_rsc_instances.add(rsc_instance.id)
 
 
-	def __resources_modified_message(self):
-		if len(self.__modified_rsc_instances) > 0:
-			rsc_mod_message = messages.resources_modified_message(self.__modified_rsc_instances - self.__disposed_rsc_instances)
-			self.__modified_rsc_instances = set()
+	def __on_resource_message(self, public_api, event_name, event_data):
+		print event_data
+		resource_id = event_data['resource_id']
+		message = event_data['message']
+		rsc_instance = self.__rsc_id_to_rsc_instance.get(resource_id)
+		rsc_instance.on_message(message)
+
+
+
+	def __resource_msgs_message(self):
+		if len(self.__resource_id_and_message_pairs) > 0:
+			disposed_ids = {rsc_instance.id   for rsc_instance in self.__disposed_rsc_instances}
+			pairs = [pair   for pair in self.__resource_id_and_message_pairs   if pair[0] not in disposed_ids]
+			rsc_mod_message = messages.resource_messages_message(pairs)
+			self.__resource_id_and_message_pairs = []
 			return rsc_mod_message
 		else:
 			return None
@@ -557,7 +570,7 @@ class DynamicPage (object):
 				self.__execute_js_message = None
 
 			# Resource modification message
-			rsc_mod_message = self.__resources_modified_message()
+			rsc_mod_message = self.__resource_msgs_message()
 			if rsc_mod_message is not None:
 				msg_list.append(rsc_mod_message)
 
@@ -592,7 +605,7 @@ class DynamicPage (object):
 			for handler_ev_name, handler_fn in self.__page_event_handlers:
 				if handler_ev_name == event_name:
 					try:
-						if handler_fn(self.__public_api, ev_data):
+						if handler_fn(self.__public_api, event_name, ev_data):
 							return True
 					except Exception, e:
 						return EventHandleError(event_name, None, None, None, None, e, sys.exc_info()[2])
@@ -956,8 +969,11 @@ class DynamicPageResourceInstance (object):
 
 
 
-	def notify_changed(self):
-		self.__page._resource_modified(self)
+	def send_message(self, message):
+		self.__page._send_resource_message(self, message)
+
+	def on_message(self, message):
+		self.__resource.on_message(self, message)
 
 
 	@property
@@ -977,8 +993,6 @@ class DynamicPageResourceInstance (object):
 
 	@property
 	def url(self):
+		if not self.__resource.requires_url:
+			raise RuntimeError, 'Attempting to acquire a URL for a resource that does not support URL based access'
 		return '/rsc/{0}/{1}'.format(self.__page._session_id, self.__rsc_id)
-
-
-	def client_side_js(self):
-		return '(larch.__createResource("{0}", {1}))'.format(self.__rsc_id, json.dumps(self.url))

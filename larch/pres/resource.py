@@ -10,6 +10,7 @@ from larch.core.dynamicpage.segment import HtmlContent
 from larch.live import LiveFunction
 from larch.pres import pres, js
 from larch.core.subject import Subject
+from larch import msg
 
 
 
@@ -23,16 +24,56 @@ class Resource (pres.Pres, js.JS):
 	def page_unref(self, pres_ctx, rsc_instance):
 		pass
 
+	def on_message(self, rsc_instance, message):
+		pass
+
 
 	def build(self, pres_ctx):
 		return HtmlContent([])
 
 	def build_js(self, pres_ctx):
-		instance = self._get_instance(pres_ctx)
-		return instance.client_side_js()
+		raise NotImplementedError, 'abstract'
 
 	def _get_instance(self, pres_ctx):
 		return pres_ctx.fragment_view.get_resource_instance(self, pres_ctx)
+
+
+
+
+class MessageChannel (Resource):
+	def __init__(self):
+		self.__message_listeners = []
+		self.__instances = set()
+
+
+	def page_ref(self, pres_ctx, rsc_instance):
+		self.__instances.add(rsc_instance)
+
+	def page_unref(self, pres_ctx, rsc_instance):
+		self.__instances.remove(rsc_instance)
+
+
+	def add_listener(self, listener):
+		self.__message_listeners.append(listener)
+
+	def remove_listener(self, listener):
+		self.__message_listeners.remove(listener)
+
+
+	def send(self, message):
+		m = msg.message('message', message=message)
+		for instance in self.__instances:
+			instance.send_message(m)
+
+	def on_message(self, rsc_instance, message):
+		for listener in self.__message_listeners:
+			listener(message)
+
+
+	def build_js(self, pres_ctx):
+		instance = self._get_instance(pres_ctx)
+		j = js.JSCall('larch.__createChannelResource', [instance.id])
+		return j.build_js(pres_ctx)
 
 
 
@@ -143,8 +184,9 @@ class LiveFnResource (URLResource):
 
 
 	def __live_listener(self, incr):
+		modified_message = msg.message('modified')
 		for instance in self.__instances:
-			instance.notify_changed()
+			instance.send_message(modified_message)
 
 
 	def get_data(self):
