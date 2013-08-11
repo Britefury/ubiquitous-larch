@@ -229,7 +229,8 @@ class DynamicPage (object):
 
 		# Resources
 		self.__rsc_id_counter = 1
-		self.__rsc_id_to_rsc = {}
+		self.__rsc_id_to_rsc_instance = {}
+		self.__url_rsc_id_to_rsc_instance = {}
 		self.__resource_to_resource_instance = {}
 		self.__modified_rsc_instances = set()
 		self.__disposed_rsc_instances = set()
@@ -405,7 +406,7 @@ class DynamicPage (object):
 			rsc_id = 'r{0}'.format(self.__rsc_id_counter)
 			self.__rsc_id_counter += 1
 			rsc_instance = DynamicPageResourceInstance(self, rsc_id, resource)
-			self.__rsc_id_to_rsc[rsc_id] = rsc_instance
+			self.__rsc_id_to_rsc_instance[rsc_id] = rsc_instance
 
 		rsc_instance.ref(pres_ctx)
 
@@ -414,7 +415,7 @@ class DynamicPage (object):
 
 	def unref_resource_instance(self, rsc_instance):
 		if rsc_instance.unref() == 0:
-			del self.__rsc_id_to_rsc[rsc_instance.id]
+			del self.__rsc_id_to_rsc_instance[rsc_instance.id]
 
 
 	def _resource_modified(self, rsc_instance):
@@ -445,6 +446,26 @@ class DynamicPage (object):
 			return rsc_disp_message
 		else:
 			return None
+
+
+	def _allocate_resource_url(self, rsc_instance):
+		self.__url_rsc_id_to_rsc_instance[rsc_instance.id] = rsc_instance
+
+	def _deallocate_resource_url(self, rsc_instance):
+		del self.__url_rsc_id_to_rsc_instance[rsc_instance.id]
+
+
+
+	# Resource retrieval
+	def get_url_resource_data(self, rsc_id):
+		try:
+			rsc = self.__url_rsc_id_to_rsc_instance[rsc_id]
+		except KeyError:
+			return None
+		else:
+			return rsc.get_data(), rsc.get_mime_type()
+
+
 
 
 
@@ -602,15 +623,6 @@ class DynamicPage (object):
 	def add_page_event_handler(self, event_name, event_response_function):
 		self.__page_event_handlers.append((event_name, event_response_function))
 
-
-	# Resource retrieval
-	def get_resource_data(self, rsc_id):
-		try:
-			rsc = self.__rsc_id_to_rsc[rsc_id]
-		except KeyError:
-			return None
-		else:
-			return rsc.get_data(), rsc.get_mime_type()
 
 
 
@@ -927,20 +939,24 @@ class DynamicPageResourceInstance (object):
 	def ref(self, pres_ctx):
 		if self.__ref_count == 0:
 			self.__pres_ctx = pres_ctx
-			self.__resource.page_ref(pres_ctx, self.__on_changed, self.url)
+			self.__resource.page_ref(pres_ctx, self)
+			if self.__resource.requires_url:
+				self.__page._allocate_resource_url(self)
 		self.__ref_count += 1
 		return self.__ref_count
 
 	def unref(self):
 		self.__ref_count -= 1
 		if self.__ref_count == 0:
-			self.__resource.page_unref(self.__pres_ctx, self.__on_changed)
+			self.__resource.page_unref(self.__pres_ctx, self)
+			if self.__resource.requires_url:
+				self.__page._deallocate_resource_url(self)
 			self.__page._resource_disposed(self)
 		return self.__ref_count
 
 
 
-	def __on_changed(self):
+	def notify_changed(self):
 		self.__page._resource_modified(self)
 
 

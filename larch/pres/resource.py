@@ -15,10 +15,12 @@ from larch.core.subject import Subject
 
 
 class Resource (pres.Pres, js.JS):
-	def page_ref(self, pres_ctx, change_listener, url):
+	requires_url = False
+
+	def page_ref(self, pres_ctx, rsc_instance):
 		pass
 
-	def page_unref(self, pres_ctx, change_listener):
+	def page_unref(self, pres_ctx, rsc_instance):
 		pass
 
 
@@ -35,7 +37,11 @@ class Resource (pres.Pres, js.JS):
 
 
 
+
+
 class URLResource (Resource):
+	requires_url = True
+
 	def get_data(self):
 		raise NotImplementedError, 'abstract'
 
@@ -45,12 +51,14 @@ class URLResource (Resource):
 	def build(self, pres_ctx):
 		return HtmlContent([self._url(pres_ctx)])
 
+	def build_js(self, pres_ctx):
+		instance = self._get_instance(pres_ctx)
+		j = js.JSCall('larch.__createURLResource', [instance.id, instance.url])
+		return j.build_js(pres_ctx)
+
 	def _url(self, pres_ctx):
 		rsc_instance = pres_ctx.fragment_view.get_resource_instance(self, pres_ctx)
 		return rsc_instance.url
-
-
-
 
 
 
@@ -117,26 +125,26 @@ class LiveFnResource (URLResource):
 	def __init__(self, data_fn, mime_type):
 		self.__data_fn = LiveFunction(data_fn)
 		self.__mime_type = mime_type
-		self.__change_listeners = []
+		self.__instances = []
 		self.__ref_count = 0
 
-	def page_ref(self, pres_ctx, change_listener, url):
-		self.__change_listeners.append(change_listener)
+	def page_ref(self, pres_ctx, rsc_instance):
+		self.__instances.append(rsc_instance)
 		if self.__ref_count == 0:
 			self.__data_fn.add_listener(self.__live_listener)
 		self.__ref_count += 1
 
 
-	def page_unref(self, pres_ctx, change_listener):
+	def page_unref(self, pres_ctx, rsc_instance):
 		self.__ref_count -= 1
 		if self.__ref_count == 0:
 			self.__data_fn.remove_listener(self.__live_listener)
-		self.__change_listeners.remove(change_listener)
+		self.__instances.remove(rsc_instance)
 
 
 	def __live_listener(self, incr):
-		for listener in self.__change_listeners:
-			listener()
+		for instance in self.__instances:
+			instance.notify_changed()
 
 
 	def get_data(self):
@@ -219,9 +227,9 @@ class SubjectResource (URLResource):
 		self.__mime_type = ''
 
 
-	def page_ref(self, pres_ctx, change_listener, url):
+	def page_ref(self, pres_ctx, rsc_instance):
 		if self.__data is None:
-			self.__data = pres_ctx.fragment_view.service.page_for_subject(self.__subject, url.strip('/'))
+			self.__data = pres_ctx.fragment_view.service.page_for_subject(self.__subject, rsc_instance.url.strip('/'))
 			self.__mime_type = 'text/html'
 
 
@@ -242,10 +250,10 @@ class PresResource (URLResource):
 		self.__mime_type = ''
 
 
-	def page_ref(self, pres_ctx, change_listener, url):
+	def page_ref(self, pres_ctx, rsc_instance):
 		subj = Subject()
 		subj.add_step(focus=self.__contents, perspective=pres_ctx.perspective, title='Resource')
-		self.__data = pres_ctx.fragment_view.service.page_for_subject(subj, url.strip('/'))
+		self.__data = pres_ctx.fragment_view.service.page_for_subject(subj, rsc_instance.url.strip('/'))
 		self.__mime_type = 'text/html'
 
 

@@ -216,7 +216,7 @@ class DynamicPageService (object):
 
 		# Get the resource
 		try:
-			result = dynamic_page.get_resource_data(rsc_id)
+			result = dynamic_page.get_url_resource_data(rsc_id)
 		except Exception:
 			print 'Error while retrieving resource:'
 			traceback.print_exc()

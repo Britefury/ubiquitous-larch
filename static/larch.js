@@ -1071,7 +1071,7 @@ larch.showAlert = function(contents) {
 larch.__resourceIdToResource = {};
 larch.__rscFetchCount = 0;
 
-larch.__createResource = function(rscId, rscUrl) {
+larch.__createURLResource = function(rscId, rscUrl) {
     var rsc = {};
     rsc.__rscId = rscId;
     rsc.url = rscUrl;
