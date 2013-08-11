@@ -234,6 +234,9 @@ class DynamicPage (object):
 		self.__modified_resources = set()
 		self.__disposed_resources = set()
 
+		# Segment dispose listeners
+		self.__segment_dispose_listeners = {}
+
 		# Threading lock, required for servers such as CherryPy
 		self.__lock = None
 
@@ -360,6 +363,24 @@ class DynamicPage (object):
 				self._check_for_structurally_valid_page()
 		self._table._remove_segment(segment)
 
+		seg_id = segment.id
+		if seg_id in self.__segment_dispose_listeners:
+			for listener in self.__segment_dispose_listeners[seg_id]:
+				listener(segment)
+			del self.__segment_dispose_listeners[seg_id]
+
+
+
+	def add_segment_dispose_listener(self, segment, listener_fn):
+		"""
+		Add a segment dispose listener. The listener is invoked when the attached segment is disposed of.
+
+		:param segment: the segment to receive events for
+		:param listener_fn: the listener function of the form function(segment)
+		:return: None
+		"""
+		self.__segment_dispose_listeners.setdefault(segment.id, list()).append(listener_fn)
+
 
 
 
@@ -401,7 +422,7 @@ class DynamicPage (object):
 		self.__modified_resources.add(rsc.id)
 
 
-	def _resouce_disposed(self, rsc):
+	def _resource_disposed(self, rsc):
 		"""Notify of resource disposal
 		"""
 		self.__disposed_resources.add(rsc.id)
@@ -423,8 +444,6 @@ class DynamicPage (object):
 			return rsc_disp_message
 		else:
 			return None
-
-
 
 
 
@@ -524,6 +543,12 @@ class DynamicPage (object):
 			rsc_disp_message = self.__resources_disposed_message()
 			if rsc_disp_message is not None:
 				msg_list.append(rsc_disp_message)
+
+			# Segment messages
+			seg_message = self.__messages_for_segments_message()
+			if seg_message is not None:
+				msg_list.append(seg_message)
+
 
 			# Structure validity message
 			structure_validity_message = self.__structure_validity_message()
@@ -829,6 +854,10 @@ class _SegmentTable (object):
 		return self.__id_to_segment[segment_id]
 
 
+	def __contains__(self, segment_id):
+		return segment_id in self.__id_to_segment
+
+
 	@property
 	def all_segments(self):
 		return self.__id_to_segment.values()
@@ -910,7 +939,7 @@ class DynamicPageResource (object):
 		self.__ref_count -= 1
 		if self.__ref_count == 0:
 			self.__rsc_data.dispose_rscdata(self.__pres_ctx)
-			self.__page._resouce_disposed(self)
+			self.__page._resource_disposed(self)
 		return self.__ref_count
 
 
