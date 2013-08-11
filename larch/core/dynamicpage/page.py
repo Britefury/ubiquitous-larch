@@ -544,11 +544,6 @@ class DynamicPage (object):
 			if rsc_disp_message is not None:
 				msg_list.append(rsc_disp_message)
 
-			# Segment messages
-			seg_message = self.__messages_for_segments_message()
-			if seg_message is not None:
-				msg_list.append(seg_message)
-
 
 			# Structure validity message
 			structure_validity_message = self.__structure_validity_message()
