@@ -129,24 +129,6 @@ class Pres (object):
 
 
 
-class Resource (Pres, js.JS):
-	def __init__(self, rsc_data):
-		self.__rsc_data = rsc_data
-
-
-	def build(self, pres_ctx):
-		return HtmlContent([self._url(pres_ctx)])
-
-	def build_js(self, pres_ctx):
-		page_rsc = pres_ctx.fragment_view.create_resource(self.__rsc_data, pres_ctx)
-		return page_rsc.client_side_js()
-
-	def _url(self, pres_ctx):
-		page_rsc = pres_ctx.fragment_view.create_resource(self.__rsc_data, pres_ctx)
-		return page_rsc.url
-
-
-
 class CompositePres (Pres):
 	def build(self, pres_ctx):
 		return self.pres(pres_ctx).build(pres_ctx)

@@ -230,9 +230,9 @@ class DynamicPage (object):
 		# Resources
 		self.__rsc_id_counter = 1
 		self.__rsc_id_to_rsc = {}
-		self.__rsc_content_to_rsc = {}
-		self.__modified_resources = set()
-		self.__disposed_resources = set()
+		self.__resource_to_resource_instance = {}
+		self.__modified_rsc_instances = set()
+		self.__disposed_rsc_instances = set()
 
 		# Segment dispose listeners
 		self.__segment_dispose_listeners = {}
@@ -390,57 +390,58 @@ class DynamicPage (object):
 	#
 	#
 
-	def resource_for(self, rsc_data, pres_ctx):
-		"""Create a new resource
-
-		:param rsc_data: a resource data object that provides:
-			initialise(context, change_listener) and dispose(context) methods. These are called before the resource is first used and when it is no longer needed, respectively.
-					The context parameter of these methods receives the value passed to context of this method
-			data and mime_type attributes/properties: the data and its MIME type
-		:param pres_ctx: context data, used by the resource data object at initialisation and disposal time
+	def get_resource_instance(self, resource, pres_ctx):
 		"""
-		page_rsc = self.__rsc_content_to_rsc.get(rsc_data)
-		if page_rsc is None:
+		Get an instance of a resource
+
+		If an instance of the specified resource has already been created, the existing instance will be returned
+
+		:param resource: a resource
+		:param pres_ctx: context data, used by the resource object at initialisation and disposal time
+		:return: the resource instance
+		"""
+		rsc_instance = self.__resource_to_resource_instance.get(resource)
+		if rsc_instance is None:
 			rsc_id = 'r{0}'.format(self.__rsc_id_counter)
 			self.__rsc_id_counter += 1
-			page_rsc = DynamicPageResource(self, rsc_id, rsc_data)
-			self.__rsc_id_to_rsc[rsc_id] = page_rsc
+			rsc_instance = DynamicPageResourceInstance(self, rsc_id, resource)
+			self.__rsc_id_to_rsc[rsc_id] = rsc_instance
 
-		page_rsc.ref(pres_ctx)
+		rsc_instance.ref(pres_ctx)
 
-		return page_rsc
-
-
-	def unref_resource(self, page_rsc):
-		if page_rsc.unref() == 0:
-			del self.__rsc_id_to_rsc[page_rsc.id]
+		return rsc_instance
 
 
-	def _resource_modified(self, rsc):
+	def unref_resource_instance(self, rsc_instance):
+		if rsc_instance.unref() == 0:
+			del self.__rsc_id_to_rsc[rsc_instance.id]
+
+
+	def _resource_modified(self, rsc_instance):
 		"""Notify of resource modification
 		"""
-		self.__modified_resources.add(rsc.id)
+		self.__modified_rsc_instances.add(rsc_instance.id)
 
 
-	def _resource_disposed(self, rsc):
+	def _resource_disposed(self, rsc_instance):
 		"""Notify of resource disposal
 		"""
-		self.__disposed_resources.add(rsc.id)
+		self.__disposed_rsc_instances.add(rsc_instance.id)
 
 
 	def __resources_modified_message(self):
-		if len(self.__modified_resources) > 0:
-			rsc_mod_message = messages.resources_modified_message(self.__modified_resources - self.__disposed_resources)
-			self.__modified_resources = set()
+		if len(self.__modified_rsc_instances) > 0:
+			rsc_mod_message = messages.resources_modified_message(self.__modified_rsc_instances - self.__disposed_rsc_instances)
+			self.__modified_rsc_instances = set()
 			return rsc_mod_message
 		else:
 			return None
 
 
 	def __resources_disposed_message(self):
-		if len(self.__disposed_resources) > 0:
-			rsc_disp_message = messages.resources_disposed_message(self.__disposed_resources)
-			self.__disposed_resources = set()
+		if len(self.__disposed_rsc_instances) > 0:
+			rsc_disp_message = messages.resources_disposed_message(self.__disposed_rsc_instances)
+			self.__disposed_rsc_instances = set()
 			return rsc_disp_message
 		else:
 			return None
@@ -609,7 +610,7 @@ class DynamicPage (object):
 		except KeyError:
 			return None
 		else:
-			return rsc.data, rsc.mime_type
+			return rsc.get_data(), rsc.get_mime_type()
 
 
 
@@ -914,11 +915,11 @@ class _SegmentTable (object):
 
 
 
-class DynamicPageResource (object):
-	def __init__(self, page, rsc_id, rsc_data):
+class DynamicPageResourceInstance (object):
+	def __init__(self, page, rsc_id, resource):
 		self.__page = page
 		self.__rsc_id = rsc_id
-		self.__rsc_data = rsc_data
+		self.__resource = resource
 		self.__pres_ctx = None
 		self.__ref_count = 0
 
@@ -926,14 +927,14 @@ class DynamicPageResource (object):
 	def ref(self, pres_ctx):
 		if self.__ref_count == 0:
 			self.__pres_ctx = pres_ctx
-			self.__rsc_data.initialise_rscdata(pres_ctx, self.__on_changed, self.url)
+			self.__resource.page_ref(pres_ctx, self.__on_changed, self.url)
 		self.__ref_count += 1
 		return self.__ref_count
 
 	def unref(self):
 		self.__ref_count -= 1
 		if self.__ref_count == 0:
-			self.__rsc_data.dispose_rscdata(self.__pres_ctx)
+			self.__resource.page_unref(self.__pres_ctx, self.__on_changed)
 			self.__page._resource_disposed(self)
 		return self.__ref_count
 
@@ -951,13 +952,11 @@ class DynamicPageResource (object):
 	def id(self):
 		return self.__rsc_id
 
-	@property
-	def data(self):
-		return self.__rsc_data.data
+	def get_data(self):
+		return self.__resource.get_data()
 
-	@property
-	def mime_type(self):
-		return self.__rsc_data.mime_type
+	def get_mime_type(self):
+		return self.__resource.get_mime_type()
 
 
 	@property

@@ -61,13 +61,13 @@ class _FragmentView (object):
 		self.__sub_segments = []
 
 		# Resources
-		self.__resources = set()
+		self.__resource_instances = set()
 
 
 	def _dispose(self):
 		self.__incr.remove_listener(self.__on_incremental_monitor_changed)
-		for page_rsc in self.__resources:
-			self.__inc_view.dynamic_page.unref_resource(page_rsc)
+		for rsc_instance in self.__resource_instances:
+			self.__inc_view.dynamic_page.unref_resource_instance(rsc_instance)
 		for sub_seg in self.__sub_segments:
 			self.__inc_view.dynamic_page.remove_segment(sub_seg)
 		self.__inc_view.dynamic_page.remove_segment(self.__segment)
@@ -209,11 +209,11 @@ class _FragmentView (object):
 
 
 
-	def create_resource(self, rsc_data, pres_ctx):
-		page_rsc = self.__inc_view.dynamic_page.resource_for(rsc_data, pres_ctx)
-		if page_rsc not in self.__resources:
-			self.__resources.add(page_rsc)
-		return page_rsc
+	def get_resource_instance(self, resource, pres_ctx):
+		rsc_instance = self.__inc_view.dynamic_page.get_resource_instance(resource, pres_ctx)
+		if rsc_instance not in self.__resource_instances:
+			self.__resource_instances.add(rsc_instance)
+		return rsc_instance
 
 
 

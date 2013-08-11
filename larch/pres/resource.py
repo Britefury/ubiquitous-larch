@@ -8,21 +8,46 @@ import mimetypes
 
 from larch.core.dynamicpage.segment import HtmlContent
 from larch.live import LiveFunction
-from larch.pres.pres import Resource
+from larch.pres import pres, js
 from larch.core.subject import Subject
 
-__author__ = 'Geoff'
+
+
+
+class Resource (pres.Pres, js.JS):
+	def page_ref(self, pres_ctx, change_listener, url):
+		pass
+
+	def page_unref(self, pres_ctx, change_listener):
+		pass
+
+
+	def build(self, pres_ctx):
+		return HtmlContent([])
+
+	def build_js(self, pres_ctx):
+		instance = self._get_instance(pres_ctx)
+		return instance.client_side_js()
+
+	def _get_instance(self, pres_ctx):
+		return pres_ctx.fragment_view.get_resource_instance(self, pres_ctx)
 
 
 
 
-class ResourceData (object):
-	def initialise_rscdata(self, pres_ctx, change_listener, url):
+class URLResource (Resource):
+	def get_data(self):
 		raise NotImplementedError, 'abstract'
 
-	def dispose_rscdata(self, pres_ctx):
+	def get_mime_type(self):
 		raise NotImplementedError, 'abstract'
 
+	def build(self, pres_ctx):
+		return HtmlContent([self._url(pres_ctx)])
+
+	def _url(self, pres_ctx):
+		rsc_instance = pres_ctx.fragment_view.get_resource_instance(self, pres_ctx)
+		return rsc_instance.url
 
 
 
@@ -30,22 +55,18 @@ class ResourceData (object):
 
 
 
-class ConstResource (Resource):
-	class _ConstResourceData (ResourceData):
-		def __init__(self, data, mime_type):
-			self.data = data
-			self.mime_type = mime_type
-
-		def initialise_rscdata(self, pres_ctx, change_listener, url):
-			pass
-
-		def dispose_rscdata(self, pres_ctx):
-			self.data = None
-			self.mime_type = None
-
-
+class ConstResource (URLResource):
 	def __init__(self, data, mime_type):
-		super(ConstResource, self).__init__(self._ConstResourceData(data, mime_type))
+		super(ConstResource, self).__init__()
+		self.__data = data
+		self.__mime_type = mime_type
+
+
+	def get_data(self):
+		return self.__data
+
+	def get_mime_type(self):
+		return self.__mime_type
 
 
 
@@ -61,104 +82,107 @@ class CSVResource (ConstResource):
 
 
 
-class FnResource (Resource):
-	class _FnResourceData (ResourceData):
-		def __init__(self, data_fn, mime_type):
-			self.data_fn = data_fn
-			self.mime_type = mime_type
+class FnResource (URLResource):
+	def __init__(self, data_fn, mime_type):
+		super(FnResource, self).__init__()
+		self.__data_fn = data_fn
+		self.__mime_type = mime_type
 
-		def initialise_rscdata(self, pres_ctx, change_listener, url):
-			pass
 
-		def dispose_rscdata(self, pres_ctx):
-			self.data_fn = None
-			self.mime_type = None
+	def get_data(self):
+		return self.__data_fn()
 
-		@property
-		def data(self):
-			return self.data_fn()
+	def get_mime_type(self):
+		return self.__mime_type
+
+
+
 
 
 class JsonFnResource (FnResource):
 	def __init__(self, data_fn):
-		super(JsonFnResource, self).__init__(self._FnResourceData(lambda: json.dumps(data_fn()), 'application/json'))
+		super(JsonFnResource, self).__init__(lambda: json.dumps(data_fn()), 'application/json')
 
 
 
 class CSVFnResource (FnResource):
 	def __init__(self, data_fn):
-		super(CSVFnResource, self).__init__(self._FnResourceData(data_fn(), 'text/csv'))
+		super(CSVFnResource, self).__init__(data_fn(), 'text/csv')
 
 
 
 
 
-class LiveFnResource (Resource):
-	class _LiveFnResourceData (ResourceData):
-		def __init__(self, data_fn, mime_type):
-			self.data_fn = LiveFunction(data_fn)
-			self.mime_type = mime_type
-			self.__change_listener = None
+class LiveFnResource (URLResource):
+	def __init__(self, data_fn, mime_type):
+		self.__data_fn = LiveFunction(data_fn)
+		self.__mime_type = mime_type
+		self.__change_listeners = []
+		self.__ref_count = 0
 
-		def initialise_rscdata(self, pres_ctx, change_listener, url):
-			self.__change_listener = change_listener
-			self.data_fn.add_listener(self._live_listener)
-
-
-		def dispose_rscdata(self, pres_ctx):
-			self.data_fn.remove_listener(self._live_listener)
-			self.data_fn = None
-			self.mime_type = None
-			self.__change_listener = None
+	def page_ref(self, pres_ctx, change_listener, url):
+		self.__change_listeners.append(change_listener)
+		if self.__ref_count == 0:
+			self.__data_fn.add_listener(self.__live_listener)
+		self.__ref_count += 1
 
 
-		def _live_listener(self, incr):
-			self.__change_listener()
+	def page_unref(self, pres_ctx, change_listener):
+		self.__ref_count -= 1
+		if self.__ref_count == 0:
+			self.__data_fn.remove_listener(self.__live_listener)
+		self.__change_listeners.remove(change_listener)
 
-		@property
-		def data(self):
-			return self.data_fn()
+
+	def __live_listener(self, incr):
+		for listener in self.__change_listeners:
+			listener()
+
+
+	def get_data(self):
+		return self.__data_fn()
+
+	def get_mime_type(self):
+		return self.__mime_type
+
 
 
 class JsonLiveFnResource (LiveFnResource):
 	def __init__(self, data_fn):
-		super(JsonLiveFnResource, self).__init__(self._LiveFnResourceData(lambda: json.dumps(data_fn()), 'application/json'))
+		super(JsonLiveFnResource, self).__init__(lambda: json.dumps(data_fn()), 'application/json')
 
 
 
 class CSVLiveFnResource (LiveFnResource):
 	def __init__(self, data_fn):
-		super(CSVLiveFnResource, self).__init__(self._LiveFnResourceData(data_fn(), 'text/csv'))
+		super(CSVLiveFnResource, self).__init__(data_fn, 'text/csv')
 
 
 
 
 
-class ImageFromFile (Resource):
-	class _ImageFromFileResourceData (ResourceData):
-		def __init__(self, filename):
-			self.__filename = filename
-			self.data = ''
-			self.mime_type = ''
-
-		def initialise_rscdata(self, pres_ctx, change_listener, url):
-			if os.path.exists(self.__filename)  and  os.path.isfile(self.__filename):
-				f = open(self.__filename, 'rb')
-				self.data = f.read()
-				self.mime_type = mimetypes.guess_type(self.__filename)[0]
-				f.close()
-
-		def dispose_rscdata(self, pres_ctx):
-			self.data = None
-			self.mime_type = None
-
-
-
+class ImageFromFile (URLResource):
 	def __init__(self, filename, width=None, height=None):
-		super(ImageFromFile, self).__init__(self._ImageFromFileResourceData(filename))
+		super(ImageFromFile, self).__init__()
+		self.__filename = filename
 		self.__width = width
 		self.__height = height
+		self.__data = None
+		self.__mime_type = ''
 
+
+
+	def get_data(self):
+		if self.__data is None:
+			if os.path.exists(self.__filename)  and  os.path.isfile(self.__filename):
+				f = open(self.__filename, 'rb')
+				self.__data = f.read()
+				self.__mime_type = mimetypes.guess_type(self.__filename)[0]
+				f.close()
+		return self.__data
+
+	def get_mime_type(self):
+		return self.__mime_type
 
 
 	def build(self, pres_ctx):
@@ -187,49 +211,51 @@ class ImageFromBinary (ConstResource):
 
 
 
-class SubjectResource (Resource):
-	class _SubjectResourceData (ResourceData):
-		def __init__(self, subject):
-			self.__subject = subject
-			self.data = ''
-			self.mime_type = ''
-
-
-		def initialise_rscdata(self, pres_ctx, change_listener, url):
-			self.data = pres_ctx.fragment_view.service.page_for_subject(self.__subject, url.strip('/'))
-			self.mime_type = 'text/html'
-
-		def dispose_rscdata(self, pres_ctx):
-			self.data = ''
-			self.mime_type = ''
-
-
+class SubjectResource (URLResource):
 	def __init__(self, subject):
-		super(SubjectResource, self).__init__(self._SubjectResourceData(subject))
+		super(SubjectResource, self).__init__()
+		self.__subject = subject
+		self.__data = None
+		self.__mime_type = ''
+
+
+	def page_ref(self, pres_ctx, change_listener, url):
+		if self.__data is None:
+			self.__data = pres_ctx.fragment_view.service.page_for_subject(self.__subject, url.strip('/'))
+			self.__mime_type = 'text/html'
+
+
+	def get_data(self):
+		return self.__data
+
+	def get_mime_type(self):
+		return self.__mime_type
 
 
 
-class PresResource (Resource):
-	class _PresResourceData (ResourceData):
-		def __init__(self, contents):
-			self.__contents = contents
-			self.data = ''
-			self.mime_type = ''
+
+class PresResource (URLResource):
+	def __init__(self, contents):
+		super(PresResource, self).__init__()
+		self.__contents = contents
+		self.__data = None
+		self.__mime_type = ''
 
 
-		def initialise_rscdata(self, pres_ctx, change_listener, url):
-			subj = Subject()
-			subj.add_step(focus=self.__contents, perspective=pres_ctx.perspective, title='Resource')
-			self.data = pres_ctx.fragment_view.service.page_for_subject(subj, url.strip('/'))
-			self.mime_type = 'text/html'
-
-		def dispose_rscdata(self, pres_ctx):
-			self.data = ''
-			self.mime_type = ''
+	def page_ref(self, pres_ctx, change_listener, url):
+		subj = Subject()
+		subj.add_step(focus=self.__contents, perspective=pres_ctx.perspective, title='Resource')
+		self.__data = pres_ctx.fragment_view.service.page_for_subject(subj, url.strip('/'))
+		self.__mime_type = 'text/html'
 
 
-	def __init__(self, subject):
-		super(PresResource, self).__init__(self._PresResourceData(subject))
+	def get_data(self):
+		return self.__data
+
+	def get_mime_type(self):
+		return self.__mime_type
+
+
 
 
 
