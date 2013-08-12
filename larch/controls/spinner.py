@@ -50,7 +50,6 @@ class live_spinner (CompositePres):
 		"""
 		self.__live = live
 		self.__name = name
-		self.__channel = MessageChannel()
 
 
 	def pres(self, pres_ctx):

@@ -2,19 +2,25 @@
 //-* This source code is (C)copyright Geoffrey French 2011-2013.
 //-*************************
 
-larch.controls.initCKEditor = function(textArea, config, immediate_events) {
+larch.controls.initCKEditor = function(textArea, config, immediate_events, channel) {
+    var ignoreChanges = [false];
+
     var c = CKEDITOR.inline(textArea, config);
     if (immediate_events) {
         textArea.addEventListener('input', function(){
-            larch.postEvent(textArea, "ckeditor_edit", textArea.innerHTML);
+            if (!ignoreChanges[0]) {
+                larch.postEvent(textArea, "ckeditor_edit", textArea.innerHTML);
+            }
         }, false);
     }
     else {
         textArea.addEventListener('input', function(){
-            var fac = function() {
-                return textArea.innerHTML;
-            };
-            larch.queueEventFactory(textArea, "ckeditor_edit", fac);
+            if (!ignoreChanges[0]) {
+                var fac = function() {
+                    return textArea.innerHTML;
+                };
+                larch.queueEventFactory(textArea, "ckeditor_edit", fac);
+            }
         }, false);
     }
     c.on("focus", function() {
@@ -24,6 +30,14 @@ larch.controls.initCKEditor = function(textArea, config, immediate_events) {
     c.on("blur", function() {
         larch.postEvent(textArea, "ckeditor_blur", null);
     });
+
+    if (channel !== undefined) {
+        channel.addListener(function(message) {
+            ignoreChanges[0] = true;
+            c.setData(message);
+            ignoreChanges[0] = false;
+        });
+    }
 
     CKEDITOR.disableAutoInline = true;
 };
