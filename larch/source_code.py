@@ -7,6 +7,7 @@ import re
 from collections import namedtuple
 
 from larch.incremental import IncrementalValueMonitor
+from larch.live import LiveValue
 
 from larch.inspector.present_exception import present_exception_with_traceback
 from larch.pres.html import Html
@@ -21,7 +22,7 @@ class AbstractSourceCode (object):
 	def __init__(self, code=None, editable=True):
 		if code is None:
 			code = ''
-		self.__code = code
+		self.__code = LiveValue(code)
 		self.__editable = editable
 		self.__incr = IncrementalValueMonitor()
 		self.on_focus = None
@@ -31,10 +32,10 @@ class AbstractSourceCode (object):
 
 
 	def __getstate__(self):
-		return {'code': self.__code, 'editable': self.__editable}
+		return {'code': self.__code.static_value, 'editable': self.__editable}
 
 	def __setstate__(self, state):
-		self.__code = state.get('code', '')
+		self.__code = LiveValue(state.get('code', ''))
 		self.__editable = state.get('editable', True)
 		self.__incr = IncrementalValueMonitor()
 		self.on_focus = None
@@ -56,7 +57,7 @@ class AbstractSourceCode (object):
 
 	@property
 	def source_text(self):
-		return self.__code
+		return self.__code.static_value
 
 
 
@@ -81,17 +82,13 @@ class AbstractSourceCode (object):
 
 		self.__incr.on_access()
 
-		def on_change(ev_data):
-			self.__code = self._filter_source_text(ev_data)
-
 		config = {}
 		config.update(self.__codemirror_config__)
 		config['readOnly'] = 'nocursor'   if not self.__editable   else False
 		config['autofocus'] = self.__editable
 
 
-
-		code_area = code_mirror.code_mirror(self.__code, config=config, on_edit=on_change, on_focus=self.on_focus, on_blur=self.on_blur, modes=self.__codemirror_modes__)
+		code_area = code_mirror.live_code_mirror(self.__code, config=config, on_focus=self.on_focus, on_blur=self.on_blur, modes=self.__codemirror_modes__)
 
 
 		return Html('<div>', code_area, '</div>')

@@ -38,29 +38,22 @@ class WorksheetBlockText (WorksheetBlock):
 		super(WorksheetBlockText, self).__init__(worksheet)
 		if text is None:
 			text = ''
-		self.__text = text
-		self.__incr = IncrementalValueMonitor()
+		self.__text = LiveValue(text)
 
 
 	def __getstate__(self):
 		state = super(WorksheetBlockText, self).__getstate__()
-		state['text'] = self.__text
+		state['text'] = self.__text.static_value
 		return state
 
 	def __setstate__(self, state):
 		super(WorksheetBlockText, self).__setstate__(state)
-		self.__text = state.get('text', '')
-		self.__incr = IncrementalValueMonitor()
+		self.__text = LiveValue(state.get('text', ''))
 
 
 
 	def __present__(self, fragment):
-		self.__incr.on_access()
-
-		def on_edit(text):
-			self.__text = text
-
-		p = ckeditor.ckeditor(self.__text, on_edit=on_edit)
+		p = ckeditor.live_ckeditor(self.__text)
 
 		p = Html('<div class="worksheet_block worksheet_richtext">', p, '</div>')
 		p = focusable.focusable(p)

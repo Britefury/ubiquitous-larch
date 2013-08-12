@@ -36,8 +36,11 @@ def load_document(path):
 		return pickle.load(f)
 
 def save_document(path, content):
+	# Convert to string first, in case we encounter an exception while pickling
+	# This way, the save process bails *before* overwriting the file with nonsense
+	s = pickle.dumps(content)
 	with open(path, 'w') as f:
-		pickle.dump(content, f)
+		f.write(s)
 
 
 

@@ -95,7 +95,8 @@ class live_ckeditor (CompositePres):
 			refreshing[0] = True
 			self.__live.value = val[0]
 			refreshing[0] = False
-			self.__on_blur()
+			if self.__on_blur is not None:
+				self.__on_blur()
 
 
 		self.__live.add_listener(on_change)
