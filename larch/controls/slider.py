@@ -127,6 +127,10 @@ class range_slider (CompositePres):
 		self.__slide_fn(ev_data)
 
 
+	def set_values(self, values):
+		self.__channel.send(values)
+
+
 	def pres(self, pres_ctx):
 		if self.__width is None:
 			div = Html('<div></div>')
@@ -173,7 +177,7 @@ class live_slider (CompositePres):
 		refreshing = [False]
 
 		def set_value():
-			s.set_value(self.__live.static_value)
+			s.set_value(self.__live.value)
 
 		def on_change(incr):
 			if not refreshing[0]:
@@ -193,7 +197,7 @@ class live_slider (CompositePres):
 
 
 
-class live_range_slider(object):
+class live_range_slider(CompositePres):
 	def __init__(self, live, update_on_slide=False, width=None, min=None, max=None, step=None, orientation=None,
 		      animate=False, disabled=False):
 		"""
@@ -225,7 +229,7 @@ class live_range_slider(object):
 		refreshing = [False]
 
 		def set_value():
-			s.set_value(self.__live.static_value)
+			s.set_values(self.__live.value)
 
 		def on_change(incr):
 			if not refreshing[0]:
@@ -240,5 +244,6 @@ class live_range_slider(object):
 
 
 		slide_fn = __on_slide if self.__update_on_slide   else None
-		return range_slider(__on_slide, slide_fn, self.__width, values=self.__live.static_value, min=self.__min, max=self.__max, step=self.__step,
+		s = range_slider(__on_slide, slide_fn, self.__width, values=self.__live.static_value, min=self.__min, max=self.__max, step=self.__step,
 				    orientation=self.__orientation, animate=self.__animate, disabled=self.__disabled)
+		return s

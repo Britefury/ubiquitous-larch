@@ -97,16 +97,28 @@ larch.controls.initSlider = function(node, respondToSlide, options, channel) {
     }
 };
 
-larch.controls.initRangeSlider = function(node, respondToSlide, options) {
+larch.controls.initRangeSlider = function(node, respondToSlide, options, channel) {
+    var ignoreChanges = [false];
     options.change = function(event, ui) {
-        larch.postEvent(node, "slider_change", ui.values)
+        if (!ignoreChanges[0]) {
+            larch.postEvent(node, "slider_change", ui.values)
+        }
     };
     if (respondToSlide) {
         options.slide = function(event, ui) {
-            larch.postEvent(node, "slider_slide", ui.values)
+            if (!ignoreChanges[0]) {
+                larch.postEvent(node, "slider_slide", ui.values)
+            }
         };
     }
-    $(node).slider(options);
+    var control = $(node).slider(options);
+    if (channel !== undefined) {
+        channel.addListener(function(message) {
+            ignoreChanges[0] = true;
+            control.slider('values', message);
+            ignoreChanges[0] = false;
+        });
+    }
 };
 
 larch.controls.initSpinner = function(node) {

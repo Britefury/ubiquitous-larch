@@ -448,7 +448,6 @@ class DynamicPage (object):
 
 
 	def __on_resource_message(self, public_api, event_name, event_data):
-		print event_data
 		resource_id = event_data['resource_id']
 		message = event_data['message']
 		rsc_instance = self.__rsc_id_to_rsc_instance.get(resource_id)
