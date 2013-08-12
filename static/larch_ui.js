@@ -46,21 +46,27 @@ larch.controls.initCKEditor = function(textArea, config, immediate_events, chann
 
 
 
-larch.controls.initCodeMirror = function(textArea, config, immediate_events) {
+larch.controls.initCodeMirror = function(textArea, config, immediate_events, channel) {
+    var ignoreChanges = [false];
+
     var c = CodeMirror.fromTextArea(textArea, config);
     if (immediate_events) {
         c.on("change", function(editor, edit) {
-            var elem = editor.getWrapperElement();
-            larch.postEvent(elem, "code_mirror_edit", editor.getValue());
+            if (!ignoreChanges[0]) {
+                var elem = editor.getWrapperElement();
+                larch.postEvent(elem, "code_mirror_edit", editor.getValue());
+            }
         });
     }
     else {
         c.on("change", function(editor, edit) {
-            var elem = editor.getWrapperElement();
-            var fac = function() {
-                return editor.getValue();
-            };
-            larch.queueEventFactory(elem, "code_mirror_edit", fac);
+            if (!ignoreChanges[0]) {
+                var elem = editor.getWrapperElement();
+                var fac = function() {
+                    return editor.getValue();
+                };
+                larch.queueEventFactory(elem, "code_mirror_edit", fac);
+            }
         });
     }
     c.on("focus",  function(editor) {
@@ -72,6 +78,14 @@ larch.controls.initCodeMirror = function(textArea, config, immediate_events) {
         var elem = editor.getWrapperElement();
         larch.postEvent(elem, "code_mirror_blur", null);
     });
+
+    if (channel !== undefined) {
+        channel.addListener(function(message) {
+            ignoreChanges[0] = true;
+            c.getDoc().setValue(message);
+            ignoreChanges[0] = false;
+        });
+    }
 };
 
 

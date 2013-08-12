@@ -2,8 +2,10 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 from larch.pres.html import Html
+from larch.pres.pres import CompositePres
+from larch.pres.resource import MessageChannel
 
-__code_mirror_theme = None
+_code_mirror_theme = None
 
 def set_code_mirror_theme(theme):
 	"""
@@ -12,10 +14,10 @@ def set_code_mirror_theme(theme):
 	:param theme: the name of the theme
 	:return: None
 	"""
-	global __code_mirror_theme
-	__code_mirror_theme = theme
+	global _code_mirror_theme
+	_code_mirror_theme = theme
 
-__addon_js = [
+_addon_js = [
 	'comment/comment.js',
 	'dialog/dialog.js',
 	'display/placeholder.js',
@@ -51,48 +53,113 @@ __addon_js = [
 	'selection/mark-selection.js',
 ]
 
-__addon_css = [
+_addon_css = [
 	'dialog/dialog.css',
 	'hint/show-hint.css',
 	'lint/lint.css',
 	'merge/merge.css',
 ]
 
-def code_mirror(text, immediate_events=False, config=None, on_edit=None, on_focus=None, on_blur=None, modes=None):
-	"""
-	Create a CodeMirror based code editor control
-	:param text: the initial text to display in the control
-	:param immediate_events: if True, an event will be emitted each time the text is edited (on each keypress)
-	:param config: configuration options (see CodeMirror documentation)
-	:param on_edit: a callback invoked in response to edits, of the form function(modified_text)
-	:param on_focus: a callback invoked when the editor receives focus; of the form function()
-	:param on_blur: a callback invoked when the editor loses focus; of the form function()
-	:param modes: a list of names of language plugins to load (e.g. 'python', 'javascript', 'glsl', etc; see CodeMirror documentation)
-	:return: the editor control
-	"""
-	if config is None:
-		config = {}
-	if modes is None:
-		modes = []
-	textarea = Html(u'<textarea>{text}</textarea>'.format(text=Html.escape_str(text)))
-	textarea = textarea.js_function_call('larch.controls.initCodeMirror', config, immediate_events)
-	p = Html('<div>', textarea, '</div>')
-	p = p.use_css('/static/codemirror-3.14/lib/codemirror.css')
-	p = p.use_js('/static/codemirror-3.14/lib/codemirror.js')
-	for mode in modes:
-		p = p.use_js('/static/codemirror-3.14/mode/{0}/{0}.js'.format(mode))
-	for addon in __addon_js:
-		p = p.use_js('/static/codemirror-3.14/addon/{0}'.format(addon))
-	for addon in __addon_css:
-		p = p.use_css('/static/codemirror-3.14/addon/{0}'.format(addon))
-	if __code_mirror_theme is not None:
-		p = p.use_css('/static/codemirror-3.14/theme/{0}.css'.format(__code_mirror_theme))
-	p = p.use_js('/static/larch_ui.js').use_css('/static/larch_ui.css')
-	if on_edit is not None:
-		p = p.with_event_handler('code_mirror_edit', lambda event_name, ev_data: on_edit(ev_data))
-	if on_focus is not None:
-		p = p.with_event_handler('code_mirror_focus', lambda event_name, ev_data: on_focus())
-	if on_blur is not None:
-		p = p.with_event_handler('code_mirror_blur', lambda event_name, ev_data: on_blur())
-	return p
-  
+
+class code_mirror (CompositePres):
+	def __init__(self, text, immediate_events=False, config=None, on_edit=None, on_focus=None, on_blur=None, modes=None):
+		"""
+		Create a CodeMirror based code editor control
+		:param text: the initial text to display in the control
+		:param immediate_events: if True, an event will be emitted each time the text is edited (on each keypress)
+		:param config: configuration options (see CodeMirror documentation)
+		:param on_edit: a callback invoked in response to edits, of the form function(modified_text)
+		:param on_focus: a callback invoked when the editor receives focus; of the form function()
+		:param on_blur: a callback invoked when the editor loses focus; of the form function()
+		:param modes: a list of names of language plugins to load (e.g. 'python', 'javascript', 'glsl', etc; see CodeMirror documentation)
+		:return: the editor control
+		"""
+		if config is None:
+			config = {}
+		if modes is None:
+			modes = []
+
+		self.__text = text
+		self.__immediate_events = immediate_events
+		self.__config = config
+		self.__on_edit = on_edit
+		self.__on_focus = on_focus
+		self.__on_blur = on_blur
+		self.__modes = modes
+
+		self.__channel = MessageChannel()
+
+
+	def set_text(self, text):
+		self.__channel.send(text)
+
+
+	def pres(self, pres_ctx):
+		textarea = Html(u'<textarea>{text}</textarea>'.format(text=Html.escape_str(self.__text)))
+		textarea = textarea.js_function_call('larch.controls.initCodeMirror', self.__config, self.__immediate_events, self.__channel)
+		p = Html('<div>', textarea, '</div>')
+		p = p.use_css('/static/codemirror-3.14/lib/codemirror.css')
+		p = p.use_js('/static/codemirror-3.14/lib/codemirror.js')
+		for mode in self.__modes:
+			p = p.use_js('/static/codemirror-3.14/mode/{0}/{0}.js'.format(mode))
+		for addon in _addon_js:
+			p = p.use_js('/static/codemirror-3.14/addon/{0}'.format(addon))
+		for addon in _addon_css:
+			p = p.use_css('/static/codemirror-3.14/addon/{0}'.format(addon))
+		if _code_mirror_theme is not None:
+			p = p.use_css('/static/codemirror-3.14/theme/{0}.css'.format(_code_mirror_theme))
+		p = p.use_js('/static/larch_ui.js').use_css('/static/larch_ui.css')
+		if self.__on_edit is not None:
+			p = p.with_event_handler('code_mirror_edit', lambda event_name, ev_data: self.__on_edit(ev_data))
+		if self.__on_focus is not None:
+			p = p.with_event_handler('code_mirror_focus', lambda event_name, ev_data: self.__on_focus())
+		if self.__on_blur is not None:
+			p = p.with_event_handler('code_mirror_blur', lambda event_name, ev_data: self.__on_blur())
+		return p
+
+
+
+
+class live_code_mirror (CompositePres):
+	def __init__(self, live, immediate_events=False, config=None, on_focus=None, on_blur=None, modes=None):
+		"""
+		ckEditor that edits a live value
+
+		:param live: live value object whose value is to be edited
+		:param immediate_events: if True, an event will be emitted each time the text is edited (on each keypress)
+		:param config: configuration options (see CodeMirror documentation)
+		:param on_focus: a callback invoked when the editor receives focus; of the form function()
+		:param on_blur: a callback invoked when the editor loses focus; of the form function()
+		:param modes: a list of names of language plugins to load (e.g. 'python', 'javascript', 'glsl', etc; see CodeMirror documentation)
+		:return: the editor control
+		"""
+		self.__live = live
+		self.__immediate_events = immediate_events
+		self.__config = config
+		self.__on_focus = on_focus
+		self.__on_blur = on_blur
+		self.__modes = modes
+
+
+	def pres(self, pres_ctx):
+		refreshing = [False]
+
+		def set_value():
+			s.set_text(self.__live.value)
+
+		def on_change(incr):
+			if not refreshing[0]:
+				pres_ctx.fragment_view.queue_task(set_value)
+
+		def __on_edit(value):
+			refreshing[0] = True
+			self.__live.value = value
+			refreshing[0] = False
+
+
+		self.__live.add_listener(on_change)
+
+		s = code_mirror(self.__live.static_value, self.__immediate_events, self.__config, __on_edit, self.__on_focus, self.__on_blur, self.__modes)
+		return s
+
+
