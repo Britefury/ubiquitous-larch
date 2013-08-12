@@ -24,7 +24,7 @@ packageName = 'UbiquitousLarch-' + versionString
 
 ignoreList = [ '.hg' ]
 
-tmpClassFile = 'tmp$py.class'
+tmpPycFile = 'tmp.pyc'
 
 
 dirsForBin = [
@@ -32,7 +32,7 @@ dirsForBin = [
 	( 'testimages', '*.*' ),
 	]
 
-dirsForBinCompile = [ 'britefury', 'larch' ]
+dirsForBinCompile = [ 'larch' ]
 
 
 
@@ -72,8 +72,8 @@ def copyDir(z, src, dst, patterns):
 				copyFile( z, s, d )
 
 def compile_file(z, src, dst):
-	py_compile.compile( src, tmpClassFile )
-	z.write( tmpClassFile, dst )
+	py_compile.compile( src, tmpPycFile )
+	z.write( tmpPycFile, dst )
 
 
 def compile_dir(z, src, dst):
@@ -110,7 +110,7 @@ for d in dirsForBinCompile:
 	compile_dir( binZip, d, os.path.join( packageName, d ) )
 
 
-if os.path.exists( tmpClassFile ):
-	os.remove( tmpClassFile )
+if os.path.exists( tmpPycFile ):
+	os.remove( tmpPycFile )
 
 binZip.close()
