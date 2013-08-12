@@ -74,18 +74,25 @@ larch.controls.initButton = function(node, options) {
 };
 
 larch.controls.initSlider = function(node, respondToSlide, options, channel) {
+    var ignoreChanges = [false];
     options.change = function(event, ui) {
-        larch.postEvent(node, "slider_change", ui.value)
+        if (!ignoreChanges[0]) {
+            larch.postEvent(node, "slider_change", ui.value)
+        }
     };
     if (respondToSlide) {
         options.slide = function(event, ui) {
-            larch.postEvent(node, "slider_slide", ui.value)
+            if (!ignoreChanges[0]) {
+                larch.postEvent(node, "slider_slide", ui.value)
+            }
         };
     }
     var control = $(node).slider(options);
     if (channel !== undefined) {
         channel.addListener(function(message) {
+            ignoreChanges[0] = true;
             control.slider('value', message);
+            ignoreChanges[0] = false;
         });
     }
 };

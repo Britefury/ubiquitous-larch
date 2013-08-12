@@ -169,37 +169,76 @@ class live_slider (CompositePres):
 		self.__disabled = disabled
 
 
-	def __on_slide(self, value):
-		self.__live.value = value
-
-
 	def pres(self, pres_ctx):
-		slide_fn = self.__on_slide if self.__update_on_slide   else None
-		s = slider(self.__on_slide, slide_fn, self.__width, value=self.__live.static_value, min=self.__min, max=self.__max, step=self.__step,
+		refreshing = [False]
+
+		def set_value():
+			s.set_value(self.__live.static_value)
+
+		def on_change(incr):
+			if not refreshing[0]:
+				pres_ctx.fragment_view.queue_task(set_value)
+
+		def __on_slide(value):
+			refreshing[0] = True
+			self.__live.value = value
+			refreshing[0] = False
+
+		self.__live.add_listener(on_change)
+
+		slide_fn = __on_slide if self.__update_on_slide   else None
+		s = slider(__on_slide, slide_fn, self.__width, value=self.__live.static_value, min=self.__min, max=self.__max, step=self.__step,
 			      orientation=self.__orientation, animate=self.__animate, disabled=self.__disabled)
 		return s
 
 
-def live_range_slider(live, update_on_slide=False, width=None, min=None, max=None, step=None, orientation=None,
+
+class live_range_slider(object):
+	def __init__(self, live, update_on_slide=False, width=None, min=None, max=None, step=None, orientation=None,
 		      animate=False, disabled=False):
-	"""
-	Create a JQuery UI range slider that edits a live value
+		"""
+		Create a JQuery UI range slider that edits a live value
 
-	:param live: the live value to edit
-	:param update_on_slide: if True, the live value is updated in response to the user dragging, otherwise it only updates when the user lets the slider go
-	:param width: the width of the slider, specified as a CSS value e.g. 200px (200 pixels) or 50%, or as an integer value that will be converted to pixels
-	:param min: the minimum value
-	:param max: the maximum value
-	:param step: the size of steps between positions on the slider
-	:param orientation: either 'horizontal' or 'vertical'
-	:param animate: if True, or if a numeric value in milliseconds specifying the animation length, this will cause the slider to animate when the user clicks to position it directly
-	:param disabled: if True, causes the slider to appear disabled
-	:return: the slider control
-	"""
+		:param live: the live value to edit
+		:param update_on_slide: if True, the live value is updated in response to the user dragging, otherwise it only updates when the user lets the slider go
+		:param width: the width of the slider, specified as a CSS value e.g. 200px (200 pixels) or 50%, or as an integer value that will be converted to pixels
+		:param min: the minimum value
+		:param max: the maximum value
+		:param step: the size of steps between positions on the slider
+		:param orientation: either 'horizontal' or 'vertical'
+		:param animate: if True, or if a numeric value in milliseconds specifying the animation length, this will cause the slider to animate when the user clicks to position it directly
+		:param disabled: if True, causes the slider to appear disabled
+		:return: the slider control
+		"""
+		self.__live = live
+		self.__update_on_slide = update_on_slide
+		self.__width = width
+		self.__min = min
+		self.__max = max
+		self.__step = step
+		self.__orientation = orientation
+		self.__animate = animate
+		self.__disabled = disabled
 
-	def on_slide(value):
-		live.value = value
 
-	slide_fn = on_slide if update_on_slide   else None
-	return range_slider(on_slide, slide_fn, width, values=live.static_value, min=min, max=max, step=step,
-			    orientation=orientation, animate=animate, disabled=disabled)
+	def pres(self, pres_ctx):
+		refreshing = [False]
+
+		def set_value():
+			s.set_value(self.__live.static_value)
+
+		def on_change(incr):
+			if not refreshing[0]:
+				pres_ctx.fragment_view.queue_task(set_value)
+
+		def __on_slide(value):
+			refreshing[0] = True
+			self.__live.value = value
+			refreshing[0] = False
+
+		self.__live.add_listener(on_change)
+
+
+		slide_fn = __on_slide if self.__update_on_slide   else None
+		return range_slider(__on_slide, slide_fn, self.__width, values=self.__live.static_value, min=self.__min, max=self.__max, step=self.__step,
+				    orientation=self.__orientation, animate=self.__animate, disabled=self.__disabled)

@@ -1588,6 +1588,11 @@ larch.__onDocumentReady = function(initialisers) {
          'Disable additional client side debugging'
     );
 
+    // Before unload
+    window.onbeforeunload = function() {
+        larch.postDocumentEvent('close_page', null);
+    };
+
     // CSRF Token setup
     var csrf = $.cookie('csrftoken');
     if (csrf != null) {

@@ -245,6 +245,7 @@ class DynamicPage (object):
 		# Register the broken HTML structure event handler
 		self.add_page_event_handler('broken_html_structure', self.__on_broken_html_structure)
 		self.add_page_event_handler('resource_message', self.__on_resource_message)
+		self.add_page_event_handler('close_page', self.__on_close_page)
 
 
 
@@ -303,6 +304,20 @@ class DynamicPage (object):
 
 			# The HTML structure is broken
 			self.queue_page_reload(None, get_params)
+
+
+
+
+	#
+	#
+	# Close page event handler
+	#
+	#
+
+	def __on_close_page(self, public_api, event_name, event_data):
+		print 'CLOSING PAGE {0}'.format(self._session_id)
+		self.__service._close_page(self)
+
 
 
 
