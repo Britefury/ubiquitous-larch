@@ -53,18 +53,22 @@ class ckeditor (CompositePres):
 
 
 class live_ckeditor (CompositePres):
-	def __init__(self, live, immediate_events=False, config=None):
+	def __init__(self, live, immediate_events=False, config=None, on_focus=None, on_blur=None):
 		"""
 		ckEditor that edits a live value
 
 		:param live: live value object whose value is to be edited
 		:param immediate_events: If true, an event is emitted on each edit (key press)
 		:param config: configuration options; see ckEditor documentation
+		:param on_focus: a callback invoked when the editor receives focus; of the form function()
+		:param on_blur: a callback invoked when the editor loses focus; of the form function()
 		:return: the ckEditor control
 		"""
 		self.__live = live
 		self.__immediate_events = immediate_events
 		self.__config = config
+		self.__on_focus = on_focus
+		self.__on_blur = on_blur
 
 
 	def pres(self, pres_ctx):
@@ -91,11 +95,12 @@ class live_ckeditor (CompositePres):
 			refreshing[0] = True
 			self.__live.value = val[0]
 			refreshing[0] = False
+			self.__on_blur()
 
 
 		self.__live.add_listener(on_change)
 
-		s = ckeditor(self.__live.static_value, self.__immediate_events, self.__config, __on_edit, on_blur=__on_blur)
+		s = ckeditor(self.__live.static_value, self.__immediate_events, self.__config, __on_edit, on_focus=self.__on_focus, on_blur=__on_blur)
 		return s
 
 
