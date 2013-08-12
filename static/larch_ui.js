@@ -121,24 +121,23 @@ larch.controls.initRangeSlider = function(node, respondToSlide, options, channel
     }
 };
 
-larch.controls.initSpinner = function(node) {
-    $(node).spinner({
-        change: function(event, ui) {
-            larch.postEvent(node, "spinner_change", ui.value)
+larch.controls.initSpinner = function(node, channel) {
+    var ignoreChanges = [false];
+    var control = $(node).spinner({
+        spin: function(event, ui) {
+            if (!ignoreChanges[0]) {
+                larch.postEvent(control.get(0), "spinner_change", ui.value);
+            }
         }
     });
-};
 
-larch.controls.initMenu = function(node, options) {
-    options.select = function(event, ui) {
-        var node = ui.item.get(0);
-        larch.postEvent(node, "menu_select", null);
-    };
-    $(node).menu(options);
-};
-
-larch.controls.initDialog = function(node, options) {
-    $(node).dialog(options);
+    if (channel !== undefined) {
+        channel.addListener(function(message) {
+            ignoreChanges[0] = true;
+            control.spinner('value', message);
+            ignoreChanges[0] = false;
+        });
+    }
 };
 
 larch.controls.initTextEntry = function(node) {
@@ -152,6 +151,20 @@ larch.controls.initSelect = function(node) {
         larch.postEvent(node, "select_choose", node.value);
     };
 };
+
+
+larch.controls.initMenu = function(node, options) {
+    options.select = function(event, ui) {
+        var node = ui.item.get(0);
+        larch.postEvent(node, "menu_select", null);
+    };
+    $(node).menu(options);
+};
+
+larch.controls.initDialog = function(node, options) {
+    $(node).dialog(options);
+};
+
 
 
 
