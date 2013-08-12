@@ -25,6 +25,43 @@
 .__lch_exec_js_elem {
 }
 
+.larch_liveliness_indicator {
+}
+
+.larch_liveliness_on {
+    font-family: sans-serif;
+    font-weight: bold;
+    padding: 3px 6px;
+    color: #106010;
+    border: 1px solid #00a000;
+    border-radius: 5px;
+    background: #e0ffe0;
+    box-shadow: 0px 2px 2px #b0b0b0;
+}
+
+.larch_liveliness_on:hover {
+    color: #004000;
+    border: 1px solid #008000;
+    background: #d0f0d0;
+}
+
+.larch_liveliness_off {
+    font-family: sans-serif;
+    font-weight: bold;
+    padding: 3px 6px;
+    color: #606060;
+    border: 1px solid #c0c0c0;
+    border-radius: 5px;
+    background: #e0e0e0;
+    box-shadow: 0px 2px 2px #b0b0b0;
+}
+
+.larch_liveliness_off:hover {
+    color: #404040;
+    border: 1px solid #a0a0a0;
+    background: #c0c0c0;
+}
+
 
 .dropdown_expander_header {
     font-family: "Tahoma", "Geneva", sans-serif;

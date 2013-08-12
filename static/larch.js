@@ -1555,6 +1555,42 @@ larch.__setupCommandListeners = function() {
 
 
 
+//
+//
+// PAGE LIVELINESS
+//
+//
+
+larch.__liveIntervalID = null;
+
+larch.__enableLiveliness = function() {
+    if (larch.__liveIntervalID === null) {
+        larch.__liveIntervalID = setInterval(function() {
+            larch.__postEventMessage(null);
+        }, 1000);
+        $('.larch_liveliness_indicator').removeClass('larch_liveliness_off').addClass('larch_liveliness_on');
+    }
+};
+
+larch.__disableLiveliness = function() {
+    if (larch.__liveIntervalID !== null) {
+        clearInterval(larch.__liveIntervalID);
+        larch.__liveIntervalID = null;
+        $('.larch_liveliness_indicator').removeClass('larch_liveliness_on').addClass('larch_liveliness_off');
+    }
+};
+
+larch.toggleLiveliness = function() {
+    if (larch.__liveIntervalID === null) {
+        larch.__enableLiveliness();
+    }
+    else {
+        larch.__disableLiveliness();
+    }
+};
+
+
+
 
 //
 //

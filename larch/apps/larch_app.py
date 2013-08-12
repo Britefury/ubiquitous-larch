@@ -82,6 +82,13 @@ class PageFrame (CompositePres):
 		menu_bar_contents = []
 		right_menu_bar_contents = []
 
+		# Liveliness indicator
+		def _toggle_liveliness(event_name, ev_data):
+			pres_ctx.fragment_view.page.page_js_function_call('larch.toggleLiveliness')
+
+		liveliness_indicator = Html('<div class="larch_liveliness_indicator larch_liveliness_off" onclick="javascript:larch.postEvent(this, \'toggle_liveliness\', null);">LIVE</div>').with_event_handler('toggle_liveliness', _toggle_liveliness)
+		right_menu_bar_contents.append(liveliness_indicator)
+
 		# Command bar button
 		cmd_bar_button = Html('<button class="__larch_app_cmd_bar_button">Cmd. bar (Esc)</button>').js_function_call("larch.controls.initToggleCommandBarButton")
 		right_menu_bar_contents.append(cmd_bar_button)
