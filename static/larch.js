@@ -1568,7 +1568,6 @@ larch.__enableLiveliness = function() {
         larch.__liveIntervalID = setInterval(function() {
             larch.__postEventMessage(null);
         }, 1000);
-        $('.larch_liveliness_indicator').removeClass('larch_liveliness_off').addClass('larch_liveliness_on');
     }
 };
 
@@ -1576,17 +1575,29 @@ larch.__disableLiveliness = function() {
     if (larch.__liveIntervalID !== null) {
         clearInterval(larch.__liveIntervalID);
         larch.__liveIntervalID = null;
-        $('.larch_liveliness_indicator').removeClass('larch_liveliness_on').addClass('larch_liveliness_off');
     }
 };
 
-larch.toggleLiveliness = function() {
-    if (larch.__liveIntervalID === null) {
+larch.initLivelinessToggle = function(node) {
+    var toggle = $(node);
+    if (toggle.hasClass('larch_liveliness_on')) {
         larch.__enableLiveliness();
     }
-    else {
-        larch.__disableLiveliness();
-    }
+
+    toggle.click(function() {
+        // Toggle
+        var enabled = toggle.hasClass('larch_liveliness_on');
+        if (enabled) {
+            // Disable
+            toggle.removeClass('larch_liveliness_on');
+            larch.__disableLiveliness();
+        }
+        else {
+            // Enable
+            toggle.addClass('larch_liveliness_on');
+            larch.__enableLiveliness();
+        }
+    });
 };
 
 
