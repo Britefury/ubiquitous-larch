@@ -2,6 +2,7 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 from copy import deepcopy
+import sys
 
 from larch.incremental import IncrementalValueMonitor, IncrementalFunctionMonitor
 from larch.inspector import present_exception
@@ -20,7 +21,7 @@ class AbstractLive (CompositePres):
 			try:
 				value = self.__live.value
 			except Exception, e:
-				exception_view = present_exception.present_exception_no_traceback(e)
+				exception_view = present_exception.present_exception_with_traceback(e, sys.exc_info()[1], sys.exc_info()[2])
 				p = error_box('Exception during live evaluation', exception_view)
 			else:
 				p = Pres.coerce(value)

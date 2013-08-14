@@ -86,13 +86,13 @@ _page_content = u"""
 
 
 class EventHandleError (object):
-	def __init__(self, event_name, event_seg_id, event_model_type_name, handler_seg_id, handler_model_type_name, exception, traceback):
+	def __init__(self, event_name, event_seg_id, event_model_type_name, handler_seg_id, handler_model_type_name, exception, exc_value, traceback):
 		self.event_name = event_name
 		self.event_seg_id = event_seg_id
 		self.event_model_type_name = event_model_type_name
 		self.handler_seg_id = handler_seg_id
 		self.handler_model_type_name = handler_model_type_name
-		self.err_html = present_exception.exception_to_html_src(exception, traceback)
+		self.err_html = present_exception.exception_to_html_src(exception, exc_value, traceback)
 
 
 	def to_message(self):
@@ -624,7 +624,7 @@ class DynamicPage (object):
 						if handler_fn(self.__public_api, event_name, ev_data):
 							return True
 					except Exception, e:
-						return EventHandleError(event_name, None, None, None, None, e, sys.exc_info()[2])
+						return EventHandleError(event_name, None, None, None, None, e, sys.exc_info()[1], sys.exc_info()[2])
 			return False
 		else:
 			try:
@@ -644,7 +644,7 @@ class DynamicPage (object):
 					if segment._handle_event(event_name, ev_data):
 						return True
 				except Exception, e:
-					return EventHandleError(event_name, segment_id, type(event_segment.owner.model).__name__, segment.id, type(segment.owner.model).__name__, e, sys.exc_info()[2])
+					return EventHandleError(event_name, segment_id, type(event_segment.owner.model).__name__, segment.id, type(segment.owner.model).__name__, e, sys.exc_info()[1], sys.exc_info()[2])
 				segment = segment.parent
 			return False
 

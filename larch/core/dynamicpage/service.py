@@ -178,7 +178,7 @@ class DynamicPageService (object):
 			client_messages = dynamic_page.synchronize()
 		except Exception, e:
 			# Catch internal server error
-			err_html = present_exception.exception_to_html_src(e, sys.exc_info()[2])
+			err_html = present_exception.exception_to_html_src(e, sys.exc_info()[1], sys.exc_info()[2])
 			msg = messages.error_during_update_message(err_html)
 			error_messages.append(msg)
 			client_messages = []

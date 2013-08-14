@@ -45,6 +45,11 @@ rootFiles = [
 ] + ularch_files
 
 
+rootCompileFiles = [
+	'bottle.py'
+]
+
+
 def copyFile(z, src, dst):
 	z.write( src, dst )
 
@@ -109,6 +114,10 @@ for d in dirsForBinCompile:
 	print 'Compiling files in {0}'.format( d )
 	compile_dir( binZip, d, os.path.join( packageName, d ) )
 
+for s in rootCompileFiles:
+	d = os.path.splitext(s)[0] + '.pyc'
+	d = os.path.join(packageName, d)
+	compile_file(binZip, s, d)
 
 if os.path.exists( tmpPycFile ):
 	os.remove( tmpPycFile )

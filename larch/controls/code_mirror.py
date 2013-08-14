@@ -121,7 +121,7 @@ class code_mirror (CompositePres):
 
 
 class live_code_mirror (CompositePres):
-	def __init__(self, live, immediate_events=False, config=None, on_focus=None, on_blur=None, modes=None):
+	def __init__(self, live, immediate_events=False, config=None, on_focus=None, on_blur=None, modes=None, text_filter_fn=None):
 		"""
 		ckEditor that edits a live value
 
@@ -131,6 +131,7 @@ class live_code_mirror (CompositePres):
 		:param on_focus: a callback invoked when the editor receives focus; of the form function()
 		:param on_blur: a callback invoked when the editor loses focus; of the form function()
 		:param modes: a list of names of language plugins to load (e.g. 'python', 'javascript', 'glsl', etc; see CodeMirror documentation)
+		:param text_filter_fn: a callable that is invoked to filter incoming text from the user before assigning it to the live value
 		:return: the editor control
 		"""
 		self.__live = live
@@ -139,6 +140,7 @@ class live_code_mirror (CompositePres):
 		self.__on_focus = on_focus
 		self.__on_blur = on_blur
 		self.__modes = modes
+		self.__text_filter_fn = text_filter_fn
 
 
 	def pres(self, pres_ctx):
@@ -153,6 +155,8 @@ class live_code_mirror (CompositePres):
 
 		def __on_edit(value):
 			refreshing[0] = True
+			if self.__text_filter_fn is not None:
+				value = self.__text_filter_fn(value)
 			self.__live.value = value
 			refreshing[0] = False
 

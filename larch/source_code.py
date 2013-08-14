@@ -88,7 +88,7 @@ class AbstractSourceCode (object):
 		config['autofocus'] = self.__editable
 
 
-		code_area = code_mirror.live_code_mirror(self.__code, config=config, on_focus=self.on_focus, on_blur=self.on_blur, modes=self.__codemirror_modes__)
+		code_area = code_mirror.live_code_mirror(self.__code, config=config, on_focus=self.on_focus, on_blur=self.on_blur, modes=self.__codemirror_modes__, text_filter_fn=self._filter_source_text)
 
 
 		return Html('<div>', code_area, '</div>')
@@ -188,14 +188,15 @@ class ExecutionResultValue (ExecutionResultEmpty):
 
 
 class ExecutionResultException (ExecutionResultEmpty):
-	def __init__(self, streams, exc_instance, trace_back):
+	def __init__(self, streams, exc_instance, exc_value, trace_back):
 		super(ExecutionResultException, self).__init__(streams)
 		self.exc_instance = exc_instance
+		self.exc_value = exc_value
 		self.trace_back = trace_back
 
 
 	def __present__(self, fragment):
-		return Html(self.streams, present_exception_with_traceback(self.exc_instance, self.trace_back))
+		return Html(self.streams, present_exception_with_traceback(self.exc_instance, self.exc_value, self.trace_back))
 
 
 
@@ -291,7 +292,7 @@ class PythonCode (AbstractSourceCode):
 			else:
 				return ExecutionResultEmpty(streams)
 		except Exception, e:
-			return ExecutionResultException(streams, e, sys.exc_info()[2])
+			return ExecutionResultException(streams, e, sys.exc_info()[1],  sys.exc_info()[2])
 		finally:
 			sys.stdout, sys.stderr = old_out, old_err
 
