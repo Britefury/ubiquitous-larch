@@ -8,7 +8,7 @@ import mimetypes
 
 from larch.core.dynamicpage.segment import HtmlContent
 from larch.live import LiveFunction
-from larch.pres import pres, js
+from larch.pres import pres, js, html
 from larch.core.subject import Subject
 from larch import msg
 
@@ -321,7 +321,7 @@ class SubjectIFrame (SubjectResource):
 		url = self._url(pres_ctx)
 		w = ' width="{0}"'.format(self.__width)   if self.__width is not None   else ''
 		h = ' height="{0}"'.format(self.__height)   if self.__height is not None   else ''
-		return HtmlContent(['<iframe src="', url, '"{0}{1}></iframe>'.format(w, h)])
+		return HtmlContent(['<iframe src="{0}"{1}{2}></iframe>'.format(url, w, h)])
 
 
 
@@ -337,6 +337,37 @@ class PresIFrame (PresResource):
 		url = self._url(pres_ctx)
 		w = ' width="{0}"'.format(self.__width)   if self.__width is not None   else ''
 		h = ' height="{0}"'.format(self.__height)   if self.__height is not None   else ''
-		return HtmlContent(['<iframe src="', url, '"{0}{1}></iframe>'.format(w, h)])
+		return HtmlContent(['<iframe src="{0}"{1}{2}></iframe>'.format(url, w, h)])
 
+
+
+
+
+
+class SubjectLink (SubjectResource):
+	def __init__(self, subject, link_content):
+		super(SubjectLink, self).__init__(subject)
+		self.__link_content = html.Html.coerce(link_content)
+
+
+
+	def build(self, pres_ctx):
+		url = self._url(pres_ctx)
+		content = self.__link_content.build(pres_ctx)
+		return HtmlContent(['<a href="{0}" target="_blank">'.format(url), content, '</a>'])
+
+
+
+
+class PresLink (PresResource):
+	def __init__(self, subject, link_content):
+		super(PresLink, self).__init__(subject)
+		self.__link_content = html.Html.coerce(link_content)
+
+
+
+	def build(self, pres_ctx):
+		url = self._url(pres_ctx)
+		content = self.__link_content.build(pres_ctx)
+		return HtmlContent(['<a href="{0}" target="_blank">'.format(url), content, '</a>'])
 

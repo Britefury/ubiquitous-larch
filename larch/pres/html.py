@@ -47,6 +47,23 @@ class Html (Pres):
 			return Html('<div class={0}>'.format(cls), x, '</div>')
 
 
+	@staticmethod
+	def coerce(x):
+		if isinstance(x, str)  or  isinstance(x, unicode):
+			return Html(x)
+		else:
+			return Pres.coerce(x)
+
+
+	@staticmethod
+	def coerce_none_as_none(x):
+		if isinstance(x, str)  or  isinstance(x, unicode):
+			return Html(x)
+		else:
+			return Pres.coerce_none_as_none(x)
+
+
+
 
 	@staticmethod
 	def escape_str(x):
