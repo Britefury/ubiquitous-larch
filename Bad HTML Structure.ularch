@@ -1,7 +1,7 @@
 ccopy_reg
 _reconstructor
 p0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 Worksheet
 p1
 c__builtin__
@@ -14,7 +14,7 @@ S'blocks'
 p6
 (lp7
 g0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockCode
 p8
 g2
@@ -27,7 +27,7 @@ g4
 sS'code'
 p13
 g0
-(clarch.source_code
+(clarch.apps.source_code
 PythonCode
 p14
 g2

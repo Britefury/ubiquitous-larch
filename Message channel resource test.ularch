@@ -1,7 +1,7 @@
 ccopy_reg
 _reconstructor
 p0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 Worksheet
 p1
 c__builtin__
@@ -14,7 +14,7 @@ S'blocks'
 p6
 (lp7
 g0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockText
 p8
 g2
@@ -29,7 +29,7 @@ p13
 V<p>Message Channel Resource Test</p>
 p14
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockCode
 p15
 g2
@@ -41,7 +41,7 @@ g4
 sS'code'
 p19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 PythonCode
 p20
 g2
@@ -55,7 +55,7 @@ sS'editable'
 p25
 I01
 sbsbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockSource
 p26
 g2
@@ -66,7 +66,7 @@ g12
 g4
 sg19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 JSCode
 p30
 g2

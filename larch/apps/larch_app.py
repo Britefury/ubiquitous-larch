@@ -8,14 +8,15 @@ import pickle
 import imp
 import sys
 import urllib2
+from larch.apps import worksheet
+from larch.apps.project import project_root
+from larch.apps.worksheet import ipynb_filter
 
 from larch.core.projection_service import ProjectionService
 from larch.incremental import IncrementalValueMonitor
 from larch import command
 from larch.apps.console import console
 from larch.controls import form, button, menu, text_entry
-from larch.worksheet import worksheet, ipynb_filter
-from larch.project import project_root
 
 from larch.pres.pres import CompositePres
 from larch.pres.html import Html
@@ -239,9 +240,9 @@ class Document (object):
 		return self.content
 
 
-	def __on_save_command(self, document):
+	def __on_save_command(self, page):
 		name = self.save()
-		document.page_js_function_call('noty', {'text': 'Saved <span class="emph">{0}</emph>'.format(name), 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
+		page.page_js_function_call('noty', {'text': 'Saved <span class="emph">{0}</emph>'.format(name), 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
 
 
 	def __commands__(self):
@@ -256,9 +257,10 @@ class Document (object):
 		return self.__filename
 
 
-	def presentation_table_row(self):
+	def presentation_table_row(self, page):
 		def on_save():
-			self.save()
+			name = self.save()
+			page.page_js_function_call('noty', {'text': 'Saved <span class="emph">{0}</emph>'.format(name), 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
 
 		save_button = button.button('Save', on_save)
 		doc_title = '<a href="/pages/docs/{0}" class="larch_app_doc_title">{1}</a>'.format(self.__loc, self.__name)
@@ -436,7 +438,7 @@ class DocumentList (object):
 		contents = ['<table class="larch_app_doc_list">']
 		contents.append('<thead class="larch_app_doc_list_header"><td>Title</td><td>Filename</td><td>Save</td></thead>')
 		contents.append('<tbody>')
-		contents.extend([doc.presentation_table_row()   for doc in self.__documents])
+		contents.extend([doc.presentation_table_row(fragment.page)   for doc in self.__documents])
 		contents.append('</tbody></table>')
 		return Html(*contents)
 

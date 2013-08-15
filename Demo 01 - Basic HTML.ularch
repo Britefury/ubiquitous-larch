@@ -1,7 +1,7 @@
 ccopy_reg
 _reconstructor
 p0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 Worksheet
 p1
 c__builtin__
@@ -14,7 +14,7 @@ S'blocks'
 p6
 (lp7
 g0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockText
 p8
 g2
@@ -29,7 +29,7 @@ p13
 V<h1>Basic HTML</h1><p>This worksheet demonstrates how to create and display basic HTML.</p><h1>tl;dr</h1><p>Create HTML content to be returned to the browser by wrapping it in the <code>Html</code> presentation type.</p><h1>Examples</h1><p>The first step is to import the <code>Html</code>&nbsp;presentation type. Presentation types describe a presentation that is to be built. They&nbsp;will be covered in more detail later.</p>
 p14
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockCode
 p15
 g2
@@ -41,7 +41,7 @@ g4
 sS'code'
 p19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 PythonCode
 p20
 g2

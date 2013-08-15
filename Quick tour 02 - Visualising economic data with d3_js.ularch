@@ -1,7 +1,7 @@
 ccopy_reg
 _reconstructor
 p0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 Worksheet
 p1
 c__builtin__
@@ -14,7 +14,7 @@ S'blocks'
 p6
 (lp7
 g0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockText
 p8
 g2
@@ -29,7 +29,7 @@ p13
 V<h1 style="text-align:center">Visualising Economic Data from Gapminder with d3.js</h1><p><br></p><p>Hans Rosling is well know for giving exciting and animated presentations in which he uses visualisation to chart the economic development of the world.</p><p>In this worksheet, we will attempt to re-create one of his well known animated graphics.</p><p>Data</p><p>First, we need some data to work with. Luckily, Rosling's organisation - <a data-cke-saved-href="http://www.gapminder.org/" href="http://www.gapminder.org/">Gapminder</a> - makes this data freely available in the form of Google Docs spreadsheets. Luckily for us, the contents of a Google Docs spreadsheet can be easily acquired in the form of a CSV. Lets develop a function to acquire the data:</p>
 p14
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockCode
 p15
 g2
@@ -41,7 +41,7 @@ g4
 sS'code'
 p19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 PythonCode
 p20
 g2
@@ -221,7 +221,7 @@ sg13
 V<h2>Visualisation</h2><p>Now, we are ready to visualise the data. To do this, we will be enlisting the help of the wonderful <a data-cke-saved-href="http://d3js.org/" href="http://d3js.org/">d3.js</a> visualisation library.</p><p>The first step involves writing the Javascript code that will use d3 to create our chart.</p><p>Note that this example will use resources and live functions. Live values and live functions are explained in a documentation worksheet of that name.</p>
 p84
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockSource
 p85
 g2
@@ -232,7 +232,7 @@ g12
 g4
 sg19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 JSCode
 p89
 g2

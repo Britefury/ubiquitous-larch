@@ -2,6 +2,7 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 import sys
+from larch.apps import project
 from larch.live import LiveValue, LiveFunction
 
 from larch.live import TrackedLiveList
@@ -9,10 +10,9 @@ from larch.live import TrackedLiveList
 from larch.pres.html import Html
 from larch.controls import menu
 
-from larch import project
-from larch.project.project_node import ProjectNode
-from larch.project.new_node_tool import NewNodeTool
-from larch.worksheet.worksheet import Worksheet
+from larch.apps.project.project_node import ProjectNode
+from larch.apps.project.new_node_tool import NewNodeTool
+from larch.apps.worksheet.worksheet import Worksheet
 
 
 

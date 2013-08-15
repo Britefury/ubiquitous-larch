@@ -1,7 +1,7 @@
 ccopy_reg
 _reconstructor
 p0
-(clarch.project.project_root
+(clarch.apps.project.project_root
 ProjectRoot
 p1
 c__builtin__
@@ -22,7 +22,7 @@ NsS'contents'
 p10
 (lp11
 g0
-(clarch.project.project_package
+(clarch.apps.project.project_package
 ProjectPackage
 p12
 g2
@@ -47,7 +47,7 @@ p22
 sg10
 (lp23
 g0
-(clarch.project.project_page
+(clarch.apps.project.project_page
 ProjectPage
 p24
 g2
@@ -57,7 +57,7 @@ Rp26
 S'data'
 p28
 g0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 Worksheet
 p29
 g2
@@ -68,7 +68,7 @@ S'blocks'
 p33
 (lp34
 g0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockText
 p35
 g2
@@ -83,7 +83,7 @@ p40
 V<h1>Torus examples</h1><p>First, import the uv mesh stuff:</p>
 p41
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockCode
 p42
 g2
@@ -95,7 +95,7 @@ g31
 sS'code'
 p46
 g0
-(clarch.source_code
+(clarch.apps.source_code
 PythonCode
 p47
 g2
@@ -613,7 +613,7 @@ sg40
 V<h3>Surface shaders</h3><p>Ocean: plain</p>
 p235
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockSource
 p236
 g2
@@ -624,7 +624,7 @@ g39
 g225
 sg46
 g0
-(clarch.source_code
+(clarch.apps.source_code
 GLSLCode
 p240
 g2

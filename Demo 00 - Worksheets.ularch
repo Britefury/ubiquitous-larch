@@ -1,7 +1,7 @@
 ccopy_reg
 _reconstructor
 p0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 Worksheet
 p1
 c__builtin__
@@ -14,7 +14,7 @@ S'blocks'
 p6
 (lp7
 g0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockText
 p8
 g2
@@ -29,7 +29,7 @@ p13
 V<h1>Ubiquitous Larch Documents - worksheets</h1><p>Currently, the structure of a Ubiquitous Larch (U-Larch for short)&nbsp;document&nbsp;is very simple; a document is just a worksheet.&nbsp;It is intended that richer document structures will be added later; namely each document should be a project, consisting of modules and packages that may import one another.</p><h1>tl;dr</h1><p>Worksheets are documents that mix rich text with executable code, along with its output. They are similar to IPython and Mathematica notebooks.&nbsp;You can re-execute the code in worksheet by pressing Control-Enter. This allows you to rapidly experiment with code by editing and then executing it.</p><h1>Worksheets</h1><p>A worksheets consist of editable blocks that contain either rich text (such as this block) or code (such as the block below). The results of executing code are displayed immediately below the block. To see execution results, you need to execute code by pressing Control-Enter.&nbsp;<span style="color: rgb(64, 64, 64); font-family: Oxygen, Tahoma, Geneva, sans-serif;">The worksheet interface is similar to that provided by notebook environments such as Mathematica&nbsp;or the IPython web-based notebook system.</span></p><p>To edit the contents of a block, click within it to place the caret and start typing.</p><p>To add new blocks, click the 'Worksheet' menu at the top of the page to present options for inserting new blocks.</p><h1>Python Code</h1><p>Now, lets try some code.</p><p>Code within code blocks is executed, with the results displayed below.</p><p>Lets try some print statements to start with:</p>
 p14
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockCode
 p15
 g2
@@ -41,7 +41,7 @@ g4
 sS'code'
 p19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 PythonCode
 p20
 g2

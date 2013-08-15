@@ -2,6 +2,7 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 import json
+from larch.apps import worksheet
 
 try:
 	import markdown
@@ -9,9 +10,6 @@ except ImportError:
 	markdown = None
 
 from larch.pres.html import Html
-
-from larch.worksheet import worksheet
-
 
 
 def load_json(ipynb):

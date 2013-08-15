@@ -1,7 +1,7 @@
 ccopy_reg
 _reconstructor
 p0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 Worksheet
 p1
 c__builtin__
@@ -14,7 +14,7 @@ S'blocks'
 p6
 (lp7
 g0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockText
 p8
 g2
@@ -29,7 +29,7 @@ p13
 V<h1>Presentation by type coercion</h1><p>With U-Larch, objects are presented using type coercion. In effect, this means that you can define&nbsp;a visual, interactive presentation for an object using a similar approach to that used to define a __str__ method.</p><h1>tl;dr</h1><p>Normal Python objects can be presented by embedding them within presentation descriptions, built from presentation types. They are automatically converted for you. If U-Larch is notified of a modification to an object's state, it will update it's&nbsp;in-browser representations automatically.</p><h1>Examples</h1><p>Recall that by default, an object is converted to a string using its type and its address:</p>
 p14
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockCode
 p15
 g2
@@ -41,7 +41,7 @@ g4
 sS'code'
 p19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 PythonCode
 p20
 g2

@@ -5,7 +5,7 @@ from larch.pres.html import Html
 from larch.controls import text_entry
 
 from larch.controls import button
-from larch.project.project_node import Tool
+from larch.apps.project.project_node import Tool
 
 
 class NewNodeTool (Tool):

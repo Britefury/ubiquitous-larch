@@ -1,7 +1,7 @@
 ccopy_reg
 _reconstructor
 p0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 Worksheet
 p1
 c__builtin__
@@ -14,7 +14,7 @@ S'blocks'
 p6
 (lp7
 g0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockText
 p8
 g2
@@ -29,7 +29,7 @@ p13
 V<h1>Visuals from d3.js</h1><p>In this worksheet, we will explore how we can use the d3.js client-side library to generate visuals from server-side data.</p><p>In the first example, we generate some random data and display it as a bar chart.</p>
 p14
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockSource
 p15
 g2
@@ -41,7 +41,7 @@ g4
 sS'code'
 p19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 JSCode
 p20
 g2
@@ -68,7 +68,7 @@ g12
 g4
 sg19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 CSSCode
 p31
 g2
@@ -84,7 +84,7 @@ sbsg26
 Vbar_chart_css
 p36
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockCode
 p37
 g2
@@ -95,7 +95,7 @@ g12
 g4
 sg19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 PythonCode
 p41
 g2

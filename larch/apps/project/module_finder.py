@@ -3,7 +3,7 @@
 ##-*************************
 import sys
 
-from larch import project
+from larch.apps import project
 
 
 class PageFinder (object):

@@ -1,7 +1,7 @@
 ccopy_reg
 _reconstructor
 p0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 Worksheet
 p1
 c__builtin__
@@ -14,7 +14,7 @@ S'blocks'
 p6
 (lp7
 g0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockText
 p8
 g2
@@ -29,7 +29,7 @@ p13
 V<h1>Presentations with impress.js</h1><p>Now, we will see how to create presentations with impress.js.</p><p>First, we must define some CSS to give our slides an appropriate appearance.</p>
 p14
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockSource
 p15
 g2
@@ -41,7 +41,7 @@ g4
 sS'code'
 p19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 CSSCode
 p20
 g2
@@ -70,7 +70,7 @@ sg13
 V<p>The HTML for a typical impress.js slide could be built like this:</p>
 p31
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockCode
 p32
 g2
@@ -81,7 +81,7 @@ g12
 g4
 sg19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 PythonCode
 p36
 g2

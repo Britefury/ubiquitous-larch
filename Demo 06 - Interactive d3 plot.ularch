@@ -1,7 +1,7 @@
 ccopy_reg
 _reconstructor
 p0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 Worksheet
 p1
 c__builtin__
@@ -14,7 +14,7 @@ S'blocks'
 p6
 (lp7
 g0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockText
 p8
 g2
@@ -29,7 +29,7 @@ p13
 V<h1>Interactive plots using d3.js</h1><p>In this worksheet, we will demonstrate the creation of interactive visuals with d3.js.</p><h2>Live Computation</h2><p>First, we need to cover some of the live computations primitives provided by Ubiquitous Larch.</p>
 p14
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockCode
 p15
 g2
@@ -41,7 +41,7 @@ g4
 sS'code'
 p19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 PythonCode
 p20
 g2
@@ -128,7 +128,7 @@ sg13
 V<p>Notice that incrementing <code>x</code> with the 'Increment' button modifies both values.</p><h2>Interactive visuals</h2><p>Now, we will create an interactive bar-chart. This time round, the Javascript function that generates the chart takes the data in as a parameter, rather than going via a URL.</p><p>First, the code to create the chart:</p>
 p51
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockSource
 p52
 g2
@@ -139,7 +139,7 @@ g12
 g4
 sg19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 JSCode
 p56
 g2
@@ -165,7 +165,7 @@ g12
 g4
 sg19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 CSSCode
 p66
 g2

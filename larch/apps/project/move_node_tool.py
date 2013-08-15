@@ -4,8 +4,8 @@
 from larch.pres.html import Html
 
 from larch.controls import button, action_link
-from larch.project.project_node import Tool
-from larch.project.project_container import ProjectContainer
+from larch.apps.project.project_node import Tool
+from larch.apps.project.project_container import ProjectContainer
 
 
 

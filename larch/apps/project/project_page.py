@@ -8,9 +8,9 @@ from larch.controls import menu
 
 from larch.pres.html import Html
 
-from larch.project.project_node import ProjectNode
-from larch.project.rename_node_tool import RenameNodeTool
-from larch.project.move_node_tool import MoveNodeTool
+from larch.apps.project.project_node import ProjectNode
+from larch.apps.project.rename_node_tool import RenameNodeTool
+from larch.apps.project.move_node_tool import MoveNodeTool
 
 
 

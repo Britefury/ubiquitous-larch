@@ -8,7 +8,7 @@ from copy import deepcopy
 from larch.pres.html import Html
 from larch.controls import text_entry
 
-from larch.project.project_container import ProjectContainer
+from larch.apps.project.project_container import ProjectContainer
 
 
 class ProjectRoot (ProjectContainer):

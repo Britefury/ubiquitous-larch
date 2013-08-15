@@ -1,7 +1,7 @@
 ccopy_reg
 _reconstructor
 p0
-(clarch.project.project_root
+(clarch.apps.project.project_root
 ProjectRoot
 p1
 c__builtin__
@@ -20,7 +20,7 @@ NsS'contents'
 p9
 (lp10
 g0
-(clarch.project.project_page
+(clarch.apps.project.project_page
 ProjectPage
 p11
 g2
@@ -30,7 +30,7 @@ Rp13
 S'data'
 p15
 g0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 Worksheet
 p16
 g2
@@ -41,7 +41,7 @@ S'blocks'
 p20
 (lp21
 g0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockText
 p22
 g2
@@ -56,7 +56,7 @@ p27
 V<h1>Slider test</h1><p>Imports and some live values</p>
 p28
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockCode
 p29
 g2
@@ -68,7 +68,7 @@ g18
 sS'code'
 p33
 g0
-(clarch.source_code
+(clarch.apps.source_code
 PythonCode
 p34
 g2

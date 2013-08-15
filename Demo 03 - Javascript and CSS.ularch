@@ -1,7 +1,7 @@
 ccopy_reg
 _reconstructor
 p0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 Worksheet
 p1
 c__builtin__
@@ -14,7 +14,7 @@ S'blocks'
 p6
 (lp7
 g0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockText
 p8
 g2
@@ -29,7 +29,7 @@ p13
 V<h1>Javascript and CSS</h1><p>So far, we have seen how to present Python objects in the browser by converting them to HTML. This only allows very basic usage. For a truly useful web-based programming environment, we must support interaction with CSS and Javascript.</p><h1>tl;dr</h1><p>You can add CSS style-sheets and Javascript code to your pages by referencing them using simple API calls. The API calls attach them to the HTML content that requires them.</p><h2>Referencing CSS style sheets and JS scripts</h2><p>We must allow content to reference the CSS and JS files&nbsp;required to display the it. The <code>use_css</code>&nbsp;and <code>use_js</code>&nbsp;methods provided by presentation types allow for this.</p><p>The <code>use_css</code>&nbsp;and <code>use_js</code>&nbsp;methods attach the CSS and JS asset requirements&nbsp;the presentation. When the presentation is sent to the browser, the CSS and JS assets are loaded. If the presentation is constructed but never used, the assets that it references will never be loaded by the browser.</p><h3>CSS Stylesheets</h3><p>First, lets look at referencing files:</p>
 p14
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockCode
 p15
 g2
@@ -41,7 +41,7 @@ g4
 sS'code'
 p19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 PythonCode
 p20
 g2
@@ -66,7 +66,7 @@ sg13
 V<p>Invoking <code>use_css</code>&nbsp;will add a LINK to the HEAD element of the page, loading the CSS file from the specified URL.</p><p>Now, lets look at providing the CSS source directly. Once again, we use the <code>use_css</code>&nbsp;method, but this time we pass the css source to a parameter named 'source'.</p><p>The CSS is specified in a CSS code block, which you can create from the edit menu. Note the 'Variable name' field; this names the global variable from which the CSS will be available in text form. Note that the variable <code>css_source</code> is used in the python code below.</p>
 p29
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockSource
 p30
 g2
@@ -77,7 +77,7 @@ g12
 g4
 sg19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 CSSCode
 p34
 g2
@@ -134,7 +134,7 @@ g12
 g4
 sg19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 JSCode
 p55
 g2

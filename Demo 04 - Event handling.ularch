@@ -1,7 +1,7 @@
 ccopy_reg
 _reconstructor
 p0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 Worksheet
 p1
 c__builtin__
@@ -14,7 +14,7 @@ S'blocks'
 p6
 (lp7
 g0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockText
 p8
 g2
@@ -29,7 +29,7 @@ p13
 V<h1>Event Handling</h1><p>U-Larch can receive events in client-side Javascript code and route them to the server-side Python code.</p><p>On the client-side, we call the <code>larch.postEvent</code> function, passing the source DOM node, the event name&nbsp;and event data (a value representable as JSON)&nbsp;as parameters. This event will be sent to the server.</p><p>The server maintains its own representation of the structure of the document, allowing it to ensure that the event is routed to the correct handler.</p><p>On the server side, we invoke the <code>with_event_handler</code> method, passing the event name and the handler function/callable as parameters.</p><h1>tl;dr</h1><p>U-Larch routes events for you so that you can develop web applications as if they were (almost) running in one process, as opposed to two processes communicating over a network.</p><h1>Example</h1><p>In the following example, we will construct a button that sends an event that is handled server-side.</p>
 p14
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockSource
 p15
 g2
@@ -41,7 +41,7 @@ g4
 sS'code'
 p19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 JSCode
 p20
 g2
@@ -59,7 +59,7 @@ p26
 Vinc_button_js_src
 p27
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockCode
 p28
 g2
@@ -70,7 +70,7 @@ g12
 g4
 sg19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 PythonCode
 p32
 g2

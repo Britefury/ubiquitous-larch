@@ -1,7 +1,7 @@
 ccopy_reg
 _reconstructor
 p0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 Worksheet
 p1
 c__builtin__
@@ -14,7 +14,7 @@ S'blocks'
 p6
 (lp7
 g0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockText
 p8
 g2
@@ -29,7 +29,7 @@ p13
 V<h1 style="text-align:center">Getting Started</h1><hr><p><br></p><p>Welcome to The Ubiquitous Larch;&nbsp;an active document based programming environment for the Python programming language.</p><p><br></p><h2>Worksheets</h2><p>The core of the ULarch programming environment is the worksheet system. A worksheets consists of a sequence of editable blocks, that contain either rich text - like this one - or code - such as the ones below. To edit the contents of a block, click within it to place the caret and start typing.</p><p>The edit menu at the top of the page contains options for adding new blocks to a worksheet. Alternatively, these commands can be accessed from the command bar, which will be described below.</p><h2>Python Code</h2><p>Python code blocks can be executed, with the results displayed below each block. To execute the blocks in a worksheet, press Control-Enter or use the <em>Execute</em> button in the command bar at the top.</p><p>Output sent to the standard output and standard error streams is displayed:</p>
 p14
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockCode
 p15
 g2
@@ -41,7 +41,7 @@ g4
 sS'code'
 p19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 PythonCode
 p20
 g2

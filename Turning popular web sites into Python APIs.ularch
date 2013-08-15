@@ -1,7 +1,7 @@
 ccopy_reg
 _reconstructor
 p0
-(clarch.project.project_root
+(clarch.apps.project.project_root
 ProjectRoot
 p1
 c__builtin__
@@ -22,7 +22,7 @@ NsS'contents'
 p10
 (lp11
 g0
-(clarch.project.project_package
+(clarch.apps.project.project_package
 ProjectPackage
 p12
 g2
@@ -36,7 +36,7 @@ p17
 sg10
 (lp18
 g0
-(clarch.project.project_page
+(clarch.apps.project.project_page
 ProjectPage
 p19
 g2
@@ -46,7 +46,7 @@ Rp21
 S'data'
 p23
 g0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 Worksheet
 p24
 g2
@@ -57,7 +57,7 @@ S'blocks'
 p28
 (lp29
 g0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockCode
 p30
 g2
@@ -70,7 +70,7 @@ g26
 sS'code'
 p35
 g0
-(clarch.source_code
+(clarch.apps.source_code
 PythonCode
 p36
 g2
@@ -145,7 +145,7 @@ Rp63
 g28
 (lp65
 g0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockText
 p66
 g2

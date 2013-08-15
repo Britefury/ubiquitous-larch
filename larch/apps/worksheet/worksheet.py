@@ -3,9 +3,10 @@
 ##-*************************
 import imp
 import sys
+from larch.apps import source_code
 
 from larch.incremental import IncrementalValueMonitor
-from larch import command, source_code
+from larch import command
 from larch.live import LiveValue
 from larch.pres.html import Html
 from larch.pres.key_event import KeyAction

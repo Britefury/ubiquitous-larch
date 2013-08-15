@@ -1,7 +1,7 @@
 ccopy_reg
 _reconstructor
 p0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 Worksheet
 p1
 c__builtin__
@@ -14,7 +14,7 @@ S'blocks'
 p6
 (lp7
 g0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockText
 p8
 g2
@@ -29,7 +29,7 @@ p13
 V<h1 style="text-align:center">Client side and server side all in one</h1><p><br></p><p>A worksheet can function a bit like a <a data-cke-saved-href="http://jsfiddle.net/" href="http://jsfiddle.net/">JSFiddle</a>, but with a tightly integrated Python based server side component built in, accessible via a notebook interface.</p><h2>The normal way of doing things</h2><p>A typical interactive rich web application consists of a rich client implemened in Javascript that accesses a server side API from which it obtains data to display to the user. The two must be carefully designed, so that when the client requires some data, it can compose a request to the server that will identify the data that it needs.</p><p>This is in contrast to desktop GUI development, where the data model, GUI elements and application logic reside within the same process.</p><h2>The Ubiquitous Larch way</h2><p>Ubiquitous Larch worksheets (partially) smooth over the gap between server and client:</p><ul><li>server side and clent side code can reside together within the same worksheet (as we will see)</li><li>Larch maintains&nbsp;an association between server side objects and the client side HTML that displays them; must of the careful API design work is taken care of</li><li>the client side code can send events to the server side, where&nbsp;Larch will route them to the correct server side callback funtions; just connect callbacks to events and handle them as they arrive</li></ul><h2>Lets demonstrate</h2><p>Lets start by displaying some simple HTML:</p>
 p14
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockCode
 p15
 g2
@@ -41,7 +41,7 @@ g4
 sS'code'
 p19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 PythonCode
 p20
 g2
@@ -66,7 +66,7 @@ sg13
 V<h2>Client side and server side together</h2><p>Lets start simple by adding some CSS. We shall do this with a CSS code block. The CSS source code will be made available as a string assigned to the variable name showed in the header of the block.</p>
 p29
 sbag0
-(clarch.worksheet.worksheet
+(clarch.apps.worksheet.worksheet
 WorksheetBlockSource
 p30
 g2
@@ -77,7 +77,7 @@ g12
 g4
 sg19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 CSSCode
 p34
 g2
@@ -210,7 +210,7 @@ g12
 g4
 sg19
 g0
-(clarch.source_code
+(clarch.apps.source_code
 JSCode
 p82
 g2

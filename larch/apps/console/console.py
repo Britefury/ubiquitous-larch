@@ -7,7 +7,7 @@ from larch.incremental import IncrementalValueMonitor
 from larch.pres.html import Html
 from larch.pres.key_event import KeyAction
 from larch.core.subject import Subject
-from larch.source_code import PythonCode
+from larch.apps.source_code import PythonCode
 from larch.controls import button
 
 
