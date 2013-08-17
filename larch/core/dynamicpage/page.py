@@ -357,16 +357,16 @@ class DynamicPage (object):
 	#
 
 
-	def new_segment(self, content=None, desc=None, owner=None):
+	def new_segment(self, content=None, desc=None, fragment=None):
 		"""
 		Create a new segment
 
 		:param content: an HTMLContent instance that contains the content of the segment that is to be created (or None, in which case you must initialise it by setting the segment's content attribute/property
 		:param desc: a description string that is appended to the segment's ID. This is passed to the browser in order to allow you to figure out what e.g. seg27 is representing.
-		:param owner: the owner of the segment
+		:param fragment: the segment's containing fragment
 		:return: the new segment
 		"""
-		return self._table._new_segment(content, desc, owner)
+		return self._table._new_segment(content, desc, fragment)
 
 	def remove_segment(self, segment):
 		"""Remove a segment from the page. You should remove segments when you don't need them anymore.
@@ -644,7 +644,7 @@ class DynamicPage (object):
 					if segment._handle_event(event_name, ev_data):
 						return True
 				except Exception, e:
-					return EventHandleError(event_name, segment_id, type(event_segment.owner.model).__name__, segment.id, type(segment.owner.model).__name__, e, sys.exc_info()[1], sys.exc_info()[2])
+					return EventHandleError(event_name, segment_id, type(event_segment.fragment.model).__name__, segment.id, type(segment.fragment.model).__name__, e, sys.exc_info()[1], sys.exc_info()[2])
 				segment = segment.parent
 			return False
 
@@ -701,7 +701,7 @@ class DynamicPage (object):
 			fixes_by_model_id = {}
 
 			for seg, fixes in self.__segment_html_structure_fixes.items():
-				model = seg.owner.model
+				model = seg.fragment.model
 				fixes_for_model = fixes_by_model_id.setdefault(id(model), (model, []))
 				fixes_for_model[1].extend(fixes)
 
@@ -921,11 +921,11 @@ class _SegmentTable (object):
 
 
 
-	def _new_segment(self, content=None, desc=None, owner=None):
+	def _new_segment(self, content=None, desc=None, fragment=None):
 		desc_str = ('_' + desc)   if desc is not None   else ''
 		seg_id = 'seg{0}{1}'.format(self.__id_counter, desc_str)
 		self.__id_counter += 1
-		seg = DynamicSegment(self.__page, seg_id, content, owner)
+		seg = DynamicSegment(self.__page, seg_id, content, fragment)
 		self.__id_to_segment[seg_id] = seg
 
 		self.__changes_added.add(seg)

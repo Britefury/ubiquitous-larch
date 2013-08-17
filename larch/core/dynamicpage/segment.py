@@ -14,19 +14,19 @@ class DynamicSegment (object):
 
 	Segments can be nested via references; create a reference using the reference() method and put it into the content of a parent segment to nest this within a parent segment.
 	"""
-	def __init__(self, page, seg_id, content=None, owner=None):
+	def __init__(self, page, seg_id, content=None, fragment=None):
 		"""
 		Constructor
 
 		:param page: The dynamic page that contains this segment
 		:param seg_id: A segment identifier string; used on both client and server side to identify this segment; must be unique within the page (auto-generate it with a counter)
 		:param content: The content that this segment should contain
-		:param owner: The owner (application provided; used to find out what content a segment represents/displays)
+		:param fragment: The fragment that this segment is a part of
 		"""
 		self.__id = seg_id
 		assert content is None  or  isinstance(content, HtmlContent)
 		self.__page = page
-		self.__owner = owner
+		self.__fragment = fragment
 		self.__parent = None
 		self.__event_handlers = None
 		self.__initialise_scripts = None
@@ -61,12 +61,12 @@ class DynamicSegment (object):
 
 
 	@property
-	def owner(self):
+	def fragment(self):
 		"""
-		The owner
-		:return: The segment owner
+		The fragment
+		:return: The containing fragment
 		"""
-		return self.__owner
+		return self.__fragment
 
 	@property
 	def page(self):

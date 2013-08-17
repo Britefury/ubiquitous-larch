@@ -314,7 +314,7 @@ class Worksheet (object):
 	def __focused_block(self, page):
 		seg = page.focused_segment
 		if seg is not None:
-			frag = seg.owner
+			frag = seg.fragment
 			return frag.find_enclosing_model(WorksheetBlock)
 		else:
 			return None
