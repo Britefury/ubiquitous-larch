@@ -7,7 +7,6 @@ import os
 
 from django.http import HttpResponse, Http404
 from django.views.decorators.http import require_POST, require_GET
-from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render_to_response, render
