@@ -161,10 +161,6 @@ body {
     font-size: 1em;
 }
 
-.emph {
-    font-style: italic;
-}
-
 .code {
     font-family: monospace
 }

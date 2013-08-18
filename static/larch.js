@@ -570,7 +570,7 @@ larch.__serverMessageHandlers = {
         if (!larch.__connectionToPageLost) {
             larch.__connectionToPageLost = true;
             noty({
-                text: '<p class="invalid_page_style">Connection to page lost. Click to reload.<br><br><span class="emph">(the server may have been restarted)</span></p>',
+                text: '<p class="invalid_page_style">Connection to page lost. Click to reload.<br><br><em>(the server may have been restarted)</em></p>',
                 layout: "center",
                 type: "error",
                 modal: true,
@@ -695,7 +695,7 @@ larch.__handleMessage = function(handlerMap, msg, targetDescription, sourceDescr
     }
     else {
         noty({
-            text: '<p class="invalid_page_style">' + targetDescription + ' received an unrecognised message from ' + sourceDescription + ' (message type <span class="emph">' + msg.msgtype + '</span>)</p>',
+            text: '<p class="invalid_page_style">' + targetDescription + ' received an unrecognised message from ' + sourceDescription + ' (message type <em>' + msg.msgtype + '</em>)</p>',
             layout: "center",
             type: "error",
             modal: true,

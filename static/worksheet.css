@@ -6,8 +6,8 @@
 .worksheet_exec_state_init {
     font-weight: bold;
     color: #c03000;
-    border: 1px solid #c03000;
-    border-radius: 7px;
+    border: 2px solid #e04000;
+    border-radius: 2px;
     background: #fff4f0;
     margin: 0.5em 2em;
     width: 30em;

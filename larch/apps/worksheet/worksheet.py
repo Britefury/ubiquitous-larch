@@ -232,7 +232,7 @@ class Worksheet (object):
 
 
 	def __exec_state_init(self):
-		self.__execution_state.value = Html('<span class="worksheet_exec_state_init">Not executed.</span>')
+		self.__execution_state.value = Html('<span class="worksheet_exec_state_init">CODE NOT EXECUTED</span>')
 
 	def __exec_state_executed(self):
 		self.__execution_state.value = Html('')
@@ -345,11 +345,11 @@ class Worksheet (object):
 		#
 
 		def on_save():
-			save_name = self._save_containing_document()
-			fragment.page.page_js_function_call('noty', {'text': 'Saved <span class="emph">{0}</span>'.format(save_name), 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
+			save_name = self._save_containing_document(fragment)
+			fragment.page.page_js_function_call('noty', {'text': 'Saved <em>{0}</em>'.format(save_name), 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
 
 
-		save_item = menu.item('Save (Ctrl+S)', lambda: on_save)
+		save_item = menu.item('Save (Ctrl+S)', lambda: on_save())
 		file_menu_contents = menu.sub_menu('File', [save_item])
 		file_menu = menu.menu([file_menu_contents], drop_down=True)
 

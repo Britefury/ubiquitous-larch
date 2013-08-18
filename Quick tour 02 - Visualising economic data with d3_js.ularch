@@ -26,7 +26,7 @@ p12
 g4
 sS'text'
 p13
-V<h1 style="text-align:center">Visualising Economic Data from Gapminder with d3.js</h1><p><br></p><p>Hans Rosling is well know for giving exciting and animated presentations in which he uses visualisation to chart the economic development of the world.</p><p>In this worksheet, we will attempt to re-create one of his well known animated graphics.</p><p>Data</p><p>First, we need some data to work with. Luckily, Rosling's organisation - <a data-cke-saved-href="http://www.gapminder.org/" href="http://www.gapminder.org/">Gapminder</a> - makes this data freely available in the form of Google Docs spreadsheets. Luckily for us, the contents of a Google Docs spreadsheet can be easily acquired in the form of a CSV. Lets develop a function to acquire the data:</p>
+V<h1 style="text-align:center">Visualising the Wealth and Health of Nations using data from Gapminder with d3.js</h1><p><br></p><p>Hans Rosling is well know for giving exciting and animated presentations in which he uses visualisation to chart the development of the world.</p><p>In this worksheet, we will attempt to re-create one of his well known animated/interactive graphics, know as the&nbsp;<a data-cke-saved-href="http://www.gapminder.org/world/#$majorMode=chart$is;shi=t;ly=2003;lb=f;il=t;fs=11;al=30;stl=t;st=t;nsl=t;se=t$wst;tts=C$ts;sp=5.59290322580644;ti=2012$zpv;v=0$inc_x;mmid=XCOORDS;iid=phAwcNAVuyj1jiMAkmq1iMg;by=ind$inc_y;mmid=YCOORDS;iid=phAwcNAVuyj2tPLxKvvnNPA;by=ind$inc_s;uniValue=8.21;iid=phAwcNAVuyj0XOoBL_n5tAQ;by=ind$inc_c;uniValue=255;gid=CATID0;by=grp$map_x;scale=log;dataMin=283;dataMax=110808$map_y;scale=lin;dataMin=18;dataMax=87$map_s;sma=49;smi=2.65$cd;bd=0$inds=;modified=75" href="http://www.gapminder.org/world/#$majorMode=chart$is;shi=t;ly=2003;lb=f;il=t;fs=11;al=30;stl=t;st=t;nsl=t;se=t$wst;tts=C$ts;sp=5.59290322580644;ti=2012$zpv;v=0$inc_x;mmid=XCOORDS;iid=phAwcNAVuyj1jiMAkmq1iMg;by=ind$inc_y;mmid=YCOORDS;iid=phAwcNAVuyj2tPLxKvvnNPA;by=ind$inc_s;uniValue=8.21;iid=phAwcNAVuyj0XOoBL_n5tAQ;by=ind$inc_c;uniValue=255;gid=CATID0;by=grp$map_x;scale=log;dataMin=283;dataMax=110808$map_y;scale=lin;dataMin=18;dataMax=87$map_s;sma=49;smi=2.65$cd;bd=0$inds=;modified=75">Wealth &amp; Health of Nations</a>.</p><p>The interactive chart plots the progress of the economic and health development of countries over the span of over 200 years.</p><h2>Data</h2><p>First, we need some data to work with. Luckily, Rosling's organisation - <a data-cke-saved-href="http://www.gapminder.org/" href="http://www.gapminder.org/">Gapminder</a> - makes this data freely available in spreadsheet form as both Excel worksbooks and&nbsp;Google Docs spreadsheets. Luckily for us, the contents of a Google Docs spreadsheet can be easily acquired in the form of a CSV. Lets develop a function to acquire the data:</p>
 p14
 sbag0
 (clarch.apps.worksheet.worksheet
@@ -63,7 +63,7 @@ Rp27
 g12
 g4
 sg13
-V<p>Now define a function that checks if the data is cached in a file on disc first. This can save us some time.</p>
+V<p>Downloading that data from Google can take a little while. We can save ourselves time by caching the data to a local file. Lets define a function that checks a cache file first, before downloading it from the web:</p>
 p29
 sbag0
 (g15
@@ -94,7 +94,7 @@ Rp38
 g12
 g4
 sg13
-V<h2>Fetch the data</h2><p>The data that we will be using is Income per person (GDP/capita, PPP$ inflation-adjusted)&nbsp;and <a data-cke-saved-href="https://docs.google.com/spreadsheet/pub?key=phAwcNAVuyj2tPLxKvvnNPA" href="https://docs.google.com/spreadsheet/pub?key=phAwcNAVuyj2tPLxKvvnNPA">Life expectancy (years)</a>.</p>
+V<h2>Fetch the data</h2><p>The data that we will be using is <a data-cke-saved-href="http://spreadsheets.google.com/pub?key=phAwcNAVuyj1jiMAkmq1iMg&amp;gid=0" href="http://spreadsheets.google.com/pub?key=phAwcNAVuyj1jiMAkmq1iMg&amp;gid=0">Income per person (GDP/capita, PPP$ inflation-adjusted)</a>&nbsp;and <a data-cke-saved-href="https://docs.google.com/spreadsheet/pub?key=phAwcNAVuyj2tPLxKvvnNPA" href="https://docs.google.com/spreadsheet/pub?key=phAwcNAVuyj2tPLxKvvnNPA">Life expectancy (years)</a>.</p>
 p40
 sbag0
 (g15
@@ -125,7 +125,7 @@ Rp49
 g12
 g4
 sg13
-V<p>A representation for time series data</p><p>Each row in the spreadsheet contains time series data for a country, named in the first column. Some entries are missing. To account for this, we will interpolate missing entries, or relplicate the first and last available entries for missing entries at the beginning or end.</p><p>Now, we will implement a class for representing time series data. We will be doing the interpolation ourselves here. Normally, it would be a good idea to use the interpolators provided by <a data-cke-saved-href="http://www.scipy.org/" href="http://www.scipy.org/">SciPy</a>&nbsp;since they are fast and work well, but since I want to reduce the requirements (in terms of external libraries)&nbsp;of this worksheet as much as possible, we will make do with our own here.</p>
+V<h2>A representation for time series data</h2><p>Each row in the spreadsheet contains time series data for a country, named in the first column. Some entries are missing. To account for this, we will interpolate missing entries, or relplicate the first and last available entries for missing entries at the beginning or end.</p><p>Now, we will implement a class for representing time series data. We will be doing the interpolation ourselves here. Normally, it would be a good idea to use the interpolators provided by <a data-cke-saved-href="http://www.scipy.org/" href="http://www.scipy.org/">SciPy</a>&nbsp;since they are fast and work well, but since I want to reduce the requirements (in terms of external libraries)&nbsp;of this worksheet as much as possible, we will make do with our own here.</p>
 p51
 sbag0
 (g15

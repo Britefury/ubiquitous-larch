@@ -241,7 +241,7 @@ class Document (object):
 
 	def __on_save_command(self, page):
 		name = self.save()
-		page.page_js_function_call('noty', {'text': 'Saved <span class="emph">{0}</emph>'.format(name), 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
+		page.page_js_function_call('noty', {'text': 'Saved <em>{0}</em>'.format(name), 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
 
 
 	def __commands__(self):
@@ -259,7 +259,7 @@ class Document (object):
 	def presentation_table_row(self, page):
 		def on_save():
 			name = self.save()
-			page.page_js_function_call('noty', {'text': 'Saved <span class="emph">{0}</emph>'.format(name), 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
+			page.page_js_function_call('noty', {'text': 'Saved <em>{0}</em>'.format(name), 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
 
 		save_button = button.button('Save', on_save)
 		doc_title = '<a href="/pages/docs/{0}" class="larch_app_doc_title">{1}</a>'.format(self.__loc, self.__name)
@@ -511,7 +511,7 @@ class DocNameInUseTool (Tool):
 		self.filename = filename
 
 	def __present__(self, fragment):
-		return Html('<div class="larch_app_doc_name_in_use"><p class="error_text">There is already a document in a file named \'{0}<span class="emph">.ularch</span>\'.</p>'.format(self.filename),
+		return Html('<div class="larch_app_doc_name_in_use"><p class="error_text">There is already a document in a file named \'{0}<em>.ularch</em>\'.</p>'.format(self.filename),
 			    button.button('Close', self.close), '</div>')
 
 
