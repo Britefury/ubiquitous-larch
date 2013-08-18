@@ -4,13 +4,29 @@
 -*************************
 */
 
+@import url(http://fonts.googleapis.com/css?family=Oswald:300);
+
 .larch_app_enclosure {
     width: 1280px;
     margin: 0 auto;
 }
 
+.larch_frame_page_content {
+    margin: 2em 0 0 0;
+}
+
+
 .larch_app_title_bar {
-    background : #f8f8f8;
+    font-family: 'Oswald', sans-serif;
+    font-size: 96px;
+    text-align: center;
+    text-shadow: 0 2px 4px #808080;
+	color: #ffffff;
+    background: #ffb000;
+    padding: 30px 10px 30px 10px;
+    border-bottom: 1px solid #c09600;
+    box-shadow: 0 5px 5px #aaaaaa;
+    margin-bottom: 10px;
 }
 
 .larch_app_doc_list {

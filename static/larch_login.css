@@ -1,0 +1,30 @@
+@import url(http://fonts.googleapis.com/css?family=Oswald:300);
+
+body {
+    padding: 0;
+    margin: 0;
+}
+
+
+.title_bar {
+    font-family: 'Oswald', sans-serif;
+    font-size: 96px;
+    text-align: center;
+    text-shadow: 0 2px 4px #808080;
+	color: #ffffff;
+    background: #ffb000;
+    padding: 30px 10px 30px 10px;
+    border-bottom: 1px solid #c09600;
+    box-shadow: 0 5px 5px #aaaaaa;
+    margin-bottom: 10px;
+}
+
+
+.login_form {
+    margin: 50px auto 0 auto;
+    width: 40em;
+}
+
+.login_form_text_field {
+    width: 20em;
+}

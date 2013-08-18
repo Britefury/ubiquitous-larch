@@ -4,7 +4,7 @@
 import tempfile
 import os
 
-from flask import Flask, request, Response, abort
+from flask import Flask, request, Response, abort, redirect
 from larch.core.dynamicpage.service import UploadedFile
 from larch.core.projection_service import CouldNotResolveLocationError
 from larch.apps import larch_app
@@ -17,8 +17,16 @@ app = Flask(__name__, static_url_path='/static', static_folder='static')
 
 @app.route('/')
 def index():
+	return redirect('/pages')
+
+
+@app.route('/pages')
+@app.route('/pages/')
+def root_page():
+	get_params = {}
+	get_params.update(request.args)
 	try:
-		return service.page()
+		return service.page('', get_params)
 	except CouldNotResolveLocationError:
 		abort(404)
 

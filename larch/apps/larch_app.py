@@ -125,7 +125,7 @@ class PageFrame (CompositePres):
 			main_menu_bar,
 			'</div>',
 			'<img src="/static/1px_transparent.png">',
-			'<div class="__larch_app_frame_page_content">',
+			'<div class="larch_frame_page_content">',
 			self.__page,
 			'</div>'
 		).use_css(url='/static/larch_app_frame.css')
@@ -727,9 +727,9 @@ class LarchApplication (object):
 
 
 		contents = ["""
-			<div class="larch_app_enclosure">
-				<div class="larch_app_title_bar"><h1 class="larch_app_title">The Ubiquitous Larch</h1></div>
+			<div class="larch_app_title_bar">The Ubiquitous Larch</div>
 
+			<div class="larch_app_enclosure">
 				<section class="larch_app_docs_section">
 				<h2>Open documents:</h2>
 			""",

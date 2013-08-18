@@ -3,7 +3,7 @@
 ##-*************************
 #import webbrowser
 
-from bottle import Bottle, run, static_file, request, response
+from bottle import Bottle, run, static_file, request, response, redirect
 
 from larch.core.dynamicpage.service import UploadedFile
 from larch.core.projection_service import CouldNotResolveLocationError
@@ -19,11 +19,19 @@ app = Bottle()
 
 @app.route('/')
 def index():
+	redirect('/pages')
+
+
+@app.route('/pages')
+@app.route('/pages/')
+def root_page():
 	try:
-		return service.page()
+		get_params = {}
+		get_params.update(request.params)
+		return service.page('', get_params)
 	except CouldNotResolveLocationError:
 		response.status = 404
-		return 'Document not found'
+		return 'Page at {0} not found'.format('')
 
 
 @app.route('/pages/<location:path>')

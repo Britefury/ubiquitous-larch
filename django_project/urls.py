@@ -6,8 +6,9 @@ from django_project import django_server
 from django.contrib import admin
 admin.autodiscover()
 urlpatterns = patterns('',
-	url('^$', django_server.index, name='index'),
-	url('^pages/(?P<location>.+)', django_server.page, name='pages'),
+	url('^$', django_server.login_form, name='login'),
+	url('^pages', django_server.root_page, name='root page'),
+	url('^pages/(?P<location>.*)', django_server.page, name='pages'),
 	url('^event/(?P<view_id>[^/]+)', django_server.event, name='event'),
 	url('^form/(?P<view_id>[^/]+)', django_server.form, name='form'),
 	url('^rsc/(?P<view_id>[^/]+)/(?P<rsc_id>[^/]+)', django_server.rsc, name='resource'),

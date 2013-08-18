@@ -41,6 +41,17 @@ def index(request):
 
 @login_required
 @ensure_csrf_cookie
+def root_page(request):
+	try:
+		get_params = {}
+		get_params.update(request.GET)
+		return HttpResponse(service.page('', get_params, user=_user_for_request(request)))
+	except CouldNotResolveLocationError:
+		raise Http404
+
+
+@login_required
+@ensure_csrf_cookie
 def page(request, location):
 	try:
 		get_params = {}
@@ -114,20 +125,32 @@ __login_template = Template("""
 <html>
 <head>
 <title>Login</title>
+<link rel="stylesheet" type="text/css" href="/static/jquery/css/ui-lightness/jquery-ui-1.10.2.custom.min.css"/>
+<link rel="stylesheet" type="text/css" href="/static/larch.css"/>
+<link rel="stylesheet" type="text/css" href="/static/larch_login.css"/>
+<script type="text/javascript" src="/static/jquery/js/jquery-1.9.1.js"></script>
+<script type="text/javascript" src="/static/jquery/js/jquery-ui-1.10.2.custom.min.js"></script>
 </head>
 
 
 <body>
+<div class="title_bar">The Ubiquitous Larch</div>
+
+<div class="login_form">
 <p>Please login:</p>
 
 <form action="/accounts/process_login" method="POST">{% csrf_token %}
 <table>
-	<tr><td>Username</td><td><input type="text" name="username"/></td></tr>
-	<tr><td>Password</td><td><input type="password" name="password"/></td></tr>
-	<tr><td></td><td><input type="submit" value="Login"/></td></tr>
+	<tr><td>Username</td><td><input type="text" name="username" class="login_form_text_field"/></td></tr>
+	<tr><td>Password</td><td><input type="password" name="password" class="login_form_text_field"/></td></tr>
+	<tr><td></td><td><input id="submit_button" type="submit" value="Login"/></td></tr>
 </table>
 </form>
+</div>
 
+<script type="text/javascript">
+	$("#submit_button").button();
+</script>
 </body>
 </html>
 """)
@@ -144,6 +167,7 @@ def process_login(request):
 	user = authenticate(username=username, password=password)
 	if user is not None  and  user.is_active:
 		login(request, user)
-		return redirect('/')
+		return redirect('/pages')
 	else:
-		return HttpResponse('Bad login')
+		ctx = RequestContext(request, prompt='Bad login')
+		return HttpResponse(__login_template.render(ctx), content_type='text/html')

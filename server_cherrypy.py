@@ -26,11 +26,7 @@ class LarchService (object):
 
 
 	def index(self):
-		try:
-			return self.service.page()
-		except CouldNotResolveLocationError:
-			cherrypy.response.status = 404
-			return 'Document not found'
+		raise cherrypy.HTTPRedirect('/pages')
 
 	index.exposed = True
 

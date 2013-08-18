@@ -30,7 +30,7 @@ class ProjectionService (DynamicPageService):
 	with the subject as a parameter. It should return a new object that will present as the augmented
 	page. A new step will be added to the subject with the focus attribute set to the newly augmented page.
 
-	The location pages/index resolves to the front page
+	The locations 'pages' and 'pages/' resolve to the front page
 	"""
 
 
@@ -124,7 +124,7 @@ class ProjectionService (DynamicPageService):
 		"""
 		subject = Subject()
 		subject.add_step(focus=self.__front_page_model, location_trail=['pages'], perspective=None, title='Service front page')
-		if location == ''  or  location == 'index':
+		if location == '':
 			self.__resolve_step(self.__front_page_model, subject)
 			return subject
 		else:
