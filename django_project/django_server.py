@@ -10,7 +10,8 @@ from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render_to_response, render
+from django.template import Template, RequestContext
 from larch.core.dynamicpage.service import UploadedFile
 from larch.core.projection_service import CouldNotResolveLocationError
 from larch.apps import larch_app
@@ -99,9 +100,7 @@ def rsc(request, view_id, rsc_id):
 
 
 
-
-def login_form(request):
-	html = """
+__login_template = Template("""
 <html>
 <head>
 <title>Login</title>
@@ -111,7 +110,7 @@ def login_form(request):
 <body>
 <p>Please login:</p>
 
-<form action="/accounts/process_login" method="POST">
+<form action="/accounts/process_login" method="POST">{% csrf_token %}
 <table>
 	<tr><td>Username</td><td><input type="text" name="username"/></td></tr>
 	<tr><td>Password</td><td><input type="password" name="password"/></td></tr>
@@ -121,8 +120,12 @@ def login_form(request):
 
 </body>
 </html>
-"""
-	return HttpResponse(html)
+""")
+
+
+def login_form(request):
+	ctx = RequestContext(request)
+	return HttpResponse(__login_template.render(ctx), content_type='text/html')
 
 
 def process_login(request):
