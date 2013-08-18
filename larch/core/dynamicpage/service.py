@@ -6,7 +6,7 @@ import traceback
 import sys
 
 from larch.core.dynamicpage.page import DynamicPage, EventHandleError
-from larch.core.dynamicpage import messages
+from larch.core.dynamicpage import messages, user
 from larch.inspector import present_exception
 
 
@@ -54,20 +54,27 @@ class DynamicPageService (object):
 
 
 	def __init__(self):
+		"""
+		Constructor
+
+		:return: DynamicPageService instance
+		"""
 		self.__views = {}
 		self.__view_counter = 1
+		self.__users = {}
 
 		self.__rng = random.Random()
 
 
 
 
-	def page(self, location='', get_params=None):
+	def page(self, location='', get_params=None, user=None):
 		"""
 		The web service will invoke this method when the user opens a page. The HTML returned must be send to the client.
 
 		:param location: The location being access by the browser, identifying the content that the user wishes to see. You should set up your app so that all paths under a specific URL prefix should take the suffix and pass it as the location.
 		:param get_params: The GET parameters received as part of the location
+		:param user: The user, if a user is logged in
 		:return: The HTML content to be sent to the client browser
 		"""
 		raise NotImplementedError, 'abstract'
@@ -75,13 +82,14 @@ class DynamicPageService (object):
 
 
 
-	def new_view(self, location='', get_params=None):
+	def new_view(self, location='', get_params=None, user=None):
 		"""
 		Creates a new view, with a newly allocated ID.
 		The view contains a dynamic page, a location, and get parameters
 
 		:param location: The location being access by the browser, identifying the content that the user wishes to see. You should set up your app so that all paths under a specific URL prefix should take the suffix and pass it as the location.
 		:param get_params: The GET parameters received as part of the location
+		:param user_id: The user ID, if a user is logged in
 		:return: The HTML content to be sent to the client browser
 		"""
 		view_id = self.__new_view_id()
@@ -91,7 +99,9 @@ class DynamicPageService (object):
 		if get_params is None:
 			get_params = {}
 
-		dynamic_page = DynamicPage(self, view_id, location, get_params)
+		our_user = self.__get_user(user)
+
+		dynamic_page = DynamicPage(self, view_id, location, get_params, our_user)
 		view.dynamic_page = dynamic_page
 		view.location = location
 		view.get_params = get_params
@@ -243,6 +253,17 @@ class DynamicPageService (object):
 
 
 
+
+
+	def __get_user(self, user):
+		if user is None:
+			return None
+
+		try:
+			return self.__users[user.user_id]
+		except KeyError:
+			self.__users[user.user_id] = user
+			return user
 
 
 

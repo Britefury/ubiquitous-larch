@@ -8,9 +8,8 @@ import pickle
 import imp
 import sys
 import urllib2
-from larch.apps import worksheet
 from larch.apps.project import project_root
-from larch.apps.worksheet import ipynb_filter
+from larch.apps.worksheet import worksheet, ipynb_filter
 
 from larch.core.projection_service import ProjectionService
 from larch.incremental import IncrementalValueMonitor

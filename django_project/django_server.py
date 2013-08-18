@@ -13,17 +13,27 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render_to_response, render
 from django.template import Template, RequestContext
 from larch.core.dynamicpage.service import UploadedFile
+from larch.core.dynamicpage import user
 from larch.core.projection_service import CouldNotResolveLocationError
 from larch.apps import larch_app
 
 
 service = larch_app.create_service()
 
+
+def _user_for_request(request):
+	django_user = request.user
+	if django_user.is_authenticated():
+		return user.User(django_user.id, django_user.username)
+	else:
+		return None
+
+
 @login_required
 @ensure_csrf_cookie
 def index(request):
 	try:
-		return HttpResponse(service.page())
+		return HttpResponse(service.page(user=_user_for_request(request)))
 	except CouldNotResolveLocationError:
 		raise Http404
 
@@ -35,7 +45,7 @@ def page(request, location):
 	try:
 		get_params = {}
 		get_params.update(request.GET)
-		return HttpResponse(service.page(location, get_params))
+		return HttpResponse(service.page(location, get_params, user=_user_for_request(request)))
 	except CouldNotResolveLocationError:
 		raise Http404
 

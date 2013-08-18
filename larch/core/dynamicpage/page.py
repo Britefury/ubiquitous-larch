@@ -120,6 +120,14 @@ class DynamicPagePublicAPI (object):
 		self.__page = page
 
 
+	@property
+	def user(self):
+		"""
+		:return: The user that owns this page, None if guest
+		"""
+		return self.__page.user
+
+
 	def page_js_eval(self, expr):
 		"""
 		Schedule a page-level script to be executed
@@ -179,11 +187,12 @@ class DynamicPage (object):
 	You must create and set the root segment before using the page. Create using new_segment, then set the root_segment attribute.
 
 	"""
-	def __init__(self, service, view_id, location, get_params):
+	def __init__(self, service, view_id, location, get_params, user):
 		self.__service = service
 		self._view_id = view_id
 		self.__location = location
 		self.__get_params = get_params
+		self.__user = user
 
 		self._enable_structure_fixing = self.__FIX_HTML_STRUCTURE_PARAM_NAME in get_params
 
@@ -258,6 +267,13 @@ class DynamicPage (object):
 	@property
 	def public_api(self):
 		return self.__public_api
+
+	@property
+	def user(self):
+		"""
+		:return: The user that owns this page, None if guest
+		"""
+		return self.__user
 
 
 
