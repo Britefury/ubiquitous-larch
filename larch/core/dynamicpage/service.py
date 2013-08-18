@@ -34,19 +34,19 @@ class DynamicPageService (object):
 	"""
 
 
-	class Session (object):
+	class View (object):
 		"""
 		Session information
 
 		Attributes:
 			:var dynamic_page: the page
-			:var session_data: the session data, initialised by a service that overrides DynamicPageService
+			:var view_data: the view data, initialised by a service that overrides DynamicPageService
 			:var location: the location
 			:var get_params: the get parameters
 		"""
 		def __init__(self):
 			self.dynamic_page = None
-			self.session_data = None
+			self.view_data = None
 			self.location = None
 			self.get_params = None
 
@@ -54,8 +54,8 @@ class DynamicPageService (object):
 
 
 	def __init__(self):
-		self.__sessions = {}
-		self.__session_counter = 1
+		self.__views = {}
+		self.__view_counter = 1
 
 		self.__rng = random.Random()
 
@@ -75,43 +75,44 @@ class DynamicPageService (object):
 
 
 
-	def new_session(self, location='', get_params=None):
+	def new_view(self, location='', get_params=None):
 		"""
-		The web service will invoke this method when the user opens a page. The HTML returned must be send to the client.
+		Creates a new view, with a newly allocated ID.
+		The view contains a dynamic page, a location, and get parameters
 
 		:param location: The location being access by the browser, identifying the content that the user wishes to see. You should set up your app so that all paths under a specific URL prefix should take the suffix and pass it as the location.
 		:param get_params: The GET parameters received as part of the location
 		:return: The HTML content to be sent to the client browser
 		"""
-		session_id = self.__new_session_id()
-		session = self.Session()
-		self.__sessions[session_id] = session
+		view_id = self.__new_view_id()
+		view = self.View()
+		self.__views[view_id] = view
 
 		if get_params is None:
 			get_params = {}
 
-		dynamic_page = DynamicPage(self, session_id, location, get_params)
-		session.dynamic_page = dynamic_page
-		session.location = location
-		session.get_params = get_params
+		dynamic_page = DynamicPage(self, view_id, location, get_params)
+		view.dynamic_page = dynamic_page
+		view.location = location
+		view.get_params = get_params
 
-		return session
-
-
+		return view
 
 
-	def event(self, session_id, event_data):
+
+
+	def event(self, view_id, event_data):
 		"""
-		Event response. Map the URL /event/<session_id> to this. You will need to extract the session_id from the URL and the event_data field from the POST data and pass them through
+		Event response. Map the URL /event/<view_id> to this. You will need to extract the view_id from the URL and the event_data field from the POST data and pass them through
 
-		:param session_id: session_id field from URL
+		:param view_id: view_id field from URL
 		:param event_data: event_data field from POST data
 		:return: JSON string to send to the client browser
 		"""
 
-		# Get the page for the given session
+		# Get the page for the given view
 		try:
-			session = self.__sessions[session_id]
+			view = self.__views[view_id]
 		except KeyError:
 			msg = messages.invalid_page_message()
 			client_messages = [msg]
@@ -119,7 +120,7 @@ class DynamicPageService (object):
 			return result
 
 
-		dynamic_page = session.dynamic_page
+		dynamic_page = view.dynamic_page
 
 		# Get the event messages
 		block_json = json.loads(event_data)
@@ -129,18 +130,18 @@ class DynamicPageService (object):
 
 
 
-	def form(self, session_id, form_data):
+	def form(self, view_id, form_data):
 		"""
-		Form response. Map the URL /form/<session_id> to this. You will need to extract the session_id from the URL and pass it as the first argument, along with the POST data as the second
+		Form response. Map the URL /form/<view_id> to this. You will need to extract the view_id from the URL and pass it as the first argument, along with the POST data as the second
 
-		:param session_id: session_id field from URL
+		:param view_id: view_id field from URL
 		:param form_data: the post data
 		:return: JSON string to send to the client browser
 		"""
 
-		# Get the page for the given session
+		# Get the page for the given view
 		try:
-			session = self.__sessions[session_id]
+			view = self.__views[view_id]
 		except KeyError:
 			msg = messages.invalid_page_message()
 			client_messages = [msg]
@@ -148,7 +149,7 @@ class DynamicPageService (object):
 			return result
 
 
-		dynamic_page = session.dynamic_page
+		dynamic_page = view.dynamic_page
 
 		# Build the form event
 		ev_data = {}
@@ -195,22 +196,22 @@ class DynamicPageService (object):
 
 
 
-	def resource(self, session_id, rsc_id):
+	def resource(self, view_id, rsc_id):
 		"""
-		Resource acquisition. Map the URL /rsc to this. You will need to extract the session_id and rsc_id fields from the GET parameters and pass them through
+		Resource acquisition. Map the URL /rsc to this. You will need to extract the view_id and rsc_id fields from the GET parameters and pass them through
 
-		:param session_id: session_id field from GET parameters
+		:param view_id: view_id field from GET parameters
 		:param rsc_id: rsc_id field from GET parameters
 		:return: the data to send to the client and its MIME type in the form of a tuple: (data, mime_type)
 		"""
 
-		# Get the page for the given session
+		# Get the page for the given view
 		try:
-			session = self.__sessions[session_id]
+			view = self.__views[view_id]
 		except KeyError:
 			return None
 
-		dynamic_page = session.dynamic_page
+		dynamic_page = view.dynamic_page
 
 		dynamic_page.lock()
 
@@ -234,9 +235,9 @@ class DynamicPageService (object):
 
 
 	def _close_page(self, page):
-		session_id = page._session_id
+		view_id = page._view_id
 		try:
-			del self.__sessions[session_id]
+			del self.__views[view_id]
 		except KeyError:
 			pass
 
@@ -246,10 +247,10 @@ class DynamicPageService (object):
 
 
 
-	def __new_session_id(self):
-		index = self.__session_counter
-		self.__session_counter += 1
+	def __new_view_id(self):
+		index = self.__view_counter
+		self.__view_counter += 1
 		salt = self.__rng.randint(0, 1<<31)
-		session_id = 's{0}{1}'.format(index, salt)
-		return session_id
+		view_id = 'v{0}{1}'.format(index, salt)
+		return view_id
 

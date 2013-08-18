@@ -45,7 +45,7 @@ _page_content = u"""
 		<script type="text/javascript" src="/static/larch.js"></script>
 		<script type="text/javascript">
 			<!--
-			larch.__session_id="{session_id}";
+			larch.__view_id="{view_id}";
 			// -->
 		</script>
 
@@ -172,16 +172,16 @@ class DynamicPage (object):
 	Create segments by calling the new_segment method. Remove them with remove_segment when you are done.
 
 	:param service: The dynamic page service that spawned this page
-	:param session_id: The session ID used to identify this page
+	:param view_id: The view ID used to identify this page
 	:param location: The browser location
 	:param get_params: The parameters that were provided as part of the location
 
 	You must create and set the root segment before using the page. Create using new_segment, then set the root_segment attribute.
 
 	"""
-	def __init__(self, service, session_id, location, get_params):
+	def __init__(self, service, view_id, location, get_params):
 		self.__service = service
-		self._session_id = session_id
+		self._view_id = view_id
 		self.__location = location
 		self.__get_params = get_params
 
@@ -315,7 +315,7 @@ class DynamicPage (object):
 	#
 
 	def __on_close_page(self, public_api, event_name, event_data):
-		print 'CLOSING PAGE {0}'.format(self._session_id)
+		print 'CLOSING PAGE {0}'.format(self._view_id)
 		self.__service._close_page(self)
 
 
@@ -788,7 +788,7 @@ class DynamicPage (object):
 
 		self._table._clear_changes()
 
-		return _page_content.format(title=self.__title, session_id=self._session_id, dependency_tags=dependency_tags, content=root_content, init_script=js_to_exec, initialisers=initialisers_json_str)
+		return _page_content.format(title=self.__title, view_id=self._view_id, dependency_tags=dependency_tags, content=root_content, init_script=js_to_exec, initialisers=initialisers_json_str)
 
 
 
@@ -1011,4 +1011,4 @@ class DynamicPageResourceInstance (object):
 	def url(self):
 		if not self.__resource.requires_url:
 			raise RuntimeError, 'Attempting to acquire a URL for a resource that does not support URL based access'
-		return '/rsc/{0}/{1}'.format(self.__page._session_id, self.__rsc_id)
+		return '/rsc/{0}/{1}'.format(self.__page._view_id, self.__rsc_id)

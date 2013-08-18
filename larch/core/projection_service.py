@@ -29,6 +29,8 @@ class ProjectionService (DynamicPageService):
 	To do so, add an augment_page attribute to the subject with add_step. This function will be called,
 	with the subject as a parameter. It should return a new object that will present as the augmented
 	page. A new step will be added to the subject with the focus attribute set to the newly augmented page.
+
+	The location pages/index resolves to the front page
 	"""
 
 
@@ -38,35 +40,35 @@ class ProjectionService (DynamicPageService):
 
 
 	def page(self, location='', get_params=None):
-		session = self.new_session(location, get_params)
+		view = self.new_view(location, get_params)
 		subject = self.__resolve_location(location)
 
 		# Augment page
 		self.__augment_page(subject)
 
 		# Attach commands
-		self.__attach_commands(session, subject)
+		self.__attach_commands(view, subject)
 
-		# Create the incremental view and attach as session data
-		session.session_data = IncrementalView(subject, session.dynamic_page)
+		# Create the incremental view and attach as view data
+		view.view_data = IncrementalView(subject, view.dynamic_page)
 
-		return session.dynamic_page.page_html()
+		return view.dynamic_page.page_html()
 
 
 
 	def page_for_subject(self, subject, location='', get_params=None):
-		session = self.new_session(location, get_params)
+		view = self.new_view(location, get_params)
 
 		# Augment page
 		self.__augment_page(subject)
 
 		# Attach commands
-		self.__attach_commands(session, subject)
+		self.__attach_commands(view, subject)
 
-		# Create the incremental view and attach as session data
-		session.session_data = IncrementalView(subject, session.dynamic_page)
+		# Create the incremental view and attach as view data
+		view.view_data = IncrementalView(subject, view.dynamic_page)
 
-		return session.dynamic_page.page_html()
+		return view.dynamic_page.page_html()
 
 
 
@@ -116,7 +118,7 @@ class ProjectionService (DynamicPageService):
 		"""
 		subject = Subject()
 		subject.add_step(focus=self.__front_page_model, location_trail=['pages'], perspective=None, title='Service front page')
-		if location == '':
+		if location == ''  or  location == 'index':
 			self.__resolve_step(self.__front_page_model, subject)
 			return subject
 		else:
@@ -143,7 +145,7 @@ class ProjectionService (DynamicPageService):
 			subject.add_step(focus=augmented_page)
 
 
-	def __attach_commands(self, session, subject):
+	def __attach_commands(self, view, subject):
 		cmds = []
 		for f in subject.focii:
 			try:
@@ -154,4 +156,4 @@ class ProjectionService (DynamicPageService):
 				cmds.extend(method())
 
 		command_set = command.CommandSet(cmds)
-		command_set.attach_to_page(session.dynamic_page)
+		command_set.attach_to_page(view.dynamic_page)

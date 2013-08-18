@@ -8,9 +8,9 @@ from django_project import django_server
 urlpatterns = patterns('',
 	url('^$', django_server.index, name='index'),
 	url('^pages/(?P<location>.+)', django_server.page, name='pages'),
-	url('^event/(?P<session_id>[^/]+)', django_server.event, name='event'),
-	url('^form/(?P<session_id>[^/]+)', django_server.form, name='form'),
-	url('^rsc/(?P<session_id>[^/]+)/(?P<rsc_id>[^/]+)', django_server.rsc, name='resource'),
+	url('^event/(?P<view_id>[^/]+)', django_server.event, name='event'),
+	url('^form/(?P<view_id>[^/]+)', django_server.form, name='form'),
+	url('^rsc/(?P<view_id>[^/]+)/(?P<rsc_id>[^/]+)', django_server.rsc, name='resource'),
 
 	url('^accounts/login', django_server.login_form, name='login'),
 	url('^accounts/process_login', django_server.process_login, name='process_login'),

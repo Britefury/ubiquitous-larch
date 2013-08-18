@@ -33,15 +33,15 @@ def page(location):
 		abort(404)
 
 
-@app.route('/event/<session_id>', methods=['POST'])
-def event(session_id):
+@app.route('/event/<view_id>', methods=['POST'])
+def event(view_id):
 	event_data = request.form['event_data']
-	data = service.event(session_id, event_data)
+	data = service.event(view_id, event_data)
 	return Response(response=data, status=200, mimetype='application/json')
 
 
-@app.route('/form/<session_id>', methods=['POST'])
-def form(session_id):
+@app.route('/form/<view_id>', methods=['POST'])
+def form(view_id):
 	form_data = {}
 	files = []
 
@@ -61,7 +61,7 @@ def form(session_id):
 		form_data[k] = f
 		files.append((f, temp_file_path))
 
-	data = service.form(session_id, form_data)
+	data = service.form(view_id, form_data)
 
 	for f in files:
 		f[0].file.close()
@@ -70,9 +70,9 @@ def form(session_id):
 	return Response(response=data, status=200, mimetype='application/json')
 
 
-@app.route('/rsc/<session_id>/<rsc_id>', methods=['GET'])
-def rsc(session_id, rsc_id):
-	data_and_mime_type = service.resource(session_id, rsc_id)
+@app.route('/rsc/<view_id>/<rsc_id>', methods=['GET'])
+def rsc(view_id, rsc_id):
+	data_and_mime_type = service.resource(view_id, rsc_id)
 	if data_and_mime_type is not None:
 		data, mime_type = data_and_mime_type
 		return Response(response=data, status=200, mimetype=mime_type)

@@ -3,7 +3,7 @@
 //-*************************
 
 larch = {
-    __session_id: undefined,
+    __view_id: undefined,
     __segment_table: {}
 };
 
@@ -780,7 +780,7 @@ larch.__sendEventMessagesToServer = function(ev_messages) {
         larch.__waitingForResponse++;
         $.ajax({
             type: 'POST',
-            url: '/event/' + larch.__session_id,
+            url: '/event/' + larch.__view_id,
             data: post_data,
             success: function(msg) {
                 //console.log('EVENT ' + block_id + ': received ' + msg.length);

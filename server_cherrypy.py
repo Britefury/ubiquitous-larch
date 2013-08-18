@@ -53,8 +53,8 @@ class LarchService (object):
 			if event_data is None:
 				cherrypy.response.status = 400
 				return 'No event data'
-			session_id = location_components[0]
-			return self.service.event(session_id, event_data)
+			view_id = location_components[0]
+			return self.service.event(view_id, event_data)
 		else:
 			cherrypy.response.status = 404
 			return 'Invalid event URL'
@@ -64,7 +64,7 @@ class LarchService (object):
 
 	def form(self, *location_components, **post_data):
 		if len(location_components) == 1:
-			session_id = location_components[0]
+			view_id = location_components[0]
 
 			form_data = {}
 
@@ -74,7 +74,7 @@ class LarchService (object):
 				else:
 					form_data[k] = v
 
-			return self.service.form(session_id, form_data)
+			return self.service.form(view_id, form_data)
 		else:
 			cherrypy.response.status = 404
 			return 'Invalid form URL'
@@ -84,8 +84,8 @@ class LarchService (object):
 
 	def rsc(self, *location_components, **kwargs):
 		if len(location_components) == 2:
-			session_id, rsc_id = location_components
-			data_and_mime_type = self.service.resource(session_id, rsc_id)
+			view_id, rsc_id = location_components
+			data_and_mime_type = self.service.resource(view_id, rsc_id)
 			if data_and_mime_type is not None:
 				data, mime_type = data_and_mime_type
 				cherrypy.response.headers['Content-Type'] = mime_type

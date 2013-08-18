@@ -41,15 +41,15 @@ def page(request, location):
 
 @require_POST
 @login_required
-def event(request, session_id):
+def event(request, view_id):
 	event_data = request.POST['event_data']
-	data = service.event(session_id, event_data)
+	data = service.event(view_id, event_data)
 	return HttpResponse(data, content_type='application/json')
 
 
 @require_POST
 @login_required
-def form(request, session_id):
+def form(request, view_id):
 	form_data = {}
 
 	for k in request.POST.keys():
@@ -74,7 +74,7 @@ def form(request, session_id):
 
 		files.append((f, temp_file_path))
 
-	data = service.form(session_id, form_data)
+	data = service.form(view_id, form_data)
 
 	for f in files:
 		f[0].file.close()
@@ -85,8 +85,8 @@ def form(request, session_id):
 
 @require_GET
 @login_required
-def rsc(request, session_id, rsc_id):
-	data_and_mime_type = service.resource(session_id, rsc_id)
+def rsc(request, view_id, rsc_id):
+	data_and_mime_type = service.resource(view_id, rsc_id)
 	if data_and_mime_type is not None:
 		data, mime_type = data_and_mime_type
 		return HttpResponse(data, content_type=mime_type)

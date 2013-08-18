@@ -37,16 +37,16 @@ def page(location):
 		return 'Page at {0} not found'.format(location)
 
 
-@app.route('/event/<session_id>', method='POST')
-def event(session_id):
+@app.route('/event/<view_id>', method='POST')
+def event(view_id):
 	event_data = request.forms.get('event_data')
-	data = service.event(session_id, event_data)
+	data = service.event(view_id, event_data)
 	response.content_type = 'application/json; charset=UTF8'
 	return data
 
 
-@app.route('/form/<session_id>', method='POST')
-def form(session_id):
+@app.route('/form/<view_id>', method='POST')
+def form(view_id):
 	form_data = {}
 
 	for k in request.forms.keys():
@@ -56,15 +56,15 @@ def form(session_id):
 		f = UploadedFile(upload.filename, upload.file)
 		form_data[k] = f
 
-	data = service.form(session_id, form_data)
+	data = service.form(view_id, form_data)
 
 	response.content_type = 'application/json; charset=UTF8'
 	return data
 
 
-@app.route('/rsc/<session_id>/<rsc_id>', method='GET')
-def rsc(session_id, rsc_id):
-	data_and_mime_type = service.resource(session_id, rsc_id)
+@app.route('/rsc/<view_id>/<rsc_id>', method='GET')
+def rsc(view_id, rsc_id):
+	data_and_mime_type = service.resource(view_id, rsc_id)
 	if data_and_mime_type is not None:
 		data, mime_type = data_and_mime_type
 		response.content_type = mime_type
