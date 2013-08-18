@@ -30,7 +30,6 @@ def _user_for_request(request):
 
 
 @login_required
-@ensure_csrf_cookie
 def index(request):
 	try:
 		return HttpResponse(service.page(user=_user_for_request(request)))
@@ -40,7 +39,6 @@ def index(request):
 
 
 @login_required
-@ensure_csrf_cookie
 def root_page(request):
 	try:
 		get_params = {}
@@ -51,7 +49,6 @@ def root_page(request):
 
 
 @login_required
-@ensure_csrf_cookie
 def page(request, location):
 	try:
 		get_params = {}
