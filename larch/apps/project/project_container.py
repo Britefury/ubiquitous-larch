@@ -12,6 +12,7 @@ from larch.controls import menu
 
 from larch.apps.project.project_node import ProjectNode
 from larch.apps.project.new_node_tool import NewNodeTool
+from larch.apps import project
 from larch.apps.worksheet.worksheet import Worksheet
 
 

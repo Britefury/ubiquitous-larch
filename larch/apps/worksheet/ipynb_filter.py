@@ -2,7 +2,7 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 import json
-from larch.apps import worksheet
+from larch.apps.worksheet import worksheet
 
 try:
 	import markdown
