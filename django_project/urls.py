@@ -15,6 +15,7 @@ urlpatterns = patterns('',
 
 	url('^accounts/login', django_server.login_form, name='login'),
 	url('^accounts/process_login', django_server.process_login, name='process_login'),
+	url('^accounts/logout', django_server.account_logout, name='logout'),
 	# Examples:
 	# url(r'^$', 'django_project.views.home', name='home'),
 	# url(r'^django_project/', include('django_project.foo.urls')),

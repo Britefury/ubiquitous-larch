@@ -62,9 +62,10 @@ def _sanitise_filename(name):
 
 
 class PageFrame (CompositePres):
-	def __init__(self, subject):
+	def __init__(self, subject, logout_url_path):
 		self.__page = subject.focus
 		self.__focii = subject.focii
+		self.__logout_url_path = logout_url_path
 
 
 
@@ -95,6 +96,11 @@ class PageFrame (CompositePres):
 		# Command bar button
 		cmd_bar_button = Html('<button class="__larch_app_cmd_bar_button">Cmd. bar (Esc)</button>').js_function_call("larch.controls.initToggleCommandBarButton")
 		right_menu_bar_contents.append(cmd_bar_button)
+
+		# Logout link
+		if self.__logout_url_path is not None:
+			#right_menu_bar_contents.append(Html('<div class="__larch_app_frame_logout_link"><a href="{0}">Logout</a></div>'.format(self.__logout_url_path)))
+			right_menu_bar_contents.append(Html('<a href="{0}">Logout</a>'.format(self.__logout_url_path)).js_eval('$(node).button();'))
 
 		# Build the menu bar contents by iterating through the focii, accumulating them as we go by concatenating the results of calling the __menu_bar_cumulative_contents__ method
 		for f in self.__focii:
@@ -132,8 +138,10 @@ class PageFrame (CompositePres):
 
 
 
-def _apply_page_frame(subject):
-	return PageFrame(subject)
+def _make_apply_page_frame(logout_url_path):
+	def _apply_page_frame(subject):
+		return PageFrame(subject, logout_url_path)
+	return _apply_page_frame
 
 
 
@@ -657,11 +665,12 @@ class ToolList (object):
 
 
 class LarchApplication (object):
-	def __init__(self, documents_path=None):
+	def __init__(self, documents_path=None, logout_url_path=None):
 		if documents_path is None:
 			documents_path = os.getcwd()
 
 		self.__documents_path = documents_path
+		self.__logout_url_path = logout_url_path
 
 		self.__docs = DocumentList(documents_path)
 		self.__docs.enable_import_hooks()
@@ -691,7 +700,7 @@ class LarchApplication (object):
 
 
 	def __resolve_self__(self, subject):
-		subject.add_step(title='The Ubiquitous Larch', augment_page=_apply_page_frame)
+		subject.add_step(title='The Ubiquitous Larch', augment_page=_make_apply_page_frame(self.__logout_url_path))
 		return self
 
 
@@ -766,7 +775,7 @@ class LarchApplication (object):
 
 
 
-def create_service(documents_path=None):
-	app = LarchApplication(documents_path)
+def create_service(documents_path=None, logout_url_path=None):
+	app = LarchApplication(documents_path, logout_url_path)
 
 	return ProjectionService(app)

@@ -7,7 +7,7 @@ import os
 
 from django.http import HttpResponse, Http404
 from django.views.decorators.http import require_POST, require_GET
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render_to_response, render
 from django.template import Template, RequestContext
@@ -17,7 +17,7 @@ from larch.core.projection_service import CouldNotResolveLocationError
 from larch.apps import larch_app
 
 
-service = larch_app.create_service()
+service = larch_app.create_service(logout_url_path='/accounts/logout')
 
 
 def _user_for_request(request):
@@ -167,3 +167,9 @@ def process_login(request):
 	else:
 		ctx = RequestContext(request, prompt='Bad login')
 		return HttpResponse(__login_template.render(ctx), content_type='text/html')
+
+
+
+def account_logout(request):
+	logout(request)
+	return redirect('/')
