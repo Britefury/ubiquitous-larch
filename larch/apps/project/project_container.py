@@ -13,7 +13,7 @@ from larch.controls import menu
 from larch.apps.project.project_node import ProjectNode
 from larch.apps.project.new_node_tool import NewNodeTool
 from larch.apps import project
-from larch.apps.worksheet.worksheet import Worksheet
+from larch.apps.notebook.notebook import Notebook
 
 
 
@@ -187,12 +187,12 @@ class ProjectContainer (ProjectNode):
 		def on_new_package():
 			tool_container.value = NewNodeTool(tool_container, self, 'package', 'Package', lambda name: project.project_package.ProjectPackage(name))
 
-		def on_new_worksheet():
-			tool_container.value = NewNodeTool(tool_container, self, 'worksheet', 'Worksheet', lambda name: project.project_page.ProjectPage(name, Worksheet()))
+		def on_new_notebook():
+			tool_container.value = NewNodeTool(tool_container, self, 'notebook', 'Notebook', lambda name: project.project_page.ProjectPage(name, Notebook()))
 
 
 		new_package_item = menu.item('New package', on_new_package)
-		new_worksheet_item = menu.item('New worksheet', on_new_worksheet)
+		new_worksheet_item = menu.item('New notebook', on_new_notebook)
 
 		return [new_package_item, new_worksheet_item]
 

@@ -3,7 +3,7 @@
 -* This source code is (C)copyright Geoffrey French 2011-2013.
 -*************************
 */
-.worksheet_exec_state_init {
+.notebook_exec_state_init {
     font-weight: bold;
     color: #c03000;
     border: 2px solid #e04000;
@@ -14,7 +14,7 @@
     padding: 3px 10px;
 }
 
-.worksheet_block {
+.notebook_block {
     margin-left: 0.25em;
     margin-right: 0.25em;
     border: 1px solid #e8e8e8;
@@ -22,98 +22,98 @@
     padding: 5px;
 }
 
-.worksheet_richtext {
+.notebook_richtext {
     background-image: url('/static/paper.png');
 }
 
-.worksheet_code_block {
+.notebook_code_block {
     margin-left: 0.25em;
     margin-right: 0.25em;
     border: 1px solid #c9c9d1;
     border-radius: 5px;
 }
 
-.worksheet_python_code_header {
+.notebook_python_code_header {
     padding: 5px;
     background: #e1ebe1;
     font-family: "Open Sans", sans-serif;
 }
 
-.worksheet_code_container {
+.notebook_code_container {
     background-image: url('/static/speckle.png');
 }
 
-.worksheet_python_code_container {
+.notebook_python_code_container {
     margin: 3px 0 3px 0;
     border-left: 2px solid #008000;
     border-right: 2px solid #008000;
     padding: 0 2px 0 2px;
 }
 
-.worksheet_js_code_header {
+.notebook_js_code_header {
     padding: 5px;
     background: #ebe1e1;
     font-family: "Open Sans", sans-serif;
 }
 
-.worksheet_js_code_container {
+.notebook_js_code_container {
     margin: 3px 0 3px 0;
     border-left: 2px solid #800000;
     border-right: 2px solid #800000;
     padding: 0 2px 0 2px;
 }
 
-.worksheet_css_code_header {
+.notebook_css_code_header {
     padding: 5px;
     background: #e1e1eb;
     font-family: "Open Sans", sans-serif;
 }
 
-.worksheet_css_code_container {
+.notebook_css_code_container {
     margin: 3px 0 3px 0;
     border-left: 2px solid #000080;
     border-right: 2px solid #000080;
     padding: 0 2px 0 2px;
 }
 
-.worksheet_glsl_code_header {
+.notebook_glsl_code_header {
     padding: 5px;
     background: #e1ebeb;
     font-family: "Open Sans", sans-serif;
 }
 
-.worksheet_glsl_code_container {
+.notebook_glsl_code_container {
     margin: 3px 0 3px 0;
     border-left: 2px solid #008080;
     border-right: 2px solid #008080;
     padding: 0 2px 0 2px;
 }
 
-.worksheet_html_code_header {
+.notebook_html_code_header {
     padding: 5px;
     background: #ebebe1;
     font-family: "Open Sans", sans-serif;
 }
 
-.worksheet_html_code_container {
+.notebook_html_code_container {
     margin: 3px 0 3px 0;
     border-left: 2px solid #808000;
     border-right: 2px solid #808000;
     padding: 0 2px 0 2px;
 }
 
-.worksheet_code_block_body {
+.notebook_code_block_body {
     padding: 3px;
     border-top: 1px solid #b0b0b5;
 }
 
-.worksheet_result_container {
+.notebook_result_container {
     border-left: 2px solid #99b3cc;
     border-right: 2px solid #99b3cc;
     padding: 0 2px 0 2px;
     margin: 3px 0 3px 0;
 }
 
-.worksheet_src_language_select_table {
+.notebook_src_language_select_table {
     float: right;
 }

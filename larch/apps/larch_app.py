@@ -8,8 +8,9 @@ import pickle
 import imp
 import sys
 import urllib2
+from larch.apps.notebook import ipynb_filter
 from larch.apps.project import project_root
-from larch.apps.worksheet import worksheet, ipynb_filter
+from larch.apps.notebook import notebook
 
 from larch.core.projection_service import ProjectionService
 from larch.incremental import IncrementalValueMonitor
@@ -566,11 +567,11 @@ class UploadIPynbTool (Tool):
 		def _on_upload(form_data):
 			f = form_data.get('file')
 			if f is not None:
-				worksheets, notebook_name = ipynb_filter.load(f.file)
+				notebooks, notebook_name = ipynb_filter.load(f.file)
 
 				filename = _sanitise_filename(notebook_name)
 				filename = self.__doc_list.unused_filename(filename)
-				self.__doc_list.new_document_for_content(filename, worksheets[0])
+				self.__doc_list.new_document_for_content(filename, notebooks[0])
 			self.close()
 
 		def on_cancel():
@@ -615,11 +616,11 @@ class DownloadIPynbFromWebTool (Tool):
 			opener = urllib2.build_opener()
 			fp = opener.open(request)
 
-			worksheets, notebook_name = ipynb_filter.load(fp)
+			notebooks, notebook_name = ipynb_filter.load(fp)
 
 			filename = _sanitise_filename(notebook_name)
 			filename = self.__doc_list.unused_filename(filename)
-			self.__doc_list.new_document_for_content(filename, worksheets[0])
+			self.__doc_list.new_document_for_content(filename, notebooks[0])
 
 			self.close()
 
@@ -712,9 +713,9 @@ class LarchApplication (object):
 		reset_button = button.button('Reload', _on_reload)
 		reset_section = Html('<div class="larch_app_menu">', reset_button, '</div>')
 
-		add_worksheet = menu.item('Worksheet', lambda: self.__tools.add(NewDocumentTool(self.__docs, lambda: worksheet.Worksheet(), 'Worksheet')))
+		add_notebook = menu.item('Notebook', lambda: self.__tools.add(NewDocumentTool(self.__docs, lambda: notebook.Notebook(), 'Notebook')))
 		add_project = menu.item('Project', lambda: self.__tools.add(NewDocumentTool(self.__docs, lambda: project_root.ProjectRoot(), 'Project')))
-		new_item = menu.sub_menu('New', [add_worksheet, add_project])
+		new_item = menu.sub_menu('New', [add_notebook, add_project])
 		new_document_menu = menu.menu([new_item], drop_down=True)
 
 
