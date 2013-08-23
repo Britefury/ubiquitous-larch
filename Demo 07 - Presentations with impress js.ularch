@@ -224,7 +224,7 @@ Ntp85
 Rp86
 (dp87
 g12
-V<p>Unfortunately, we cannot just display our presentation as is. The CSS modifies the style of the document body while impress.js grabs quite a few events, making the rest of the worksheet unusable. To get around this we put in its own page and embed it below within&nbsp;an <code>iframe</code> element.</p><p>In the last worksheet, we saw how subclasses of the <code>Resource</code> presentation type generate a URL which can be used to access the data represented by the resource. PresIFrame is a resource class that takes its content (first argument to its constructor) and creates a page that displays it. This page is then embedded within an iframe. This is used to display our presentation:</p>
+V<p>Unfortunately, we cannot just display our presentation as is. The CSS modifies the style of the document body while impress.js grabs quite a few events, making the rest of the notebook unusable. To get around this we put in its own page and embed it below within&nbsp;an <code>iframe</code> element.</p><p>In the last notebook, we saw how subclasses of the <code>Resource</code> presentation type generate a URL which can be used to access the data represented by the resource. PresIFrame is a resource class that takes its content (first argument to its constructor) and creates a page that displays it. This page is then embedded within an iframe. This is used to display our presentation:</p>
 p88
 sg14
 g4

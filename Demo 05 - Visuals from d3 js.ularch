@@ -23,7 +23,7 @@ Rp10
 (dp11
 S'text'
 p12
-V<h1>Visuals from d3.js</h1><p>In this worksheet, we will explore how we can use the d3.js client-side library to generate visuals from server-side data.</p><p>In the first example, we generate some random data and display it as a bar chart.</p>
+V<h1>Visuals from d3.js</h1><p>In this notebook, we will explore how we can use the d3.js client-side library to generate visuals from server-side data.</p><p>In the first example, we generate some random data and display it as a bar chart.</p>
 p13
 sS'notebook'
 p14
@@ -199,7 +199,7 @@ Ntp76
 Rp77
 (dp78
 g12
-V<p>Feel free to refresh the worksheet with Control-Enter to see the chart re-display.</p>
+V<p>Feel free to refresh the notebook with Control-Enter to see the chart re-display.</p>
 p79
 sg14
 g4

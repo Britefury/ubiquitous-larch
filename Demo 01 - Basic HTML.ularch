@@ -23,7 +23,7 @@ Rp10
 (dp11
 S'text'
 p12
-V<h1>Basic HTML</h1><p>This worksheet demonstrates how to create and display basic HTML.</p><h1>tl;dr</h1><p>Create HTML content to be returned to the browser by wrapping it in the <code>Html</code> presentation type.</p><h1>Examples</h1><p>The first step is to import the <code>Html</code>&nbsp;presentation type. Presentation types describe a presentation that is to be built. They&nbsp;will be covered in more detail later.</p>
+V<h1>Basic HTML</h1><p>This notebook demonstrates how to create and display basic HTML.</p><h1>tl;dr</h1><p>Create HTML content to be returned to the browser by wrapping it in the <code>Html</code> presentation type.</p><h1>Examples</h1><p>The first step is to import the <code>Html</code>&nbsp;presentation type. Presentation types describe a presentation that is to be built. They&nbsp;will be covered in more detail later.</p>
 p13
 sS'notebook'
 p14

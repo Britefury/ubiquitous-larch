@@ -395,7 +395,10 @@ class DocumentList (object):
 		for p in sorted(file_paths):
 			directory, filename = os.path.split(p)
 			name, ext = os.path.splitext(filename)
-			content = load_document(p)
+			try:
+				content = load_document(p)
+			except:
+				print 'Error: could not load {0}'.format(p)
 			doc = Document(self, name, name, content)
 			self.__add_document(doc)
 
