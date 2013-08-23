@@ -445,7 +445,7 @@ class _FragmentView (object):
 			if self.__parent is not None:
 				self.__parent.__request_subtree_refresh()
 
-			self.__inc_view._on_node_request_refresh(self)
+			self.__inc_view._on_fragment_view_request_refresh(self)
 
 
 
@@ -787,13 +787,85 @@ class IncrementalViewTable (object):
 
 
 
+#
+#
+# IncrementalView
+#
+#
+
 class IncrementalView (object):
+	class Subtree (object):
+		def __init__(self, inc_view, model, perspective):
+			self.__inc_view = inc_view
+			self.__refresh_required = False
+			self.model = model
+			self.perspective = perspective
+			self.fragment_view = None
+			self.fragment_factory = None
+
+
+		def _get_fragment_view(self):
+			if self.fragment_factory is None:
+				raise ValueError, 'No root fragment factory set'
+
+			if self.fragment_view is not None:
+				self.__inc_view._node_table._unref_fragment_view(self.fragment_view)
+			if self.fragment_view is None:
+				self.fragment_view = self.__inc_view._build_fragment_view(self.model, self.fragment_factory)
+			if self.fragment_view is not None:
+				self.__inc_view._node_table._ref_fragment_view(self.fragment_view)
+			return self.fragment_view
+
+
+		def _set_fragment_factory(self, fragment_factory):
+			if fragment_factory is not self.fragment_factory:
+				self.fragment_factory = fragment_factory
+				self._queue_refresh()
+
+
+
+		#
+		# Refreshing
+		#
+
+		def _queue_refresh(self):
+			if not self.__refresh_required:
+				self.__refresh_required = True
+				self.__inc_view.dynamic_page.queue_task(self._refresh, DynamicPage._REFRESH_PRIORITY)
+
+		def _refresh(self):
+			if self.__refresh_required:
+				self.__refresh_required = False
+				self._perform_refresh()
+
+
+		def _perform_refresh(self):
+			self.__on_subtree_refresh_begin()
+			root_frag = self._get_fragment_view()
+			if root_frag is not None:
+				root_frag.refresh()
+			self.__inc_view._node_table.clean()
+			self.__on_subtree_refresh_end()
+
+
+
+		def __on_subtree_refresh_begin(self):
+			pass
+
+		def __on_subtree_refresh_end(self):
+			pass
+
+
+
+
+
+
+
 	def __init__(self, subject, dynamic_page):
 		self.__subject = subject
 
-		self.__root_model = subject.focus
-		self._root_perspective = subject.perspective
-		self.__root_fragment_view = None
+
+		self.__root_subtree = self.Subtree(self, subject.focus, subject.perspective)
 		self.__root_fragment_factory = None
 
 
@@ -822,7 +894,7 @@ class IncrementalView (object):
 
 	@property
 	def root_model(self):
-		return self.__root_model
+		return self.__root_subtree.model
 
 	@property
 	def subject(self):
@@ -858,14 +930,14 @@ class IncrementalView (object):
 
 	def __initialise(self):
 		# Create and set the root fragment fragment factory
-		fragment_factory = self._get_unique_fragment_factory(self._root_perspective, self.__subject, SimpleAttributeTable.instance)
-		self._set_root_fragment_factory(fragment_factory)
+		fragment_factory = self._get_unique_fragment_factory(self.__root_subtree.perspective, self.__subject, SimpleAttributeTable.instance)
+		self.__root_subtree._set_fragment_factory(fragment_factory)
 
 		# Refresh
-		self._refresh()
+		self.__root_subtree._refresh()
 
 		# Get the root fragment
-		root_frag_view = self._get_root_fragment_view()
+		root_frag_view = self.__root_subtree._get_fragment_view()
 		# Set the content of the dynamic page to the content of the root fragment
 		self.__dynamic_page.root_segment = root_frag_view._refreshed_segment_reference
 
@@ -876,40 +948,9 @@ class IncrementalView (object):
 	#
 	#
 
-	def _refresh(self):
-		if self.__refresh_required:
-			self.__refresh_required = False
-			self.__perform_refresh()
-
-
-	def _queue_refresh(self):
-		if not self.__refresh_required:
-			self.__refresh_required = True
-			self.__dynamic_page.queue_task(self._refresh, DynamicPage._REFRESH_PRIORITY)
-
-
-
-	def _on_node_request_refresh(self, fragment_view):
-		if fragment_view is self.__root_fragment_view:
-			self._queue_refresh()
-
-
-
-	def __perform_refresh(self):
-		self.__on_view_refresh_begin()
-		root_frag = self._get_root_fragment_view()
-		if root_frag is not None:
-			root_frag.refresh()
-		self._node_table.clean()
-		self.__on_view_refresh_end()
-
-
-
-	def __on_view_refresh_begin(self):
-		pass
-
-	def __on_view_refresh_end(self):
-		pass
+	def _on_fragment_view_request_refresh(self, fragment_view):
+		if fragment_view is self.__root_subtree.fragment_view:
+			self.__root_subtree._queue_refresh()
 
 
 
@@ -918,19 +959,6 @@ class IncrementalView (object):
 	# Fragment building and acquisition
 	#
 	#
-
-	def _get_root_fragment_view(self):
-		if self.__root_fragment_factory is None:
-			raise ValueError, 'No root fragment factory set'
-
-		if self.__root_fragment_view is not None:
-			self._node_table._unref_fragment_view(self.__root_fragment_view)
-		if self.__root_fragment_view is None:
-			self.__root_fragment_view = self._build_fragment_view(self.__root_model, self.__root_fragment_factory)
-		if self.__root_fragment_view is not None:
-			self._node_table._ref_fragment_view(self.__root_fragment_view)
-		return self.__root_fragment_view
-
 
 	def _build_fragment_view(self, model, fragment_factory):
 		# Try asking the table for an unused fragment view for the model
@@ -951,12 +979,6 @@ class IncrementalView (object):
 	# Fragment factories
 	#
 	#
-
-	def _set_root_fragment_factory(self, fragment_factory):
-		if fragment_factory is not self.__root_fragment_factory:
-			self.__root_fragment_factory = fragment_factory
-			self._queue_refresh()
-
 
 	def _get_unique_fragment_factory(self, perspective, subject, inherited_state):
 		factory = FragmentFactory(self, perspective, subject, inherited_state)
