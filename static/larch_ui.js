@@ -189,11 +189,6 @@ larch.controls.initMenu = function(node, options) {
     $(node).menu(options);
 };
 
-larch.controls.initDialog = function(node, options) {
-    $(node).dialog(options);
-};
-
-
 
 
 
@@ -278,3 +273,33 @@ larch.controls.initForm = function(node) {
     });
     form.ajaxForm();
 };
+
+
+
+
+larch.controls.createNotyPopup = function(popup_id, nodes, options) {
+    options.text = $(nodes);
+    options.callback = {};
+    options.callback.afterClose = function() {
+        larch.__notifyPopupClosed(popup_id);
+    };
+    noty(options);
+};
+
+
+larch.controls.createDialog = function(popup_id, nodes, options) {
+    options.close = function(event, ui) {
+        larch.__notifyPopupClosed(popup_id);
+    };
+    var contents = null;
+    if (nodes.length != 1) {
+        contents = $('<div></div>');
+        contents.append(nodes);
+    }
+    else {
+        contents = nodes[0];
+    }
+    $(contents).dialog(options);
+};
+
+

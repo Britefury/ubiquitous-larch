@@ -32,7 +32,7 @@ Ntp14
 Rp15
 (dp16
 g12
-Vfrom larch.pres.html import Html\u000afrom larch.pres.js import *\u000a\u000a\u000adef noty(text, **options):\u000a    options['text'] = text\u000a    # An empty span element\u000a    return Html('<span></span>').js_eval(JSName('noty')(options))\u000a\u000anoty('Hello world')
+Vfrom larch.controls import noty, dialog, button, slider\u000afrom larch.pres.html import Html\u000afrom larch.live import LiveValue\u000a\u000a\u000ax = LiveValue(0)\u000a\u000aclass PressMe (object):\u000a    def __present__(self, fragment):\u000a        def on_click():\u000a            p = x\u000a            p = button.button('Hi there', on_click)\u000a            p = Html('a<br>b<br>c', p, 'd<br>e<br>f')\u000a            #p = slider.live_slider(x, update_on_slide=True)\u000a            #noty.noty(p).show_on(fragment)\u000a            dialog.dialog(p).show_on(fragment)\u000a            \u000a        return button.button('Press', on_click)\u000a    \u000a    \u000aPressMe(), slider.live_slider(x, update_on_slide=True)\u000a
 p17
 sS'editable'
 p18

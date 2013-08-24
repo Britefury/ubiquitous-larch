@@ -104,6 +104,16 @@ larch.__getNodesInActiveSegment = function(segment) {
     return nodeList;
 };
 
+larch.__getNodesInActiveSegmentById = function(segment_id) {
+    var segment_table = larch.__segment_table;
+    var state = segment_table[segment_id];
+    if (state === undefined) {
+        console.log("larch.__getNodesInActiveSegmentById: Cannot get segment " + segment_id);
+        return;
+    }
+    return larch.__getNodesInActiveSegment(state);
+}
+
 larch.__getNodesInInactiveSegment = function(segment) {
     // Iterate using __lch_next attribute; see __newSegmentState function for explanation
     var nodeList = [];
@@ -174,8 +184,14 @@ larch.__getPlaceHolderNodes = function() {
     return larch.__getElementsOfClass("__lch_seg_placeholder", "span");
 };
 
-larch.__getSegmentBeginNodes = function() {
-    return larch.__getElementsOfClass("__lch_seg_begin", "span");
+larch.__getSegmentBeginNodes = function(q) {
+    if (q === undefined) {
+        return larch.__getElementsOfClass("__lch_seg_begin", "span");
+    }
+    else {
+        // Return the elements referenced by q and their descendants, filtered for spans with the '__lch_seg_begin' class
+        return q.find('span.__lch_seg_begin').andSelf().filter('span.__lch_seg_begin');
+    }
 };
 
 
@@ -185,10 +201,10 @@ larch.__getSegmentBeginNodes = function() {
 // A list of segments that are broken due to bad HTML structure.
 larch.__brokenSegmentIDs = null;
 
-larch.__register_segments = function() {
+larch.__register_segments = function(q) {
     var segment_table = larch.__segment_table;
 
-    var inlines = larch.__getSegmentBeginNodes();
+    var inlines = larch.__getSegmentBeginNodes(q);
 
     for (var i = 0; i < inlines.length; i++) {
         // Get the start node and extract the segment ID
@@ -266,9 +282,9 @@ larch.__executeJS = function(js_code) {
 larch.__executeNodeScripts = function(node_scripts) {
     var segment_table = larch.__segment_table;
     for (var i = 0; i < node_scripts.length; i++) {
-        var node_scipt = node_scripts[i];
-        var segment_id = node_scipt[0];
-        var script = node_scipt[1];
+        var node_script = node_scripts[i];
+        var segment_id = node_script[0];
+        var script = node_script[1];
         //console.log("Executing initialisers for " + segment_id);
         var state = segment_table[segment_id];
         if (state === undefined) {
@@ -288,6 +304,27 @@ larch.__executeNodeScripts = function(node_scripts) {
 
 
 
+larch.__executePopupScripts = function(popup_scripts) {
+    var segment_table = larch.__segment_table;
+    for (var i = 0; i < popup_scripts.length; i++) {
+        var popup_script = popup_scripts[i];
+        var segment_id = popup_script[0];
+        var script = popup_script[1];
+        //console.log("Executing initialisers for " + segment_id);
+        var state = segment_table[segment_id];
+        if (state === undefined) {
+            console.log("larch.__executePopupScripts: Cannot get segment " + segment_id);
+            return;
+        }
+        // The 'unused' variables popup_id nad nodes are referenced by the source code contained in the initialiser; it is needed by eval()
+        var popup_id = segment_id;        // <<-- DO NOT DELETE; needed by code executed by eval
+        var nodes = larch.__getNodesInActiveSegment(state);        // <<-- DO NOT DELETE; needed by code executed by eval
+        eval(script);
+    }
+};
+
+
+
 //
 //
 // PAGE UPDATES
@@ -299,6 +336,8 @@ larch.__applyChanges = function(changes) {
     //console.log("STARTING UPDATE");
     var removed = changes.removed;
     var modified = changes.modified;
+    var popups = changes.popups;
+    var popup_scripts = changes.popup_scripts;
     var initialise_scripts = changes.initialise_scripts;
     var shutdown_scripts = changes.shutdown_scripts;
 
@@ -346,6 +385,26 @@ larch.__applyChanges = function(changes) {
             }
         }
 
+        // Handle popups
+        var popupNodes = [];
+        for (var i = 0; i < popups.length; i++) {
+            // Get the segment ID and content
+            var segment_id = popups[i][0];
+            var content = popups[i][1];
+
+
+            var newState = larch.__createSegmentContentNodesFromSource(content);
+            newState.start.__lch_initialised = true;
+
+            // Register segment IDs
+            var newNodes = larch.__getNodesInActiveSegment(newState);
+            newNodes.forEach(function(n) {n.__lch_seg_id = segment_id;});
+            popupNodes = popupNodes.concat(newNodes);
+
+            // Put in segment table
+            segment_table[segment_id] = newState;
+        }
+
         // Replace the placeholders with the segments that they reference
         var placeHolders = larch.__getPlaceHolderNodes();
         // Replacing a placeholder may introduce content that contains yet more placeholders....
@@ -368,6 +427,18 @@ larch.__applyChanges = function(changes) {
 
         // Register any unregistered segments that have been introduced by modifications
         larch.__register_segments();
+        if (popupNodes.length > 0) {
+            larch.__register_segments($(popupNodes));
+        }
+
+
+        // Execute popup scripts
+        try {
+            larch.__executePopupScripts(popup_scripts);
+        }
+        finally {
+            //console.log("FINISHED UPDATE");
+        }
 
 
         // Execute initialise scripts
@@ -1277,6 +1348,18 @@ larch.__presentKeySequence = function(keySequence) {
         htmlSrc += '<span class="command_key">' + ch + '</span>';
     }
     return htmlSrc;
+};
+
+
+
+//
+//
+// POPUPS
+//
+//
+
+larch.__notifyPopupClosed = function(popupID) {
+    larch.postDocumentEvent('notify_popup_closed', popupID);
 };
 
 

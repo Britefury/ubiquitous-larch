@@ -199,11 +199,11 @@ class _FragmentView (object):
 
 	@property
 	def perspective(self):
-		return self.fragment_factory.perspective
+		return self.fragment_factory._perspective
 
 	def create_presentation_context(self):
 		f = self.fragment_factory
-		return PresentationContext(self, f.perspective, f.inherited_state)
+		return PresentationContext(self, f._perspective, f._inherited_state)
 
 
 
@@ -313,7 +313,7 @@ class _FragmentView (object):
 
 
 	@staticmethod
-	def __unref_subtree(inc_view, fragment):
+	def _unref_subtree(inc_view, fragment):
 		q = deque()
 
 		q.append(fragment)
@@ -332,7 +332,7 @@ class _FragmentView (object):
 
 
 	@staticmethod
-	def __ref_subtree(inc_view, fragment):
+	def _ref_subtree(inc_view, fragment):
 		q = deque()
 
 		q.append(fragment)
@@ -393,7 +393,7 @@ class _FragmentView (object):
 		while child is not None:
 			next = child.__next_sibling
 
-			_FragmentView.__unref_subtree(self.__inc_view, child)
+			_FragmentView._unref_subtree(self.__inc_view, child)
 			child.__parent = None
 			child.__next_sibling = None
 
@@ -429,7 +429,7 @@ class _FragmentView (object):
 		child.__parent = self
 
 		# Ref the subtree, so that it is kept around
-		_FragmentView.__ref_subtree(self.__inc_view, child)
+		_FragmentView._ref_subtree(self.__inc_view, child)
 
 
 
@@ -563,15 +563,10 @@ class _FragmentView (object):
 
 class FragmentFactory (object):
 	def __init__(self, inc_view, perspective, subject, inherited_state):
-		self.__perspective = perspective
-		self.__subject = subject
-		self.__inherited_state = inherited_state
+		self._perspective = perspective
+		self._subject = subject
+		self._inherited_state = inherited_state
 		self.__hash = hash((id(perspective), hash(inherited_state), hash(id(subject))))
-
-
-	@property
-	def _subject(self):
-		return self.__subject
 
 
 	def __hash__(self):
@@ -579,13 +574,13 @@ class FragmentFactory (object):
 
 	def __eq__(self, other):
 		if isinstance(other, FragmentFactory):
-			return other.__perspective is self.__perspective  and  other.__subject is self.__subject  and  other.__inherited_state is self.__inherited_state
+			return other._perspective is self._perspective  and  other._subject is self._subject  and  other._inherited_state is self._inherited_state
 		else:
 			return NotImplemented
 
 	def __ne__(self, other):
 		if isinstance(other, FragmentFactory):
-			return other.__perspective is not self.__perspective  or  other.__subject is not self.__subject  or  other.__inherited_state is not self.__inherited_state
+			return other._perspective is not self._perspective  or  other._subject is not self._subject  or  other._inherited_state is not self._inherited_state
 		else:
 			return NotImplemented
 
@@ -593,7 +588,7 @@ class FragmentFactory (object):
 	def build_html_content_for_fragment(self, inc_view, fragment_view, model):
 		# Create the view fragment
 		try:
-			fragment_pres = self.__perspective.present_object(model, fragment_view)
+			fragment_pres = self._perspective.present_object(model, fragment_view)
 		except Exception, e:
 			fragment_pres = _exception_during_presentation(present_exception_with_traceback(e, sys.exc_info()[1], sys.exc_info()[2]))
 
@@ -616,7 +611,7 @@ class FragmentFactory (object):
 
 
 	def __pres_to_html_content(self, fragment_pres, fragment_view):
-		return fragment_pres.build(PresentationContext(fragment_view, self.__perspective, self.__inherited_state))
+		return fragment_pres.build(PresentationContext(fragment_view, self._perspective, self._inherited_state))
 
 
 
@@ -804,6 +799,24 @@ class IncrementalView (object):
 			self.fragment_factory = None
 
 
+
+		def initialise(self):
+			# Create and set the root fragment fragment factory
+			fragment_factory = self.__inc_view._get_unique_fragment_factory(self.perspective, self.__inc_view._subject, SimpleAttributeTable.instance)
+			self._set_fragment_factory(fragment_factory)
+
+			# Refresh
+			self._refresh()
+
+			# Get the root fragment
+			return self._get_fragment_view()
+
+
+		def dispose(self):
+			_FragmentView._unref_subtree(self.__inc_view, self.fragment_view)
+			self.__inc_view._node_table.clean()
+
+
 		def _get_fragment_view(self):
 			if self.fragment_factory is None:
 				raise ValueError, 'No root fragment factory set'
@@ -862,15 +875,14 @@ class IncrementalView (object):
 
 
 	def __init__(self, subject, dynamic_page):
-		self.__subject = subject
+		self._subject = subject
 
 
 		self.__root_subtree = self.Subtree(self, subject.focus, subject.perspective)
-		self.__root_fragment_factory = None
+		self.__popup_subtrees = []
 
 
 		self._node_table = IncrementalViewTable()
-		self.__refresh_required = False
 
 		self.__unique_fragment_factories = {}
 
@@ -881,7 +893,12 @@ class IncrementalView (object):
 
 		self.__lock = None
 
-		self.__initialise()
+		# Initialise the root subtree
+		root_frag_view = self.__root_subtree.initialise()
+		# Set the content of the dynamic page to the content of the root fragment
+		self.__dynamic_page.root_segment = root_frag_view._refreshed_segment_reference
+
+		self.__dynamic_page.inc_view = self
 
 
 
@@ -898,7 +915,7 @@ class IncrementalView (object):
 
 	@property
 	def subject(self):
-		return self.__subject
+		return self._subject
 
 	@property
 	def dynamic_page(self):
@@ -924,22 +941,25 @@ class IncrementalView (object):
 
 	#
 	#
-	# Initialisation
+	# Popups
 	#
 	#
 
-	def __initialise(self):
-		# Create and set the root fragment fragment factory
-		fragment_factory = self._get_unique_fragment_factory(self.__root_subtree.perspective, self.__subject, SimpleAttributeTable.instance)
-		self.__root_subtree._set_fragment_factory(fragment_factory)
+	def create_popup_segment(self, model, perspective, initialise_js_expr):
+		def on_close():
+			subtree.dispose()
 
-		# Refresh
-		self.__root_subtree._refresh()
+		subtree = self.Subtree(self, model, perspective)
+		self.__popup_subtrees.append(subtree)
 
-		# Get the root fragment
-		root_frag_view = self.__root_subtree._get_fragment_view()
-		# Set the content of the dynamic page to the content of the root fragment
-		self.__dynamic_page.root_segment = root_frag_view._refreshed_segment_reference
+		# Initialise the subtree
+		root_frag_view = subtree.initialise()
+		pres_ctx = PresentationContext(root_frag_view, perspective, SimpleAttributeTable.instance)
+		subtree_seg_ref = root_frag_view._refreshed_segment_reference
+		content = HtmlContent([subtree_seg_ref])
+		init_js = initialise_js_expr.build_js(pres_ctx)
+		popup_segment = self.__dynamic_page.new_popup_segment(init_js, on_close, content, 'popup')
+		return popup_segment
 
 
 	#
@@ -951,6 +971,11 @@ class IncrementalView (object):
 	def _on_fragment_view_request_refresh(self, fragment_view):
 		if fragment_view is self.__root_subtree.fragment_view:
 			self.__root_subtree._queue_refresh()
+		else:
+			for sub in self.__popup_subtrees:
+				if fragment_view is sub.fragment_view:
+					sub._queue_refresh()
+					break
 
 
 

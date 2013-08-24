@@ -200,6 +200,9 @@ class DynamicPage (object):
 
 		self._table = _SegmentTable(self)
 
+		# Popups
+		self._popup_segment_id_to_close_function = {}
+
 		self.__queued_tasks = priority_list.PriorityList()
 
 		self.__title = 'Ubiquitous Larch'
@@ -250,8 +253,12 @@ class DynamicPage (object):
 		# Threading lock, required for servers such as CherryPy
 		self.__lock = None
 
+		# Incremental view
+		self.__inc_view = None
+
 
 		# Register the broken HTML structure event handler
+		self.add_page_event_handler('notify_popup_closed', self.__notify_popup_closed)
 		self.add_page_event_handler('broken_html_structure', self.__on_broken_html_structure)
 		self.add_page_event_handler('resource_message', self.__on_resource_message)
 		self.add_page_event_handler('close_page', self.__on_close_page)
@@ -284,6 +291,15 @@ class DynamicPage (object):
 	@title.setter
 	def title(self, value):
 		self.__title = value
+
+
+	@property
+	def inc_view(self):
+		return self.__inc_view
+
+	@inc_view.setter
+	def inc_view(self, value):
+		self.__inc_view = value
 
 
 
@@ -413,6 +429,38 @@ class DynamicPage (object):
 		:return: None
 		"""
 		self.__segment_dispose_listeners.setdefault(segment.id, list()).append(listener_fn)
+
+
+
+
+	#
+	#
+	# Popups
+	#
+	#
+
+	def new_popup_segment(self, initialisation_js_src, on_close, content=None, desc=None, fragment=None):
+		"""
+		Create a new popup segment
+
+		:param initialisation_js_src: Javascript source that will show the popup
+		:param on_close: close function, invoked to perform cleanup when the popup is closed on the client, takes the form function()
+		:param content: an HTMLContent instance that contains the content of the segment that is to be created (or None, in which case you must initialise it by setting the segment's content attribute/property
+		:param desc: a description string that is appended to the segment's ID. This is passed to the browser in order to allow you to figure out what e.g. seg27 is representing.
+		:param fragment: the segment's containing fragment
+		:return: the new segment
+		"""
+		seg = self.new_segment(content, desc, fragment)
+		self._table._add_popup_segment(seg, initialisation_js_src)
+		self._popup_segment_id_to_close_function[seg.id] = on_close
+		return seg
+
+
+	def __notify_popup_closed(self, public_api, event_name, content_segment_id):
+		close_fn = self._popup_segment_id_to_close_function.get(content_segment_id)
+		if close_fn is not None:
+			close_fn()
+			del self._popup_segment_id_to_close_function[content_segment_id]
 
 
 
@@ -816,12 +864,13 @@ class _ChangeSet (object):
 
 	Represents a set of DOM changes that must be applied by the client.
 	"""
-	def __init__(self, added_segs, removed_segs, modified_segs):
+	def __init__(self, added_segs, removed_segs, modified_segs, popup_segs_to_js_src):
 		"""Constructor
 
-		added_segs - the list of new segments added
-		removed_segs - the list of segments that were removed
-		modified_segs - the list of modified segments
+		added_segs - the set of new segments added
+		removed_segs - the set of segments that were removed
+		modified_segs - the set of modified segments
+		popup_segs - the set of popup segments
 
 		Processes the changes, eliminating the added segments in the process; new segments should be children of modified segments, into which
 		they are 'inlined'. By the time the inline process has finished, only removal and modification operations remain.
@@ -830,8 +879,12 @@ class _ChangeSet (object):
 
 		self.__added_seg_to_html_bits = {}
 
+		popup_segs = set(popup_segs_to_js_src.keys())
+
 		self.removed = [seg.id   for seg in removed_segs]
 		self.modified = []
+		self.popups = [[seg.id, seg.reference()._complete_html()]   for seg in popup_segs]
+		self.popup_scripts = [[seg.id, init_js_src]   for seg, init_js_src in popup_segs_to_js_src.items()]
 		self.initialise_scripts = []
 		self.shutdown_scripts = []
 
@@ -859,10 +912,14 @@ class _ChangeSet (object):
 				self.initialise_scripts.append((seg.id, initialise_scripts))
 
 
-		if len(self.__added_seg_to_html_bits) > 0  or  len(self.__added_segs) > 0:
+		if len(self.__added_segs) > 0:
 			raise UnusedSegmentsError, set(self.__added_seg_to_html_bits.keys()).union(set(self.__added_segs))
 
-		print 'CHANGES TO SEND: {0} removed, {1} modified, {2} initialise scripts, {3} shutdown scripts'.format(len(self.removed), len(self.modified), len(self.initialise_scripts), len(self.shutdown_scripts))
+		if set(self.__added_seg_to_html_bits.keys()) != popup_segs:
+			raise UnusedSegmentsError, set(self.__added_seg_to_html_bits.keys()).difference(popup_segs)
+
+		print 'CHANGES TO SEND: {0} removed, {1} modified, {2} popups, {3} popup scripts, {4} initialise scripts, {5} shutdown scripts'.format(len(self.removed), len(self.modified), len(popup_segs),
+																		       len(self.popup_scripts), len(self.initialise_scripts), len(self.shutdown_scripts))
 
 
 
@@ -870,7 +927,7 @@ class _ChangeSet (object):
 	def json(self):
 		"""Generates a JSON object describing the changes
 		"""
-		return {'removed': self.removed, 'modified': self.modified, 'initialise_scripts': self.initialise_scripts, 'shutdown_scripts': self.shutdown_scripts}
+		return {'removed': self.removed, 'modified': self.modified, 'popups': self.popups, 'popup_scripts': self.popup_scripts, 'initialise_scripts': self.initialise_scripts, 'shutdown_scripts': self.shutdown_scripts}
 
 
 	def __resolve_reference(self, items, seg):
@@ -900,6 +957,7 @@ class _SegmentTable (object):
 		self.__changes_added = set()
 		self.__changes_removed = set()
 		self.__changes_modified = set()
+		self.__changes_popups = {}		# Dictionary used as a sort of set: maps popup segment to the initialisation JS source
 
 
 
@@ -921,10 +979,11 @@ class _SegmentTable (object):
 		self.__changes_added = set()
 		self.__changes_removed = set()
 		self.__changes_modified = set()
+		self.__changes_popups = {}
 
 
 	def _get_recent_changes(self):
-		return _ChangeSet(copy(self.__changes_added), copy(self.__changes_removed), copy(self.__changes_modified))
+		return _ChangeSet(copy(self.__changes_added), copy(self.__changes_removed), copy(self.__changes_modified), copy(self.__changes_popups))
 
 
 	def _get_all_initialisers(self):
@@ -967,6 +1026,10 @@ class _SegmentTable (object):
 			self.__changes_modified.add(segment)
 
 		self.__page._notify_page_modified()
+
+
+	def _add_popup_segment(self, segment, initialisation_js_src):
+		self.__changes_popups[segment] = initialisation_js_src
 
 
 
