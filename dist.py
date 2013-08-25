@@ -39,6 +39,10 @@ dirs_for_copy = [
 	( 'testimages', '*.*' ),
 	]
 
+dirs_excluded_from_copy = [
+	os.path.join('static', 'lightbox'),
+]
+
 dirs_for_compile = ['larch']
 
 dirs_for_minify = [
@@ -93,6 +97,8 @@ def copy_dir(z, src, dst, patterns, exclusions):
 					d = os.path.join( dst, filename )
 
 					copy_file( z, s, d )
+	else:
+		print 'EXCLUDING directory {0} from copying'.format(src)
 
 def compile_file(z, src, dst):
 	py_compile.compile( src, tmp_pyc_file )
@@ -148,7 +154,7 @@ copy_root_files( bin_zip, package_name )
 
 for d in dirs_for_copy:
 	print 'Adding files in {0}'.format( d[0] )
-	copy_dir( bin_zip, d[0], os.path.join( package_name, d[0] ), d[1:], dirs_for_minify )
+	copy_dir( bin_zip, d[0], os.path.join( package_name, d[0] ), d[1:], dirs_for_minify + dirs_excluded_from_copy )
 
 for d in dirs_for_compile:
 	print 'Compiling files in {0}'.format( d )
