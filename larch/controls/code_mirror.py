@@ -108,7 +108,7 @@ class code_mirror (CompositePres):
 			p = p.use_css('/static/codemirror-3.14/addon/{0}'.format(addon))
 		if _code_mirror_theme is not None:
 			p = p.use_css('/static/codemirror-3.14/theme/{0}.css'.format(_code_mirror_theme))
-		p = p.use_js('/static/larch_ui.js').use_css('/static/larch_ui.css')
+		p = p.use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
 		if self.__on_edit is not None:
 			p = p.with_event_handler('code_mirror_edit', lambda event_name, ev_data: self.__on_edit(ev_data))
 		if self.__on_focus is not None:

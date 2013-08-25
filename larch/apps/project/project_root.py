@@ -224,7 +224,7 @@ class ProjectRoot (ProjectContainer):
 			'<p class="project_root_package_name">Root package name: ', entry, '<br><span class="notes_text">(this is the base name from which the contents of this project will be importable)</span></p>',
 			super_pres,
 		]
-		return Html(*contents).use_css(url="/static/project.css")
+		return Html(*contents).use_css(url="/static/larch/project.css")
 
 
 

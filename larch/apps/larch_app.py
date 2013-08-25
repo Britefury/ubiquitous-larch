@@ -46,7 +46,7 @@ def save_document(path, content):
 
 
 
-larch_app_css = '/static/larch_app.css'
+larch_app_css = '/static/larch/larch_app.css'
 
 
 
@@ -135,7 +135,7 @@ class PageFrame (CompositePres):
 			'<div class="larch_frame_page_content">',
 			self.__page,
 			'</div>'
-		).use_css(url='/static/larch_app_frame.css')
+		).use_css(url='/static/larch/larch_app_frame.css')
 
 
 

@@ -445,5 +445,5 @@ class Notebook (object):
 		p = Html(*contents)
 		p = p.with_key_handler([KeyAction(KeyAction.KEY_DOWN, 13, ctrl=True)], on_execute_key)
 		p = p.with_key_handler([KeyAction(KeyAction.KEY_DOWN, ord('S'), ctrl=True, prevent_default=True)], on_save_key)
-		return p.use_css('/static/notebook.css')
+		return p.use_css('/static/larch/notebook.css')
 

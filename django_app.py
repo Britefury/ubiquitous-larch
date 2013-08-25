@@ -122,8 +122,8 @@ __login_template = Template("""
 <head>
 <title>Login</title>
 <link rel="stylesheet" type="text/css" href="/static/jquery/css/ui-lightness/jquery-ui-1.10.2.custom.min.css"/>
-<link rel="stylesheet" type="text/css" href="/static/larch.css"/>
-<link rel="stylesheet" type="text/css" href="/static/larch_login.css"/>
+<link rel="stylesheet" type="text/css" href="/static/larch/larch.css"/>
+<link rel="stylesheet" type="text/css" href="/static/larch/larch_login.css"/>
 <script type="text/javascript" src="/static/jquery/js/jquery-1.9.1.js"></script>
 <script type="text/javascript" src="/static/jquery/js/jquery-ui-1.10.2.custom.min.js"></script>
 </head>

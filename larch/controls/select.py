@@ -10,5 +10,5 @@ def select(option_value_content_pairs, value, on_choose=None):
 	p = Html(*(['<select>'] + options + ['</select>'])).js_function_call('larch.controls.initSelect')
 	if on_choose is not None:
 		p = p.with_event_handler('select_choose', lambda event_name, ev_data: on_choose(ev_data))
-	p = p.use_js('/static/larch_ui.js').use_css('/static/larch_ui.css')
+	p = p.use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
 	return p

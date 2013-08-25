@@ -35,7 +35,7 @@ class spinner (CompositePres):
 		spin = spin.js_function_call('larch.controls.initSpinner', self.__channel)
 		if self.__action_fn is not None:
 			spin = spin.with_event_handler("spinner_change", self.__on_spinner_change)
-		spin = spin.use_js('/static/larch_ui.js').use_css('/static/larch_ui.css')
+		spin = spin.use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
 		return spin
 
 

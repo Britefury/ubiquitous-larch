@@ -15,7 +15,7 @@ def form(contents, on_submit=None):
 	def _submit(event_name, event_data):
 		on_submit(event_data)
 	p = Html('<form enctype="multipart/form-data">', contents, '</form>').js_function_call('larch.controls.initForm').with_event_handler('form_submit', _submit)
-	p = p.use_js('/static/jquery/js/jquery.form.min.js').use_js('/static/larch_ui.js').use_css('/static/larch_ui.css')
+	p = p.use_js('/static/jquery/js/jquery.form.min.js').use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
 	return p
 
 

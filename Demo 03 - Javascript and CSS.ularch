@@ -47,7 +47,7 @@ Ntp21
 Rp22
 (dp23
 g19
-V# Get our Html presentation type\u000afrom larch.pres.html import Html\u000a\u000a# Our HTML content\u000ax = Html('<div class="python_console_header">Lets display some text within a border that has the same appearance as the Python console header, the style of which we obtain from the console CSS style sheet.</div>')\u000a# use_css operates as a chain method\u000ax = x.use_css(url='/static/console.css')			# The url named parameter is not strictly needed; x.use_css('/console.css') would work just as well\u000a\u000a# Display it\u000ax
+V# Get our Html presentation type\u000afrom larch.pres.html import Html\u000a\u000a# Our HTML content\u000ax = Html('<div class="python_console_header">Lets display some text within a border that has the same appearance as the Python console header, the style of which we obtain from the console CSS style sheet.</div>')\u000a# use_css operates as a chain method\u000ax = x.use_css(url='/static/larch/console.css')			# The url named parameter is not strictly needed; x.use_css('/static/larch/console.css') would work just as well\u000a\u000a# Display it\u000ax
 p24
 sS'editable'
 p25

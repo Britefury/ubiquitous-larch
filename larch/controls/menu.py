@@ -50,4 +50,4 @@ def menu(items, drop_down=False):
 	options = {}
 	if drop_down:
 		options['position'] = {'my': 'left top', 'at': 'left bottom'}
-	return Html(*['<ul class="popup_box">'] + list(items) + ['</ul>']).js_function_call('larch.controls.initMenu', options).use_js('/static/larch_ui.js').use_css('/static/larch_ui.css')
+	return Html(*['<ul class="popup_box">'] + list(items) + ['</ul>']).js_function_call('larch.controls.initMenu', options).use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')

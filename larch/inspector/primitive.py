@@ -7,7 +7,7 @@ from larch.pres.html import Html
 
 
 
-GlobalCSS('/static/python.css')
+GlobalCSS('/static/larch/python.css')
 
 
 def _punct_html(x):

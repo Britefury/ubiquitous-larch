@@ -86,7 +86,7 @@ class Console (object):
 		for block in self.__blocks + [self.__current_block]:
 			contents.extend(['<div>', block, '</div>'])
 
-		return Html(*contents).use_css('/static/console.css')
+		return Html(*contents).use_css('/static/larch/console.css')
 
 
 	def __subject__(self, enclosing_subject, location_trail, perspective):

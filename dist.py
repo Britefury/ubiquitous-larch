@@ -32,14 +32,14 @@ dirsForBin = [
 	( 'testimages', '*.*' ),
 	]
 
-dirsForBinCompile = [ 'larch', 'django_project' ]
+dirsForBinCompile = ['larch']
 
 
 
 rootFiles = [
 	'bottle.py',
 	'server_cherrypy.py',
-	'server_flask',
+	'server_flask.py',
 	'start_server.py',
 	'manage.py',
 	'LICENSE-*.txt',
@@ -49,6 +49,10 @@ rootFiles = [
 
 rootCompileFiles = [
 	'bottle.py',
+	'django_app.py',
+	'django_settings.py',
+	'django_urls.py',
+	'django_wsgi.py',
 ]
 
 

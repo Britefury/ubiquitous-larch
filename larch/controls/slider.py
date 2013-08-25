@@ -70,7 +70,7 @@ class slider(CompositePres):
 		div = div.with_event_handler("slider_change", self.__on_change)
 		if self.__slide_fn is not None:
 			div = div.with_event_handler("slider_slide", self.__on_slide)
-		div = div.use_js('/static/larch_ui.js').use_css('/static/larch_ui.css')
+		div = div.use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
 		return div
 
 
@@ -140,7 +140,7 @@ class range_slider (CompositePres):
 		div = div.with_event_handler("slider_change", self.__on_change)
 		if self.__slide_fn is not None:
 			div = div.with_event_handler("slider_slide", self.__on_slide)
-		div = div.use_js('/static/larch_ui.js').use_css('/static/larch_ui.css')
+		div = div.use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
 		return div
 
 

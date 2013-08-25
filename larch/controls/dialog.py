@@ -10,7 +10,7 @@ _js_createDialog = js.JSName('larch.controls.createDialog')
 
 class dialog (object):
 	def __init__(self, contents, **options):
-		self.__contents = pres.Pres.coerce(contents).use_js('/static/larch_ui.js').use_css('/static/larch_ui.css')
+		self.__contents = pres.Pres.coerce(contents).use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
 		self.__options = options
 
 

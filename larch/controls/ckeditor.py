@@ -40,7 +40,7 @@ class ckeditor (CompositePres):
 	def pres(self, pres_ctx):
 		p = Html(u'<div contenteditable="true">{text}</div>'.format(text=self.__text)).js_function_call('larch.controls.initCKEditor', self.__config, self.__immediate_events, self.__channel)
 		p = p.use_js('/static/ckeditor/ckeditor.js')
-		p = p.use_js('/static/larch_ui.js').use_css('/static/larch_ui.css')
+		p = p.use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
 		if self.__on_edit is not None:
 			p = p.with_event_handler('ckeditor_edit', lambda event_name, ev_data: self.__on_edit(ev_data))
 		if self.__on_focus is not None:

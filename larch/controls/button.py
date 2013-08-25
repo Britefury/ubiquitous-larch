@@ -36,5 +36,5 @@ def button(text=None, action_fn=None, primary_icon=None, secondary_icon=None, di
 	else:
 		options['text'] = False
 		p = Html('<button onclick="{0}"></button>').js_function_call('larch.controls.initButton', options)
-	p = p.with_event_handler('clicked', on_click).use_js('/static/larch_ui.js').use_css('/static/larch_ui.css')
+	p = p.with_event_handler('clicked', on_click).use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
 	return p
