@@ -1,4 +1,4 @@
-# Django settings for django_project project.
+# Django settings for The Ubiquitous Larch.
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -12,7 +12,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': './db',                      # Or path to database file if using sqlite3.
+        'NAME': 'db',                      # Or path to database file if using sqlite3.
         # The following settings are not used with sqlite3:
         'USER': '',
         'PASSWORD': '',
@@ -72,7 +72,7 @@ STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    './static/',		# Relative path *SEEMS* to work here
+    'static/',		# Relative path *SEEMS* to work here
 )
 
 # List of finder classes that know how to find static files in
@@ -103,10 +103,10 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'django_project.urls'
+ROOT_URLCONF = 'django_urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'django_project.wsgi.application'
+WSGI_APPLICATION = 'django_wsgi.application'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
