@@ -40,8 +40,9 @@ class CommandSet (object):
 
 
 
-	def invoke_by_command_id(self, page_public_api, event_name, command_id):
-		self._id_to_command[command_id].invoke_command(page_public_api)
+	def invoke_by_command_id(self, event):
+		command_id = event.data
+		self._id_to_command[command_id].invoke_command(event.page)
 
 
 	def __iter__(self):

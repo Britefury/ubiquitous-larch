@@ -10,6 +10,7 @@ from copy import copy
 
 from larch.util import priority_list
 from larch.core.dynamicpage.segment import DynamicSegment, SegmentRef
+from larch.core.dynamicpage.event import Event
 from larch.core.dynamicpage import messages, dependencies, global_dependencies
 from larch.inspector import present_exception
 
@@ -337,7 +338,7 @@ class DynamicPage (object):
 	#
 	#
 
-	def __on_broken_html_structure(self, public_api, event_name, broken_segment_ids):
+	def __on_broken_html_structure(self, event):
 		if self.__FIX_HTML_STRUCTURE_PARAM_NAME not in self.__get_params:
 			get_params = {}
 			get_params.update(self.__get_params)
@@ -356,7 +357,7 @@ class DynamicPage (object):
 	#
 	#
 
-	def __on_close_page(self, public_api, event_name, event_data):
+	def __on_close_page(self, event):
 		print 'CLOSING PAGE {0}'.format(self._view_id)
 		self.__service._close_page(self)
 
@@ -466,7 +467,8 @@ class DynamicPage (object):
 		return seg
 
 
-	def __notify_popup_closed(self, public_api, event_name, content_segment_id):
+	def __notify_popup_closed(self, event):
+		content_segment_id = event.data
 		close_fn = self._popup_segment_id_to_close_function.get(content_segment_id)
 		if close_fn is not None:
 			close_fn()
@@ -521,9 +523,9 @@ class DynamicPage (object):
 		self.__disposed_rsc_instance_ids.add(rsc_instance.id)
 
 
-	def __on_resource_message(self, public_api, event_name, event_data):
-		resource_id = event_data['resource_id']
-		message = event_data['message']
+	def __on_resource_message(self, event):
+		resource_id = event.data['resource_id']
+		message = event.data['message']
 		rsc_instance = self.__rsc_id_to_rsc_instance.get(resource_id)
 		rsc_instance.on_message(message)
 
@@ -694,7 +696,8 @@ class DynamicPage (object):
 			for handler_ev_name, handler_fn in self.__page_event_handlers:
 				if handler_ev_name == event_name:
 					try:
-						if handler_fn(self.__public_api, event_name, ev_data):
+						event = Event(self, None, event_name, ev_data)
+						if handler_fn(event):
 							return True
 					except Exception, e:
 						return EventHandleError(event_name, None, None, None, None, e, sys.exc_info()[1], sys.exc_info()[2])
@@ -714,7 +717,8 @@ class DynamicPage (object):
 
 			while segment is not None:
 				try:
-					if segment._handle_event(event_name, ev_data):
+					event = Event(self, event_segment, event_name, ev_data)
+					if segment._handle_event(event):
 						return True
 				except Exception, e:
 					return EventHandleError(event_name, segment_id, type(event_segment.fragment.model).__name__, segment.id, type(segment.fragment.model).__name__, e, sys.exc_info()[1], sys.exc_info()[2])

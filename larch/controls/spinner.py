@@ -22,8 +22,8 @@ class spinner (CompositePres):
 
 
 
-	def __on_spinner_change(self, event_name, ev_data):
-		self.__action_fn(ev_data)
+	def __on_spinner_change(self, event):
+		self.__action_fn(event.data)
 
 
 	def set_value(self, value):

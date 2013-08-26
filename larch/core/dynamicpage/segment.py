@@ -126,10 +126,10 @@ class DynamicSegment (object):
 		self.__event_handlers.append(handler)
 
 
-	def _handle_event(self, event_name, ev_data):
+	def _handle_event(self, event):
 		if self.__event_handlers is not None:
 			for handler in self.__event_handlers:
-				if handler(event_name, ev_data):
+				if handler(event):
 					return True
 		return False
 

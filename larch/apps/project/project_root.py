@@ -228,7 +228,7 @@ class ProjectRoot (ProjectContainer):
 
 		python_package_name = self.python_package_name
 		python_package_name = python_package_name   if python_package_name is not None  else ''
-		entry = text_entry.text_entry(python_package_name, _on_set_package_name)
+		entry = text_entry.text_entry(python_package_name, on_edit=_on_set_package_name)
 
 		unload_button = button.button('Unload', _on_unload)
 

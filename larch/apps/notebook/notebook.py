@@ -433,11 +433,11 @@ class Notebook (object):
 
 
 	def __present__(self, fragment):
-		def on_execute_key(key):
+		def on_execute_key(event, key):
 			self.execute()
 			return True
 
-		def on_save_key(key):
+		def on_save_key(event, key):
 			self._save_containing_document_and_display_notification(fragment)
 
 

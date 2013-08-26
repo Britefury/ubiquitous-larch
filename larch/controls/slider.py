@@ -49,12 +49,12 @@ class slider(CompositePres):
 		self.__options = options
 
 
-	def __on_change(self, event_name, ev_data):
+	def __on_change(self, event):
 		if self.__release_fn is not None:
-			self.__release_fn(ev_data)
+			self.__release_fn(event.data)
 
-	def __on_slide(self, event_name, ev_data):
-		self.__slide_fn(ev_data)
+	def __on_slide(self, event):
+		self.__slide_fn(event.data)
 
 
 	def set_value(self, value):
@@ -119,12 +119,12 @@ class range_slider (CompositePres):
 		self.__options = options
 
 
-	def __on_change(self, event_name, ev_data):
+	def __on_change(self, event):
 		if self.__release_fn is not None:
-			self.__release_fn(ev_data)
+			self.__release_fn(event.data)
 
-	def __on_slide(self, event_name, ev_data):
-		self.__slide_fn(ev_data)
+	def __on_slide(self, event):
+		self.__slide_fn(event.data)
 
 
 	def set_values(self, values):

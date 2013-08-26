@@ -12,8 +12,8 @@ def form(contents, on_submit=None):
 	:param on_submit: A callback invoked when the form is submitted. Callback signature: function(form_data)
 	:return: the form control
 	"""
-	def _submit(event_name, event_data):
-		on_submit(event_data)
+	def _submit(event):
+		on_submit(event.data)
 	p = Html('<form enctype="multipart/form-data">', contents, '</form>').js_function_call('larch.controls.initForm').with_event_handler('form_submit', _submit)
 	p = p.use_js('/static/jquery/js/jquery.form.min.js').use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
 	return p

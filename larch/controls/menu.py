@@ -23,7 +23,7 @@ def item(item_content, on_select=None):
 	"""
 	p = Html('<li><a>', item_content, '</a></li>')
 	if on_select is not None:
-		p = p.with_event_handler('menu_select', lambda event_name, ev_data: on_select())
+		p = p.with_event_handler('menu_select', lambda event: on_select())
 	return p
 
 

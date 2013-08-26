@@ -40,7 +40,7 @@ class text_entry (CompositePres):
 			sz += ' style="width: {0};"'.format(self.__width)
 		p = Html('<input type="text" value="{0}"{1}></input>'.format(self.__text, sz)).js_function_call('larch.controls.initTextEntry', self.__immediate_events, self.__channel)
 		if self.__on_edit is not None:
-			p = p.with_event_handler('text_entry_edit', lambda event_name, ev_data: self.__on_edit(ev_data))
+			p = p.with_event_handler('text_entry_edit', lambda event: self.__on_edit(event.data))
 		p = p.use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
 		return p
 

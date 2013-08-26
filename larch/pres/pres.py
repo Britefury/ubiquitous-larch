@@ -26,9 +26,9 @@ class Pres (object):
 			return EventSource(event_filter_or_handler, self)
 		else:
 			if isinstance(event_filter_or_handler, str)  or  isinstance(event_filter_or_handler, unicode):
-				def _handle(event_name, ev_data):
-					if event_name == event_filter_or_handler:
-						return event_handler(event_name, ev_data)
+				def _handle(event):
+					if event.name == event_filter_or_handler:
+						return event_handler(event)
 					else:
 						return False
 				return EventSource(_handle, self)
@@ -254,22 +254,22 @@ class KeyEventSource (EventSource):
 		return KeyEventSource(self.__keys_and_handlers + keys_and_handlers, self._child)
 
 
-	def __handle_key_event(self, event_name, ev_data):
-		if event_name == 'keydown':
-			ev_key = KeyAction.__from_keydown_json__(ev_data)
+	def __handle_key_event(self, event):
+		if event.name == 'keydown':
+			ev_key = KeyAction.__from_keydown_json__(event.data)
 			keys_and_handlers = self.__keydown
-		elif event_name == 'keyup':
-			ev_key = KeyAction.__from_keyup_json__(ev_data)
+		elif event.name == 'keyup':
+			ev_key = KeyAction.__from_keyup_json__(event.data)
 			keys_and_handlers = self.__keyup
-		elif event_name == 'keypress':
-			ev_key = KeyAction.__from_keypress_json__(ev_data)
+		elif event.name == 'keypress':
+			ev_key = KeyAction.__from_keypress_json__(event.data)
 			keys_and_handlers = self.__keypress
 		else:
 			return False
 
 		for key, handler in keys_and_handlers:
 			if ev_key.matches(key):
-				return handler(ev_key)
+				return handler(event, ev_key)
 
 		return False
 

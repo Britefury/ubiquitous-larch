@@ -31,7 +31,7 @@ def dropdown_expander(header, content, state=None, on_expand=None):
 		raise TypeError, 'state must be None, a bool or an AbstractLive, not an {0}'.format(type(state).__name__)
 
 
-	def on_clicked(event_name, ev_data):
+	def on_clicked(event):
 		s = state.static_value
 		new_state = not s
 		if expand_fn is not None:

@@ -44,7 +44,7 @@ class CurrentBlock (object):
 		def on_execute():
 			self.__console._execute_current_block(self)
 
-		def on_execute_key(key):
+		def on_execute_key(event, key):
 			on_execute()
 			return True
 

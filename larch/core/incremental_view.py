@@ -914,6 +914,10 @@ class IncrementalView (object):
 		return self.__root_subtree.model
 
 	@property
+	def root_fragment_view(self):
+		return self.__root_subtree.fragment_view
+
+	@property
 	def subject(self):
 		return self._subject
 

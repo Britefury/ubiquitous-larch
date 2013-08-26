@@ -42,11 +42,11 @@ class ckeditor (CompositePres):
 		p = p.use_js('/static/ckeditor/ckeditor.js')
 		p = p.use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
 		if self.__on_edit is not None:
-			p = p.with_event_handler('ckeditor_edit', lambda event_name, ev_data: self.__on_edit(ev_data))
+			p = p.with_event_handler('ckeditor_edit', lambda event: self.__on_edit(event.data))
 		if self.__on_focus is not None:
-			p = p.with_event_handler('ckeditor_focus', lambda event_name, ev_data: self.__on_focus())
+			p = p.with_event_handler('ckeditor_focus', lambda event: self.__on_focus())
 		if self.__on_blur is not None:
-			p = p.with_event_handler('ckeditor_blur', lambda event_name, ev_data: self.__on_blur())
+			p = p.with_event_handler('ckeditor_blur', lambda event: self.__on_blur())
 		return p
 
 
