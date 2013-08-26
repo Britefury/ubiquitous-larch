@@ -101,6 +101,12 @@ class EventHandleError (object):
 
 
 
+def _rsc_retrieve_error_message(rsc_seg_id, rsc_model_type_name, exception, exc_value, traceback):
+	err_html = present_exception.exception_to_html_src(exception, exc_value, traceback)
+	return messages.error_retrieving_resource(err_html, rsc_seg_id, rsc_model_type_name)
+
+
+
 class UnusedSegmentsError (Exception):
 	def __init__(self, unused_segment_ids):
 		super(UnusedSegmentsError, self).__init__('Segments created but not used: {0}'.format(unused_segment_ids))
@@ -257,6 +263,7 @@ class DynamicPage (object):
 		self.__resource_to_resource_instance = {}
 		self.__resource_id_and_message_pairs = []
 		self.__disposed_rsc_instance_ids = set()
+		self.__resource_error_messages = []
 
 		# Segment dispose listeners
 		self.__segment_dispose_listeners = {}
@@ -565,8 +572,17 @@ class DynamicPage (object):
 		except KeyError:
 			return None
 		else:
-			return rsc.get_data(), rsc.get_mime_type()
+			try:
+				data = rsc.get_data()
+				mime_type = rsc.get_mime_type()
+			except Exception, e:
+				fragment = rsc.pres_ctx.fragment_view
+				msg = _rsc_retrieve_error_message(fragment.segment_id, type(fragment.model).__name__, e, sys.exc_info()[1], sys.exc_info()[2])
+				self.__resource_error_messages.append(msg)
+				data = ''
+				mime_type = ''
 
+			return data, mime_type
 
 
 
@@ -673,6 +689,13 @@ class DynamicPage (object):
 			structure_validity_message = self.__structure_validity_message()
 			if structure_validity_message is not None:
 				msg_list.append(structure_validity_message)
+
+
+			# Resource errors
+			if len(self.__resource_error_messages) > 0:
+				print 'Page.sync: Adding rsc error messages'
+				msg_list.extend(self.__resource_error_messages)
+				self.__resource_error_messages = []
 
 
 		return msg_list
@@ -1087,6 +1110,10 @@ class DynamicPageResourceInstance (object):
 	@property
 	def page(self):
 		return self.__page
+
+	@property
+	def pres_ctx(self):
+		return self.__pres_ctx
 
 	@property
 	def id(self):

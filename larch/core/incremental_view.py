@@ -105,6 +105,10 @@ class _FragmentView (object):
 		self.refresh()
 		return self.__segment.reference()
 
+	@property
+	def segment_id(self):
+		return self.__segment.id
+
 
 
 	def disable_inspector(self):

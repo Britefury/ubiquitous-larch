@@ -717,6 +717,27 @@ larch.__serverMessageHandlers = {
         });
     },
 
+    error_retrieving_resource: function(message) {
+         larch.showAlert(function() {
+           var header;
+            var rscSegID = message.rsc_seg_id;
+            var rscSegment = $('<span class="event_error_segment">segment</span>');
+            rscSegment.mouseover(function() {larch.__highlightSegment(rscSegID)}).mouseout(function() {larch.__unhighlightSegment(rscSegID)});
+
+            var sentFrom = $('<span>associated with a </span>');
+            sentFrom.append(rscSegment);
+            sentFrom.append(' belonging to an instance of <span class="event_error_model_type">' + message.rsc_model_type_name + '</span>, ');
+
+            header = $('<div class="event_error_header">Error retrieving resource </div>');
+            header.append(sentFrom);
+
+            var text = $('<div class="exception_in_alert"></div>');
+            text.append(header);
+            text.append(message.err_html);
+            return text;
+        });
+    },
+
     error_during_update: function(message) {
         larch.showAlert(function() {
             var headerHtml = '<div class="event_error_header">Error while updating after handling events</div>';

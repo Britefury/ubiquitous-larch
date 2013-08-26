@@ -39,6 +39,10 @@ def error_handling_event_message(err_html, event_name, event_seg_id, event_model
 		       handler_seg_id=handler_seg_id, handler_model_type_name=handler_model_type_name)
 
 
+def error_retrieving_resource(err_html, rsc_seg_id, rsc_model_type_name):
+	return message('error_retrieving_resource', err_html=err_html, rsc_seg_id=rsc_seg_id, rsc_model_type_name=rsc_model_type_name)
+
+
 def error_during_update_message(err_html):
 	return message('error_during_update', err_html=err_html)
 
