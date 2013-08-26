@@ -212,7 +212,7 @@ class ProjectRoot (ProjectContainer):
 	def __present__(self, fragment):
 		super_pres = super(ProjectRoot, self).__present__(fragment)
 
-		def _on_set_package_name(name):
+		def _on_set_package_name(event, name):
 			self.__set_python_package_name_no_incr_change(name)
 
 		def _on_unload(event):

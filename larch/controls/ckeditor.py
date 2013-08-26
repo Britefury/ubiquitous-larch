@@ -100,12 +100,12 @@ class live_ckeditor (CompositePres):
 			refreshing[0] = False
 
 		# WORKAROUND WHILE ckEditor kills caret position in response to OTHER ckEditor instances being modified
-		def __on_blur():
+		def __on_blur(event):
 			refreshing[0] = True
 			self.__live.value = val[0]
 			refreshing[0] = False
 			if self.__on_blur is not None:
-				self.__on_blur()
+				self.__on_blur(event)
 
 
 		self.__live.add_listener(on_change)
