@@ -300,15 +300,15 @@ class Notebook (object):
 
 
 
-	def _save_containing_document(self, fragment):
+	def _save_containing_document_and_display_notification(self, fragment):
 		subject = fragment.subject
 		try:
-			save = subject.document.save
+			save_and_display_notification = subject.document.save_and_display_notification
 		except AttributeError:
 			print 'WARNING: Could not save; method unavailable'
 			raise
 		else:
-			return save()
+			save_and_display_notification(fragment)
 
 
 	def __focused_block(self, page):
@@ -345,8 +345,7 @@ class Notebook (object):
 		#
 
 		def on_save():
-			save_name = self._save_containing_document(fragment)
-			fragment.page.page_js_function_call('noty', {'text': 'Saved <em>{0}</em>'.format(save_name), 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
+			self._save_containing_document_and_display_notification(fragment)
 
 
 		save_item = menu.item('Save (Ctrl+S)', lambda: on_save())
@@ -427,8 +426,7 @@ class Notebook (object):
 			return True
 
 		def on_save_key(key):
-			save_name = self._save_containing_document(fragment)
-			fragment.page.page_js_function_call('noty', {'text': 'Saved <span class="emph">{0}</span>'.format(save_name), 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
+			self._save_containing_document_and_display_notification(fragment)
 
 
 

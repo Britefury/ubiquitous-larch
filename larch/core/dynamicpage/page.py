@@ -117,7 +117,7 @@ class DynamicPagePublicAPI (object):
 	Rather than hand over an instance of DynamicPage, we pass one of these, which wraps it and provides the required API.
 	"""
 	def __init__(self, page):
-		self.__page = page
+		self._page = page
 
 
 	@property
@@ -125,7 +125,17 @@ class DynamicPagePublicAPI (object):
 		"""
 		:return: The user that owns this page, None if guest
 		"""
-		return self.__page.user
+		return self._page.user
+
+
+	@property
+	def subject(self):
+		"""
+		:return: The subject
+		"""
+		inc_view = self._page.inc_view
+		return inc_view.subject   if inc_view is not None   else None
+
 
 
 	def page_js_eval(self, expr):
@@ -143,9 +153,9 @@ class DynamicPagePublicAPI (object):
 		# TODO: passing None as the presentation context will cause Resource instances to break
 		expr_src = expr.build_js(None)
 
-		self.__page.queue_js_to_execute(expr_src)
+		self._page.queue_js_to_execute(expr_src)
 		# Notifying the page of a modification causes it to schedule a refresh, which will cause the script to be executed
-		self.__page._notify_page_modified()
+		self._page._notify_page_modified()
 
 
 	def page_js_function_call(self, js_fn_name, *args):
@@ -164,7 +174,7 @@ class DynamicPagePublicAPI (object):
 		"""
 		The focused segment
 		"""
-		return self.__page.focused_segment
+		return self._page.focused_segment
 
 
 

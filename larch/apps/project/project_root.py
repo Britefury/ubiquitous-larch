@@ -6,7 +6,7 @@ import sys
 from copy import deepcopy
 
 from larch.pres.html import Html
-from larch.controls import text_entry
+from larch.controls import text_entry, button
 
 from larch.apps.project.project_container import ProjectContainer
 
@@ -215,13 +215,27 @@ class ProjectRoot (ProjectContainer):
 		def _on_set_package_name(name):
 			self.__set_python_package_name_no_incr_change(name)
 
+		def _on_unload():
+			subject = fragment.subject
+			try:
+				unload_modules_and_display_notification = subject.document.unload_modules_and_display_notification
+			except AttributeError:
+				print 'WARNING: Could not unload_all_imported_modules; method unavailable'
+				raise
+			else:
+				unload_modules_and_display_notification(fragment)
+
+
 		python_package_name = self.python_package_name
 		python_package_name = python_package_name   if python_package_name is not None  else ''
 		entry = text_entry.text_entry(python_package_name, _on_set_package_name)
 
+		unload_button = button.button('Unload', _on_unload)
+
 		contents = [
 			'<div class="larch_app_title_bar"><h1 class="page_title">Project</h1></div>',
 			'<p class="project_root_package_name">Root package name: ', entry, '<br><span class="notes_text">(this is the base name from which the contents of this project will be importable)</span></p>',
+			'<p class="project_reset">Unload modules imported from project (Esc - U): ', unload_button, '</p>',
 			super_pres,
 		]
 		return Html(*contents).use_css(url="/static/larch/project.css")

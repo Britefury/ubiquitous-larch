@@ -22,6 +22,9 @@ class Popup (object):
 		elif isinstance(show_on_target, page.DynamicPage):
 			self.__inc_view = show_on_target.inc_view
 			self.__perspective = DefaultPerspective.instance
+		elif isinstance(show_on_target, page.DynamicPagePublicAPI):
+			self.__inc_view = show_on_target._page.inc_view
+			self.__perspective = DefaultPerspective.instance
 		elif isinstance(show_on_target, incremental_view._FragmentView):
 			self.__inc_view = show_on_target.view
 			self.__perspective = show_on_target.perspective

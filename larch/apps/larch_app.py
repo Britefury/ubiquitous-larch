@@ -16,7 +16,7 @@ from larch.core.projection_service import ProjectionService
 from larch.incremental import IncrementalValueMonitor
 from larch import command
 from larch.apps.console import console
-from larch.controls import form, button, menu, text_entry
+from larch.controls import form, button, menu, text_entry, noty
 
 from larch.pres.pres import CompositePres
 from larch.pres.html import Html
@@ -188,8 +188,8 @@ class Document (object):
 		return mod
 
 	def unload_imported_modules(self, module_fullnames):
-		modules = set( module_fullnames )
-		modules_to_remove = set( self.__document_modules.keys() ) & modules
+		modules = set(module_fullnames)
+		modules_to_remove = set(self.__document_modules.keys()) & modules
 		for module_fullname in modules_to_remove:
 			del sys.modules[module_fullname]
 			del self.__document_modules[module_fullname]
@@ -197,7 +197,7 @@ class Document (object):
 		return modules_to_remove
 
 	def unload_all_imported_modules(self):
-		modules_to_remove = set( self.__document_modules.keys() )
+		modules_to_remove = set(self.__document_modules.keys())
 		for module_fullname in modules_to_remove:
 			del sys.modules[module_fullname]
 		self.__document_modules = {}
@@ -243,20 +243,13 @@ class Document (object):
 		return finder
 
 
-	def __resolve_self__(self, subject):
-		subject.add_step(focus=self.content)
-		return self.content
-
-
-	def __on_save_command(self, page):
-		name = self.save()
-		page.page_js_function_call('noty', {'text': 'Saved <em>{0}</em>'.format(name), 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
-
-
-	def __commands__(self):
-		return [
-			command.Command([command.Key(ord('S'))], 'Save', self.__on_save_command),
-		]
+	def unload_modules_and_display_notification(self, display_on):
+		modules_removed = self.unload_all_imported_modules()
+		if len(modules_removed) > 0:
+			mods = ', '.join(['<em>{0}</em>'.format(name)   for name in modules_removed])
+			noty.noty(Html('Unloaded the following modules: {0}'.format(mods)), type='success', timeout=2000, layout='bottomCenter').show_on(display_on)
+		else:
+			noty.noty(Html('No modules to unload'), type='success', timeout=2000, layout='bottomCenter').show_on(display_on)
 
 
 	def save(self):
@@ -265,10 +258,38 @@ class Document (object):
 		return self.__filename
 
 
+	def save_and_display_notification(self, display_on):
+		name = self.save()
+		noty.noty(Html('Saved <em>{0}</em>'.format(name)), type='success', timeout=2000, layout='bottomCenter').show_on(display_on)
+
+
+
+	def __on_save_command(self, page):
+		self.save_and_display_notification(page)
+
+
+
+	def __on_unload_modules_command(self, page):
+		self.unload_modules_and_display_notification(page)
+
+
+
+	def __commands__(self):
+		return [
+			command.Command([command.Key(ord('S'))], 'Save', self.__on_save_command),
+			command.Command([command.Key(ord('U'))], 'Unload modules', self.__on_unload_modules_command),
+		]
+
+
+	def __resolve_self__(self, subject):
+		subject.add_step(focus=self.content)
+		return self.content
+
+
+
 	def presentation_table_row(self, page):
 		def on_save():
-			name = self.save()
-			page.page_js_function_call('noty', {'text': 'Saved <em>{0}</em>'.format(name), 'type': 'success', 'timeout': 2000, 'layout': 'bottomCenter'})
+			self.save_and_display_notification(page)
 
 		save_button = button.button('Save', on_save)
 		doc_title = '<a href="/pages/docs/{0}" class="larch_app_doc_title">{1}</a>'.format(self.__loc, self.__name)
