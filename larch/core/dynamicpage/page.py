@@ -255,7 +255,7 @@ class DynamicPage (object):
 		self.__url_rsc_id_to_rsc_instance = {}
 		self.__resource_to_resource_instance = {}
 		self.__resource_id_and_message_pairs = []
-		self.__disposed_rsc_instances = set()
+		self.__disposed_rsc_instance_ids = set()
 
 		# Segment dispose listeners
 		self.__segment_dispose_listeners = {}
@@ -518,7 +518,7 @@ class DynamicPage (object):
 	def _resource_disposed(self, rsc_instance):
 		"""Notify of resource disposal
 		"""
-		self.__disposed_rsc_instances.add(rsc_instance.id)
+		self.__disposed_rsc_instance_ids.add(rsc_instance.id)
 
 
 	def __on_resource_message(self, public_api, event_name, event_data):
@@ -531,8 +531,7 @@ class DynamicPage (object):
 
 	def __resource_msgs_message(self):
 		if len(self.__resource_id_and_message_pairs) > 0:
-			disposed_ids = {rsc_instance.id   for rsc_instance in self.__disposed_rsc_instances}
-			pairs = [pair   for pair in self.__resource_id_and_message_pairs   if pair[0] not in disposed_ids]
+			pairs = [pair   for pair in self.__resource_id_and_message_pairs   if pair[0] not in self.__disposed_rsc_instance_ids]
 			rsc_mod_message = messages.resource_messages_message(pairs)
 			self.__resource_id_and_message_pairs = []
 			return rsc_mod_message
@@ -541,9 +540,9 @@ class DynamicPage (object):
 
 
 	def __resources_disposed_message(self):
-		if len(self.__disposed_rsc_instances) > 0:
-			rsc_disp_message = messages.resources_disposed_message(self.__disposed_rsc_instances)
-			self.__disposed_rsc_instances = set()
+		if len(self.__disposed_rsc_instance_ids) > 0:
+			rsc_disp_message = messages.resources_disposed_message(self.__disposed_rsc_instance_ids)
+			self.__disposed_rsc_instance_ids = set()
 			return rsc_disp_message
 		else:
 			return None

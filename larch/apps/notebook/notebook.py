@@ -133,20 +133,20 @@ class NotebookBlockSource (NotebookBlock):
 			raise ValueError, 'Invalid language {0}'.format(language)
 
 		self.__code = code_type()
-		self.__var_name = var_name
+		self.__var_name = LiveValue(var_name)
 		self.__incr = IncrementalValueMonitor()
 
 
 	def __getstate__(self):
 		state = super(NotebookBlockSource, self).__getstate__()
 		state['code'] = self.__code
-		state['var_name'] = self.__var_name
+		state['var_name'] = self.__var_name.static_value
 		return state
 
 	def __setstate__(self, state):
 		super(NotebookBlockSource, self).__setstate__(state)
 		self.__code = state.get('code')
-		self.__var_name = state.get('var_name')
+		self.__var_name = LiveValue(state.get('var_name'))
 		self.__incr = IncrementalValueMonitor()
 
 
@@ -167,14 +167,11 @@ class NotebookBlockSource (NotebookBlock):
 
 
 	def execute(self, module):
-		module.__dict__[self.__var_name] = self.__code.source_text
+		module.__dict__[self.__var_name.static_value] = self.__code.source_text
 
 
 	def __present__(self, fragment):
 		self.__incr.on_access()
-
-		def _on_change_varname(name):
-			self.__var_name = name
 
 		def _on_change_language(lang):
 			self.language = lang
@@ -182,7 +179,7 @@ class NotebookBlockSource (NotebookBlock):
 		language = self.language
 
 
-		var_name = text_entry.text_entry(self.__var_name, _on_change_varname)
+		var_name = text_entry.live_text_entry(self.__var_name)
 
 
 		js_item = menu.item('Javascript', lambda: _on_change_language('js'))
@@ -311,6 +308,17 @@ class Notebook (object):
 			save_and_display_notification(fragment)
 
 
+	def _unload_from_containing_document_and_display_notification(self, fragment):
+		subject = fragment.subject
+		try:
+			unload_modules_and_display_notification = subject.document.unload_modules_and_display_notification
+		except AttributeError:
+			print 'WARNING: Could not unload_modules_and_display_notification; method unavailable'
+			raise
+		else:
+			unload_modules_and_display_notification(fragment)
+
+
 	def __focused_block(self, page):
 		seg = page.focused_segment
 		if seg is not None:
@@ -347,9 +355,13 @@ class Notebook (object):
 		def on_save():
 			self._save_containing_document_and_display_notification(fragment)
 
+		def on_unload():
+			self._unload_from_containing_document_and_display_notification(fragment)
+
 
 		save_item = menu.item('Save (Ctrl+S)', lambda: on_save())
-		file_menu_contents = menu.sub_menu('File', [save_item])
+		unload_modules_item = menu.item('Unload modules', lambda: on_unload())
+		file_menu_contents = menu.sub_menu('File', [save_item, menu.separator(), unload_modules_item])
 		file_menu = menu.menu([file_menu_contents], drop_down=True)
 
 

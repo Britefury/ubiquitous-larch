@@ -168,10 +168,33 @@ larch.controls.initSpinner = function(node, channel) {
     }
 };
 
-larch.controls.initTextEntry = function(node) {
-    node.oninput = function() {
-        larch.postEvent(node, "text_entry_edit", node.value);
-    };
+larch.controls.initTextEntry = function(node, immediateEvents, channel) {
+    var ignoreChanges = [false];
+
+    if (immediateEvents) {
+        node.oninput = function() {
+            if (!ignoreChanges[0]) {
+                larch.postEvent(node, "text_entry_edit", node.value);
+            }
+        };
+    }
+    else {
+        node.oninput = function() {
+            if (!ignoreChanges[0]) {
+                larch.queueEventFactory(node, "text_entry_edit", function() {
+                    return node.value;
+                });
+            }
+        };
+    }
+
+    if (channel !== undefined) {
+        channel.addListener(function(message) {
+            ignoreChanges[0] = true;
+            node.value = message;
+            ignoreChanges[0] = false;
+        });
+    }
 };
 
 larch.controls.initSelect = function(node) {
@@ -188,7 +211,6 @@ larch.controls.initMenu = function(node, options) {
     };
     $(node).menu(options);
 };
-
 
 
 

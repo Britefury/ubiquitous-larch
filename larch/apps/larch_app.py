@@ -17,7 +17,7 @@ from larch.incremental import IncrementalValueMonitor
 from larch import command
 from larch.apps.console import console
 from larch.controls import form, button, menu, text_entry, noty
-
+from larch.live import LiveValue
 from larch.pres.pres import CompositePres
 from larch.pres.html import Html
 
@@ -553,7 +553,7 @@ class NewDocumentTool (Tool):
 		super(NewDocumentTool, self).__init__()
 		self.__doc_list = doc_list
 		self.__document_factory = document_factory
-		self.__name = initial_name
+		self.__name = LiveValue(initial_name)
 
 
 	def __present__(self, fragment):
@@ -561,12 +561,12 @@ class NewDocumentTool (Tool):
 			self.__name = text
 
 		def on_create():
-			filename = _sanitise_filename(self.__name)
+			filename = _sanitise_filename(self.__name.static_value)
 			if self.__doc_list.doc_for_filename(filename) is not None:
 				self._tool_list.add(DocNameInUseTool(filename))
 			else:
 				document = self.__document_factory()
-				self.__doc_list.new_document_for_content(self.__name, document)
+				self.__doc_list.new_document_for_content(self.__name.static_value, document)
 			self.close()
 
 		def on_cancel():
@@ -575,7 +575,7 @@ class NewDocumentTool (Tool):
 		return Html('<div class="tool_box">',
 				'<span class="gui_section_1">Create document</span><br>',
 				'<table>',
-				'<tr><td><span class="gui_label">Name:</span></td><td>', text_entry.text_entry(self.__name, on_edit=on_edit, width="40em"), '</td></tr>',
+				'<tr><td><span class="gui_label">Name:</span></td><td>', text_entry.live_text_entry(self.__name, width="40em"), '</td></tr>',
 				'<tr><td>', button.button('Cancel', on_cancel), '</td><td>', button.button('Create', on_create), '</td></tr>',
 				'</table>',
 				'</div>')
@@ -622,7 +622,7 @@ class DownloadIPynbFromWebTool (Tool):
 	def __init__(self, doc_list):
 		super(DownloadIPynbFromWebTool, self).__init__()
 		self.__doc_list = doc_list
-		self.__url = ''
+		self.__url = LiveValue('')
 
 
 
@@ -631,7 +631,7 @@ class DownloadIPynbFromWebTool (Tool):
 			self.__url = text
 
 		def on_import():
-			url = self.__url
+			url = self.__url.static_value
 			url_l = url.lower()
 			if not url_l.startswith('http://')  and  not url_l.startswith('https://'):
 				url = 'http://' + url
@@ -656,7 +656,7 @@ class DownloadIPynbFromWebTool (Tool):
 		return Html('<div class="tool_box">',
 				'<span class="gui_section_1">Download IPython notebook from the web</span><br>',
 				'<div><span class="gui_label">Web address (Github/Bitbucket RAW, etc):</span></div>',
-				'<div><span>', text_entry.text_entry(self.__url, on_edit=on_edit, width="40em"), '</span></div>',
+				'<div><span>', text_entry.live_text_entry(self.__url, width="40em"), '</span></div>',
 				'<table>',
 				'<tr><td>', button.button('Cancel', on_cancel), '</td><td>', button.button('Import', on_import), '</td></tr>',
 				'</table>',
