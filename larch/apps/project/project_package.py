@@ -79,13 +79,13 @@ class ProjectPackage (ProjectContainer):
 	def _present_menu_items(self, fragment, tool_container):
 		super_items = super(ProjectPackage, self)._present_menu_items(fragment, tool_container)
 
-		def on_rename():
+		def on_rename(event):
 			tool_container.value = RenameNodeTool(tool_container, self)
 
-		def on_move():
+		def on_move(event):
 			tool_container.value = MoveNodeTool(tool_container, self)
 
-		def on_delete():
+		def on_delete(event):
 			self._parent.remove(self)
 
 		rename_item = menu.item('Rename', on_rename)

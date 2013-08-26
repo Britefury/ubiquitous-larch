@@ -215,7 +215,7 @@ class ProjectRoot (ProjectContainer):
 		def _on_set_package_name(name):
 			self.__set_python_package_name_no_incr_change(name)
 
-		def _on_unload():
+		def _on_unload(event):
 			subject = fragment.subject
 			try:
 				unload_modules_and_display_notification = subject.document.unload_modules_and_display_notification

@@ -32,6 +32,11 @@ class text_entry (CompositePres):
 		self.__channel.send(text)
 
 
+	def __edit(self, event):
+		if self.__on_edit is not None:
+			self.__on_edit(event, event.data)
+
+
 	def pres(self, pres_ctx):
 		sz = ''
 		if self.__size is not None:
@@ -39,8 +44,7 @@ class text_entry (CompositePres):
 		if self.__width is not None:
 			sz += ' style="width: {0};"'.format(self.__width)
 		p = Html('<input type="text" value="{0}"{1}></input>'.format(self.__text, sz)).js_function_call('larch.controls.initTextEntry', self.__immediate_events, self.__channel)
-		if self.__on_edit is not None:
-			p = p.with_event_handler('text_entry_edit', lambda event: self.__on_edit(event.data))
+		p = p.with_event_handler('text_entry_edit', self.__edit)
 		p = p.use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
 		return p
 
@@ -74,7 +78,7 @@ class live_text_entry (CompositePres):
 			if not refreshing[0]:
 				pres_ctx.fragment_view.queue_task(set_value)
 
-		def __on_edit(value):
+		def __on_edit(event, value):
 			refreshing[0] = True
 			self.__live.value = value
 			refreshing[0] = False

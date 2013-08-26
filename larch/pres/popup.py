@@ -2,7 +2,7 @@
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
 from larch.pres import js
-from larch.core.dynamicpage import segment, page
+from larch.core.dynamicpage import segment, page, event
 from larch.core import incremental_view
 from larch.default_perspective import DefaultPerspective
 
@@ -16,9 +16,11 @@ _nodes_js = js.JSName('nodes')
 class Popup (object):
 	def __init__(self, popup_contents, show_on_target):
 		self.__popup_contents = popup_contents
-		if isinstance(show_on_target, segment.DynamicSegment):
-			self.__inc_view = show_on_target.page.inc_view
-			self.__perspective = show_on_target.fragment.perspective
+
+		if isinstance(show_on_target, event.Event):
+			fragment = show_on_target.fragment
+			self.__inc_view = fragment.view   if fragment is not None   else show_on_target.page._page.inc_view
+			self.__perspective = fragment.perspective
 		elif isinstance(show_on_target, page.DynamicPage):
 			self.__inc_view = show_on_target.inc_view
 			self.__perspective = DefaultPerspective.instance
@@ -31,6 +33,9 @@ class Popup (object):
 		elif isinstance(show_on_target, incremental_view.IncrementalView):
 			self.__inc_view = show_on_target
 			self.__perspective = DefaultPerspective.instance
+		elif isinstance(show_on_target, segment.DynamicSegment):
+			self.__inc_view = show_on_target.page.inc_view
+			self.__perspective = show_on_target.fragment.perspective
 		else:
 			raise TypeError, 'Cannot show popup over type {0}'.format(type(show_on_target))
 

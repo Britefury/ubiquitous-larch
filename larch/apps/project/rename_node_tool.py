@@ -17,11 +17,11 @@ class RenameNodeTool (Tool):
 
 
 	def __present__(self, fragment):
-		def on_rename():
+		def on_rename(event):
 			self.__node.name = self.__name.static_value
 			self.close()
 
-		def on_cancel():
+		def on_cancel(event):
 			self.close()
 
 		return Html('<div class="tool_box">',

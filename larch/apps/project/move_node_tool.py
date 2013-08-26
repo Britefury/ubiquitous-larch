@@ -23,7 +23,7 @@ class MoveNodeTool (Tool):
 			destination.append(self.__node)
 			self.close()
 
-		def on_cancel():
+		def on_cancel(event):
 			self.close()
 
 		return Html('<div class="tool_box">',
@@ -37,9 +37,9 @@ class MoveNodeTool (Tool):
 
 	def __container_item(self, container, on_choose):
 		if container is self.__root:
-			return action_link.action_link('Project Index', lambda: on_choose(container), css_class='project_move_to_root')
+			return action_link.action_link('Project Index', lambda event: on_choose(container), css_class='project_move_to_root')
 		else:
-			return action_link.action_link(container.name, lambda: on_choose(container), css_class='project_move_to_package')
+			return action_link.action_link(container.name, lambda event: on_choose(container), css_class='project_move_to_package')
 
 	def __container_dest(self, container, on_choose):
 		item = self.__container_item(container, on_choose)

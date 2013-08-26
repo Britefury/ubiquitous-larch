@@ -288,7 +288,7 @@ class Document (object):
 
 
 	def presentation_table_row(self, page):
-		def on_save():
+		def on_save(event):
 			self.save_and_display_notification(page)
 
 		save_button = button.button('Save', on_save)
@@ -545,7 +545,7 @@ class DocNameInUseTool (Tool):
 
 	def __present__(self, fragment):
 		return Html('<div class="larch_app_doc_name_in_use"><p class="error_text">There is already a document in a file named \'{0}<em>.ularch</em>\'.</p>'.format(self.filename),
-			    button.button('Close', self.close), '</div>')
+			    button.button('Close', lambda event: self.close), '</div>')
 
 
 class NewDocumentTool (Tool):
@@ -560,7 +560,7 @@ class NewDocumentTool (Tool):
 		def on_edit(text):
 			self.__name = text
 
-		def on_create():
+		def on_create(event):
 			filename = _sanitise_filename(self.__name.static_value)
 			if self.__doc_list.doc_for_filename(filename) is not None:
 				self._tool_list.add(DocNameInUseTool(filename))
@@ -569,7 +569,7 @@ class NewDocumentTool (Tool):
 				self.__doc_list.new_document_for_content(self.__name.static_value, document)
 			self.close()
 
-		def on_cancel():
+		def on_cancel(event):
 			self.close()
 
 		return Html('<div class="tool_box">',
@@ -588,7 +588,7 @@ class UploadIPynbTool (Tool):
 
 
 	def __present__(self, fragment):
-		def _on_upload(form_data):
+		def _on_upload(event, form_data):
 			f = form_data.get('file')
 			if f is not None:
 				notebooks, notebook_name = ipynb_filter.load(f.file)
@@ -598,7 +598,7 @@ class UploadIPynbTool (Tool):
 				self.__doc_list.new_document_for_content(filename, notebooks[0])
 			self.close()
 
-		def on_cancel():
+		def on_cancel(event):
 			self.close()
 
 
@@ -630,7 +630,7 @@ class DownloadIPynbFromWebTool (Tool):
 		def on_edit(text):
 			self.__url = text
 
-		def on_import():
+		def on_import(event):
 			url = self.__url.static_value
 			url_l = url.lower()
 			if not url_l.startswith('http://')  and  not url_l.startswith('https://'):
@@ -648,7 +648,7 @@ class DownloadIPynbFromWebTool (Tool):
 
 			self.close()
 
-		def on_cancel():
+		def on_cancel(event):
 			self.close()
 
 		warning = ipynb_filter.markdown_warning()
@@ -730,21 +730,21 @@ class LarchApplication (object):
 
 
 	def __present__(self, fragment):
-		def _on_reload():
+		def _on_reload(event):
 			self.__docs.reload()
 
 
 		reset_button = button.button('Reload', _on_reload)
 		reset_section = Html('<div class="larch_app_menu">', reset_button, '</div>')
 
-		add_notebook = menu.item('Notebook', lambda: self.__tools.add(NewDocumentTool(self.__docs, lambda: notebook.Notebook(), 'Notebook')))
-		add_project = menu.item('Project', lambda: self.__tools.add(NewDocumentTool(self.__docs, lambda: project_root.ProjectRoot(), 'Project')))
+		add_notebook = menu.item('Notebook', lambda event: self.__tools.add(NewDocumentTool(self.__docs, lambda: notebook.Notebook(), 'Notebook')))
+		add_project = menu.item('Project', lambda event: self.__tools.add(NewDocumentTool(self.__docs, lambda: project_root.ProjectRoot(), 'Project')))
 		new_item = menu.sub_menu('New', [add_notebook, add_project])
 		new_document_menu = menu.menu([new_item], drop_down=True)
 
 
-		upload_ipynb = menu.item('Upload', lambda: self.__tools.add(UploadIPynbTool(self.__docs)))
-		web_ipynb = menu.item('Download from web', lambda: self.__tools.add(DownloadIPynbFromWebTool(self.__docs)))
+		upload_ipynb = menu.item('Upload', lambda event: self.__tools.add(UploadIPynbTool(self.__docs)))
+		web_ipynb = menu.item('Download from web', lambda event: self.__tools.add(DownloadIPynbFromWebTool(self.__docs)))
 		import_ipynb_item = menu.sub_menu('Import IPython notebook', [upload_ipynb, web_ipynb])
 		import_ipynb_menu = menu.menu([import_ipynb_item], drop_down=True)
 
@@ -753,7 +753,7 @@ class LarchApplication (object):
 					 '<td class="larch_app_control">', import_ipynb_menu, '</td></tr></table>')
 
 
-		def on_new_console():
+		def on_new_console(event):
 			self.__consoles.new_console()
 
 

@@ -18,11 +18,11 @@ class NewNodeTool (Tool):
 
 
 	def __present__(self, fragment):
-		def on_create():
+		def on_create(event):
 			self.__container.append(self.__node_create_fn(self.__name.static_value))
 			self.close()
 
-		def on_cancel():
+		def on_cancel(event):
 			self.close()
 
 		return Html('<div class="tool_box">',

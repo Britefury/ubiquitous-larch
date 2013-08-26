@@ -37,7 +37,7 @@ def dropdown_expander(header, content, state=None, on_expand=None):
 		if expand_fn is not None:
 			expand_fn(new_state)
 		if on_expand is not None:
-			on_expand(new_state)
+			on_expand(event, new_state)
 
 
 

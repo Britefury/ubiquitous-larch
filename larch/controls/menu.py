@@ -21,9 +21,11 @@ def item(item_content, on_select=None):
 	:param on_select: a callback invoked when the menu item is activated by the user
 	:return: the menu item control
 	"""
+	def on_click(event):
+		if on_select is not None:
+			on_select(event)
 	p = Html('<li><a>', item_content, '</a></li>')
-	if on_select is not None:
-		p = p.with_event_handler('menu_select', lambda event: on_select())
+	p = p.with_event_handler('menu_select', on_click)
 	return p
 
 

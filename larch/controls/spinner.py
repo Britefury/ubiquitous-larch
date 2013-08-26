@@ -23,7 +23,8 @@ class spinner (CompositePres):
 
 
 	def __on_spinner_change(self, event):
-		self.__action_fn(event.data)
+		if self.__action_fn is not None:
+			self.__action_fn(event, event.data)
 
 
 	def set_value(self, value):
@@ -33,8 +34,7 @@ class spinner (CompositePres):
 	def pres(self, pres_ctx):
 		spin = Html('<input name={0} value={1} />'.format(self.__name, self.__value))
 		spin = spin.js_function_call('larch.controls.initSpinner', self.__channel)
-		if self.__action_fn is not None:
-			spin = spin.with_event_handler("spinner_change", self.__on_spinner_change)
+		spin = spin.with_event_handler("spinner_change", self.__on_spinner_change)
 		spin = spin.use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
 		return spin
 
@@ -58,16 +58,16 @@ class live_spinner (CompositePres):
 		def set_value():
 			s.set_value(self.__live.value)
 
-		def on_change(incr):
+		def on_live_change(incr):
 			if not refreshing[0]:
 				pres_ctx.fragment_view.queue_task(set_value)
 
-		def __on_spin(value):
+		def __on_spin(event, value):
 			refreshing[0] = True
 			self.__live.value = value
 			refreshing[0] = False
 
-		self.__live.add_listener(on_change)
+		self.__live.add_listener(on_live_change)
 
 		s = spinner(__on_spin, value=self.__live.static_value, name=self.__name)
 		return s

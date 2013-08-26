@@ -182,10 +182,10 @@ class NotebookBlockSource (NotebookBlock):
 		var_name = text_entry.live_text_entry(self.__var_name)
 
 
-		js_item = menu.item('Javascript', lambda: _on_change_language('js'))
-		css_item = menu.item('CSS', lambda: _on_change_language('css'))
-		glsl_item = menu.item('GLSL', lambda: _on_change_language('glsl'))
-		html_item = menu.item('HTML', lambda: _on_change_language('html'))
+		js_item = menu.item('Javascript', lambda event: _on_change_language('js'))
+		css_item = menu.item('CSS', lambda event: _on_change_language('css'))
+		glsl_item = menu.item('GLSL', lambda event: _on_change_language('glsl'))
+		html_item = menu.item('HTML', lambda event: _on_change_language('html'))
 
 		lang_menu = menu.sub_menu('Change language', [
 			js_item,
@@ -359,8 +359,8 @@ class Notebook (object):
 			self._unload_from_containing_document_and_display_notification(fragment)
 
 
-		save_item = menu.item('Save (Ctrl+S)', lambda: on_save())
-		unload_modules_item = menu.item('Unload modules', lambda: on_unload())
+		save_item = menu.item('Save (Ctrl+S)', lambda event: on_save())
+		unload_modules_item = menu.item('Unload modules', lambda event: on_unload())
 		file_menu_contents = menu.sub_menu('File', [save_item, menu.separator(), unload_modules_item])
 		file_menu = menu.menu([file_menu_contents], drop_down=True)
 
@@ -388,21 +388,21 @@ class Notebook (object):
 		def _insert_html(below):
 			self._insert_block(NotebookBlockSource(self, 'html', 'html'), below, self.__focused_block(fragment.page))
 
-		insert_rich_text_above = menu.item('Insert rich text above', lambda: _insert_rich_text(False))
-		insert_code_above = menu.item('Insert executable Python code above', lambda: _insert_code(False))
-		insert_js_above = menu.item('Insert JS source above', lambda: _insert_js(False))
-		insert_css_above = menu.item('Insert CSS source above', lambda: _insert_css(False))
-		insert_html_above = menu.item('Insert HTML source above', lambda: _insert_html(False))
-		insert_glsl_above = menu.item('Insert GLSL source above', lambda: _insert_glsl(False))
+		insert_rich_text_above = menu.item('Insert rich text above', lambda event: _insert_rich_text(False))
+		insert_code_above = menu.item('Insert executable Python code above', lambda event: _insert_code(False))
+		insert_js_above = menu.item('Insert JS source above', lambda event: _insert_js(False))
+		insert_css_above = menu.item('Insert CSS source above', lambda event: _insert_css(False))
+		insert_html_above = menu.item('Insert HTML source above', lambda event: _insert_html(False))
+		insert_glsl_above = menu.item('Insert GLSL source above', lambda event: _insert_glsl(False))
 
-		insert_rich_text_below = menu.item('Insert rich text below', lambda: _insert_rich_text(True))
-		insert_code_below = menu.item('Insert executable Python code below', lambda: _insert_code(True))
-		insert_js_below = menu.item('Insert JS source below', lambda: _insert_js(True))
-		insert_css_below = menu.item('Insert CSS source below', lambda: _insert_css(True))
-		insert_html_below = menu.item('Insert HTML source below', lambda: _insert_html(True))
-		insert_glsl_below = menu.item('Insert GLSL source below', lambda: _insert_glsl(True))
+		insert_rich_text_below = menu.item('Insert rich text below', lambda event: _insert_rich_text(True))
+		insert_code_below = menu.item('Insert executable Python code below', lambda event: _insert_code(True))
+		insert_js_below = menu.item('Insert JS source below', lambda event: _insert_js(True))
+		insert_css_below = menu.item('Insert CSS source below', lambda event: _insert_css(True))
+		insert_html_below = menu.item('Insert HTML source below', lambda event: _insert_html(True))
+		insert_glsl_below = menu.item('Insert GLSL source below', lambda event: _insert_glsl(True))
 
-		remove_block = menu.item('Remove block', lambda: self._delete_block(self.__focused_block(fragment.page)))
+		remove_block = menu.item('Remove block', lambda event: self._delete_block(self.__focused_block(fragment.page)))
 		edit_menu_contents = menu.sub_menu('Edit', [
 			insert_rich_text_above,
 			insert_code_above,
@@ -426,7 +426,7 @@ class Notebook (object):
 
 		edit_menu = menu.menu([edit_menu_contents], drop_down=True)
 
-		exec_button = button.button('Execute (Ctrl-Enter)', self.execute)
+		exec_button = button.button('Execute (Ctrl-Enter)', lambda event: self.execute())
 
 		return [file_menu, edit_menu, exec_button, self.__execution_state]
 

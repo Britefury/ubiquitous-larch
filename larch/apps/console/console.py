@@ -41,7 +41,7 @@ class CurrentBlock (object):
 
 
 	def __present__(self, fragment):
-		def on_execute():
+		def on_execute(event):
 			self.__console._execute_current_block(self)
 
 		def on_execute_key(event, key):

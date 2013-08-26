@@ -184,10 +184,10 @@ class ProjectContainer (ProjectNode):
 
 
 	def _present_menu_items(self, fragment, tool_container):
-		def on_new_package():
+		def on_new_package(event):
 			tool_container.value = NewNodeTool(tool_container, self, 'package', 'Package', lambda name: project.project_package.ProjectPackage(name))
 
-		def on_new_notebook():
+		def on_new_notebook(event):
 			tool_container.value = NewNodeTool(tool_container, self, 'notebook', 'Notebook', lambda name: project.project_page.ProjectPage(name, Notebook()))
 
 

@@ -9,7 +9,7 @@ def button(text=None, action_fn=None, primary_icon=None, secondary_icon=None, di
 	"""
 	Create a JQuery UI button
 	:param text: the button content (can include HTML)
-	:param action_fn: a callback that is invoked when the button is pressed
+	:param action_fn: a callback that is invoked when the button is pressed, of the form function(event)
 	:param primary_icon: primary icon (see JQuery UI icon classes)
 	:param secondary_icon: secondary icon (see JQuery UI icon classes)
 	:param disabled: disable the button
@@ -17,7 +17,7 @@ def button(text=None, action_fn=None, primary_icon=None, secondary_icon=None, di
 	"""
 	def on_click(event):
 		if action_fn is not None:
-			action_fn()
+			action_fn(event)
 
 	options = {}
 	if disabled is not False:

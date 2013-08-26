@@ -25,8 +25,6 @@ class AbstractSourceCode (object):
 		self.__code = LiveValue(code)
 		self.__editable = editable
 		self.__incr = IncrementalValueMonitor()
-		self.on_focus = None
-		self.on_blur = None
 		if self.__codemirror_config__ is None:
 			raise TypeError, 'Abstract: __codemirror_config__ not defined'
 
@@ -38,8 +36,6 @@ class AbstractSourceCode (object):
 		self.__code = LiveValue(state.get('code', ''))
 		self.__editable = state.get('editable', True)
 		self.__incr = IncrementalValueMonitor()
-		self.on_focus = None
-		self.on_blur = None
 		if self.__codemirror_config__ is None:
 			raise TypeError, 'Abstract: __codemirror_config__ not defined'
 
@@ -88,7 +84,7 @@ class AbstractSourceCode (object):
 		config['autofocus'] = self.__editable
 
 
-		code_area = code_mirror.live_code_mirror(self.__code, config=config, on_focus=self.on_focus, on_blur=self.on_blur, modes=self.__codemirror_modes__, text_filter_fn=self._filter_source_text)
+		code_area = code_mirror.live_code_mirror(self.__code, config=config, modes=self.__codemirror_modes__, text_filter_fn=self._filter_source_text)
 
 
 		return Html('<div>', code_area, '</div>')

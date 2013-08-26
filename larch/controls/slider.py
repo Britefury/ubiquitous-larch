@@ -12,8 +12,8 @@ class slider(CompositePres):
 		"""
 		Create a JQuery UI slider
 
-		:param release_fn: a function to be invoked when the user releases the slider, of the form function(value)
-		:param slide_fn: a function to be invoked when the user drags the slider, of the form function(value)
+		:param release_fn: a function to be invoked when the user releases the slider, of the form function(event, value)
+		:param slide_fn: a function to be invoked when the user drags the slider, of the form function(event, value)
 		:param width: the width of the slider, specified as a CSS value e.g. 200px (200 pixels) or 50%, or as an integer value that will be converted to pixels
 		:param value: the initial value
 		:param min: the minimum value
@@ -51,10 +51,11 @@ class slider(CompositePres):
 
 	def __on_change(self, event):
 		if self.__release_fn is not None:
-			self.__release_fn(event.data)
+			self.__release_fn(event, event.data)
 
 	def __on_slide(self, event):
-		self.__slide_fn(event.data)
+		if self.__slide_fn is not None:
+			self.__slide_fn(event, event.data)
 
 
 	def set_value(self, value):
@@ -68,8 +69,7 @@ class slider(CompositePres):
 			div = Html('<div style="width: {0};"></div>'.format(self.__width))
 		div = div.js_function_call('larch.controls.initSlider', self.__slide_fn is not None, self.__options, self.__channel)
 		div = div.with_event_handler("slider_change", self.__on_change)
-		if self.__slide_fn is not None:
-			div = div.with_event_handler("slider_slide", self.__on_slide)
+		div = div.with_event_handler("slider_slide", self.__on_slide)
 		div = div.use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
 		return div
 
@@ -81,8 +81,8 @@ class range_slider (CompositePres):
 		"""
 		Create a JQuery UI slider - with the range option enabled
 
-		:param release_fn: a function to be invoked when the user releases the slider, of the form function(value)
-		:param slide_fn: a function to be invoked when the user drags the slider, of the form function(value)
+		:param release_fn: a function to be invoked when the user releases the slider, of the form function(event, value)
+		:param slide_fn: a function to be invoked when the user drags the slider, of the form function(event, value)
 		:param width: the width of the slider, specified as a CSS value e.g. 200px (200 pixels) or 50%, or as an integer value that will be converted to pixels
 		:param values: a pair of values representing the lower and upper bound
 		:param min: the minimum value
@@ -121,10 +121,11 @@ class range_slider (CompositePres):
 
 	def __on_change(self, event):
 		if self.__release_fn is not None:
-			self.__release_fn(event.data)
+			self.__release_fn(event, event.data)
 
 	def __on_slide(self, event):
-		self.__slide_fn(event.data)
+		if self.__slide_fn is not None:
+			self.__slide_fn(event, event.data)
 
 
 	def set_values(self, values):
@@ -138,8 +139,7 @@ class range_slider (CompositePres):
 			div = Html('<div style="width: {0};"></div>'.format(self.__width))
 		div = div.js_function_call('larch.controls.initRangeSlider', self.__slide_fn is not None, self.__options, self.__channel)
 		div = div.with_event_handler("slider_change", self.__on_change)
-		if self.__slide_fn is not None:
-			div = div.with_event_handler("slider_slide", self.__on_slide)
+		div = div.with_event_handler("slider_slide", self.__on_slide)
 		div = div.use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
 		return div
 
@@ -179,16 +179,16 @@ class live_slider (CompositePres):
 		def set_value():
 			s.set_value(self.__live.value)
 
-		def on_change(incr):
+		def on_live_change(incr):
 			if not refreshing[0]:
 				pres_ctx.fragment_view.queue_task(set_value)
 
-		def __on_slide(value):
+		def __on_slide(event, value):
 			refreshing[0] = True
 			self.__live.value = value
 			refreshing[0] = False
 
-		self.__live.add_listener(on_change)
+		self.__live.add_listener(on_live_change)
 
 		slide_fn = __on_slide if self.__update_on_slide   else None
 		s = slider(__on_slide, slide_fn, self.__width, value=self.__live.static_value, min=self.__min, max=self.__max, step=self.__step,
@@ -231,16 +231,16 @@ class live_range_slider(CompositePres):
 		def set_value():
 			s.set_values(self.__live.value)
 
-		def on_change(incr):
+		def on_live_change(incr):
 			if not refreshing[0]:
 				pres_ctx.fragment_view.queue_task(set_value)
 
-		def __on_slide(value):
+		def __on_slide(event, value):
 			refreshing[0] = True
 			self.__live.value = value
 			refreshing[0] = False
 
-		self.__live.add_listener(on_change)
+		self.__live.add_listener(on_live_change)
 
 
 		slide_fn = __on_slide if self.__update_on_slide   else None

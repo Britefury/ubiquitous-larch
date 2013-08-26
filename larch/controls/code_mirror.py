@@ -68,9 +68,9 @@ class code_mirror (CompositePres):
 		:param text: the initial text to display in the control
 		:param immediate_events: if True, an event will be emitted each time the text is edited (on each keypress)
 		:param config: configuration options (see CodeMirror documentation)
-		:param on_edit: a callback invoked in response to edits, of the form function(modified_text)
-		:param on_focus: a callback invoked when the editor receives focus; of the form function()
-		:param on_blur: a callback invoked when the editor loses focus; of the form function()
+		:param on_edit: a callback invoked in response to edits, of the form function(event, modified_text)
+		:param on_focus: a callback invoked when the editor receives focus; of the form function(event)
+		:param on_blur: a callback invoked when the editor loses focus; of the form function(event)
 		:param modes: a list of names of language plugins to load (e.g. 'python', 'javascript', 'glsl', etc; see CodeMirror documentation)
 		:return: the editor control
 		"""
@@ -95,6 +95,18 @@ class code_mirror (CompositePres):
 
 
 	def pres(self, pres_ctx):
+		def on_edit(event):
+			if self.__on_edit is not None:
+				self.__on_edit(event, event.data)
+
+		def on_focus(event):
+			if self.__on_focus is not None:
+				self.__on_focus(event)
+
+		def on_blur(event):
+			if self.__on_blur is not None:
+				self.__on_blur(event)
+
 		textarea = Html(u'<textarea>{text}</textarea>'.format(text=Html.escape_str(self.__text)))
 		textarea = textarea.js_function_call('larch.controls.initCodeMirror', self.__config, self.__immediate_events, self.__channel)
 		p = Html('<div>', textarea, '</div>')
@@ -109,12 +121,9 @@ class code_mirror (CompositePres):
 		if _code_mirror_theme is not None:
 			p = p.use_css('/static/codemirror-3.14/theme/{0}.css'.format(_code_mirror_theme))
 		p = p.use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
-		if self.__on_edit is not None:
-			p = p.with_event_handler('code_mirror_edit', lambda event: self.__on_edit(event.data))
-		if self.__on_focus is not None:
-			p = p.with_event_handler('code_mirror_focus', lambda event: self.__on_focus())
-		if self.__on_blur is not None:
-			p = p.with_event_handler('code_mirror_blur', lambda event: self.__on_blur())
+		p = p.with_event_handler('code_mirror_edit', on_edit)
+		p = p.with_event_handler('code_mirror_focus', on_focus)
+		p = p.with_event_handler('code_mirror_blur', on_blur)
 		return p
 
 
@@ -153,7 +162,7 @@ class live_code_mirror (CompositePres):
 			if not refreshing[0]:
 				pres_ctx.fragment_view.queue_task(set_value)
 
-		def __on_edit(value):
+		def __on_edit(event, value):
 			refreshing[0] = True
 			if self.__text_filter_fn is not None:
 				value = self.__text_filter_fn(value)
