@@ -32,7 +32,7 @@ Ntp14
 Rp15
 (dp16
 g12
-Vfrom larch.media import audio\u000afrom larch.live import LiveValue\u000a\u000a\u000ax = LiveValue()\u000a\u000adef on_data(data_file):\u000a    data = data_file.read()\u000a    print len(data)\u000a    x.value = audio.wav_from_data(data)\u000a    \u000a\u000ax.value = audio.audio_capture_button('Record', 2, 'wav', on_data)\u000a\u000ax
+Vfrom larch.pres.html import Html\u000afrom larch.media import audio\u000afrom larch.live import LiveValue\u000a\u000a\u000ax = LiveValue()\u000a\u000adef on_data(data_file, sample_rate, num_samples, num_channels):\u000a    data = data_file.read()\u000a    x.value = Html(audio.wav_from_data(data), '<br>',\u000a                   '<div>Sample rate: {0}</div>'.format(sample_rate),\u000a                   '<div>{0} samples ({1} seconds)</div>'.format(num_samples, float(num_samples)/sample_rate),\u000a                   '<div>{0} channels</div>'.format(num_channels),\u000a                   '<div>{0} bytes</div>'.format(len(data)))\u000a    \u000a\u000ax.value = audio.audio_capture_button('Record', 1, 'wav', on_data)\u000a\u000ax
 p17
 sS'editable'
 p18

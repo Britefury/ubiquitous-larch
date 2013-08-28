@@ -107,10 +107,10 @@ larch.media.audioCapture = function(numChannels, format, startFn, audioDataFn, d
     var capture = {
         numChannels: numChannels,
         sampleRate: 44100,
+        numSamples: 0,
         recording: false,
         __format: format,
         __channelBuffers: channelBuffers,
-        __recordingLength: 0,
         __recordingStream: null,
         __startFn: startFn,
         __audioDataFn: audioDataFn,
@@ -123,6 +123,9 @@ larch.media.audioCapture = function(numChannels, format, startFn, audioDataFn, d
             // creates the audio context
             var audioContext = window.AudioContext || window.webkitAudioContext;
             var context = new audioContext();
+
+            // Acquire the sample rate
+            capture.sampleRate = context.sampleRate;
 
             // Create a gain node
             var volume = context.createGain();
@@ -147,7 +150,7 @@ larch.media.audioCapture = function(numChannels, format, startFn, audioDataFn, d
                     // Clone the samples
                     capture.__channelBuffers[i].push(new Float32Array(samples));
                 }
-                capture.__recordingLength += bufferSize;
+                capture.numSamples += bufferSize;
             };
 
             // we connect the recorder
@@ -188,7 +191,7 @@ larch.media.audioCapture = function(numChannels, format, startFn, audioDataFn, d
             // Merge the buffers
             var merged = [];
             for (var i = 0; i < capture.numChannels; i++) {
-                merged.push(larch.media.__mergeAudioBuffers(capture.__channelBuffers[i], capture.__recordingLength));
+                merged.push(larch.media.__mergeAudioBuffers(capture.__channelBuffers[i], capture.numSamples));
             }
 
             // Interleave channels
@@ -215,7 +218,7 @@ larch.media.audioCapture = function(numChannels, format, startFn, audioDataFn, d
                 }
 
                 // our final binary blob that we can hand off
-                blob = new Blob ( [ view ], { type : 'audio/wav' } );
+                blob = new Blob ( [ view ], { type : 'application/octet-stream' } );
             }
             else if (capture.__format == 'raw') {
                 buffer = new ArrayBuffer(interleaved.length * 2);
@@ -228,7 +231,7 @@ larch.media.audioCapture = function(numChannels, format, startFn, audioDataFn, d
                 }
 
                 // our final binary blob that we can hand off
-                blob = new Blob ( [ view ], { type : 'audio/wav' } );
+                blob = new Blob ( [ view ], { type : 'application/octet-stream' } );
             }
             else if (capture.__format == 'raw8') {
                 buffer = new ArrayBuffer(interleaved.length);
@@ -241,7 +244,7 @@ larch.media.audioCapture = function(numChannels, format, startFn, audioDataFn, d
                 }
 
                 // our final binary blob that we can hand off
-                blob = new Blob ( [ view ], { type : 'audio/wav' } );
+                blob = new Blob ( [ view ], { type : 'application/octet-stream' } );
             }
             else if (capture.__format == 'wav') {
                 // create the buffer and view to create the .WAV file
@@ -295,6 +298,9 @@ larch.media.initAudioCaptureButton = function(node, options, numChannels, format
             var segment_id = larch.__getSegmentIDForEvent(node);
             var fd = new FormData();
             fd.append('__larch_segment_id', segment_id);
+            fd.append('num_channels', '' + capture.numChannels);
+            fd.append('sample_rate', '' + capture.sampleRate);
+            fd.append('num_samples', '' + capture.numSamples);
             fd.append('data', audioData);
             $.ajax({
                 data: fd,

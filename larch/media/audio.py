@@ -7,8 +7,11 @@ from larch.pres.html import Html
 
 def audio_capture_button(text, num_channels, format, audio_data_callback):
 	def _submit(event):
+		num_channels = int(event.data['num_channels'])
+		sample_rate = int(event.data['sample_rate'])
+		num_samples = int(event.data['num_samples'])
 		data_file = event.data['data'].file
-		audio_data_callback(data_file)
+		audio_data_callback(data_file, sample_rate, num_samples, num_channels)
 
 
 	#options = {'text': text}
