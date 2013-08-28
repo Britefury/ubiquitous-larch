@@ -2,6 +2,8 @@
 //-* This source code is (C)copyright Geoffrey French 2011-2013.
 //-*************************
 
+larch.controls = {};
+
 larch.controls.initCKEditor = function(textArea, config, immediate_events, channel) {
     var ignoreChanges = [false];
 

@@ -7,8 +7,6 @@ larch = {
     __segment_table: {}
 };
 
-larch.controls = {};
-
 
 larch.__getElementsOfClass = function(className, tagName) {
     if (document.getElementsByClassName) {
