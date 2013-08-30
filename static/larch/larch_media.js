@@ -67,7 +67,7 @@ larch.media.__writeStringToMemoryView = function(view, pos, string){
 
 // numChannels - number of channels - 1 or 2
 // format:
-//      'raw': raw 16-bit
+//      'raw16': raw 16-bit
 //      'raw8': raw 8-bit
 //      'rawf32': raw 32-bit float
 //      'wav' : 16-bit WAV file
@@ -92,7 +92,7 @@ larch.media.audioCapture = function(numChannels, format, startFn, audioDataFn, d
         throw 'Unsuppored number of channels: ' + numChannels;
     }
 
-    if (format !== 'raw'  &&  format != 'raw8'  &&  format != 'rawf32'  &&  format != 'wav') {
+    if (format !== 'raw16'  &&  format != 'raw8'  &&  format != 'rawf32'  &&  format != 'wav') {
         throw 'Unsuppored format: ' + format;
     }
 
@@ -220,7 +220,7 @@ larch.media.audioCapture = function(numChannels, format, startFn, audioDataFn, d
                 // our final binary blob that we can hand off
                 blob = new Blob ( [ view ], { type : 'application/octet-stream' } );
             }
-            else if (capture.__format == 'raw') {
+            else if (capture.__format == 'raw16') {
                 buffer = new ArrayBuffer(interleaved.length * 2);
                 view = new DataView(buffer);
 
@@ -289,10 +289,13 @@ larch.media.audioCapture = function(numChannels, format, startFn, audioDataFn, d
 
 
 
-larch.media.initAudioCaptureButton = function(node, options, numChannels, format) {
+larch.media.initAudioCaptureButton = function(node, numChannels, format) {
     var capture = larch.media.audioCapture(numChannels, format,
         function(capture) {
             noty({text: 'Recording', type:'warning', timeout: 2000, layout:'bottomCenter'});
+            button.button('option', 'label', 'Stop');
+            button.button('option', 'icons', {primary: 'ui-icon-stop', secondary: ''});
+            button.button('refresh');
         },
         function(catpure, audioData) {
             var segment_id = larch.__getSegmentIDForEvent(node);
@@ -321,13 +324,17 @@ larch.media.initAudioCaptureButton = function(node, options, numChannels, format
         }
     );
 
-    var button = $(node).button(options);
+    var q = $(node);
+    var button = q.button({label: 'Record', icons: {primary: 'ui-icon-play', secondary: ''}});
     button.click(function(ui, event) {
         if (!larch.media.hasGetUserMedia()) {
             noty({text: 'user media API unavailable', type:'error', timeout: 2000, layout:'bottomCenter'});
         }
         if (capture.recording) {
             capture.stopRecording();
+            button.button('option', 'label', 'Record');
+            button.button('option', 'icons', {primary: 'ui-icon-play', secondary: ''});
+            button.button('refresh');
         }
         else {
             capture.startRecording();

@@ -10,6 +10,7 @@ ularch_files = [
 	'Quick tour*.ularch',
 	'Tutorial*.ularch',
 	'Documentation*.ularch',
+	'Speech processing.ularch',
 ]
 
 
