@@ -69,7 +69,7 @@ def present_def_header(x):
 			separated_args.append(a)
 	doc = Html()
 	if x.__doc__ is not None  and  x.__doc__ != '':
-		doc = Html(Html.escape_str(x.__doc__))
+		doc = Html(Html.escape_str(x.__doc__).replace('\n', '<br>'))
 
 	return Html( *(['<div>' + _span('python_keyword', 'def') + ' ' + _span('python_defname', x.__name__) + ' ' + _open_paren] + separated_args + [_close_paren + '</div>', doc]))
 
