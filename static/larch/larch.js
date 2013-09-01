@@ -267,12 +267,16 @@ larch.__register_segments = function(q) {
 //
 //
 
-larch.__executeJS = function(js_code) {
+larch.__executeJS = function(js_code, context) {
     try {
         eval(js_code);
     }
     catch (e) {
-        console.log("Dynamic JS code execution: caught " + e + " when executing " + js_code);
+        console.log("Caught during " + context + ":");
+        console.log(e);
+        if (e.stack) {
+            console.log(e.stack);
+        }
     }
 };
 
@@ -294,7 +298,16 @@ larch.__executeNodeScripts = function(node_scripts) {
             // The 'unused' variable node is referenced by the source code contained in the initialiser; it is needed by eval()
             var node = nodes[j];        // <<-- DO NOT DELETE; needed by code executed by eval
             for (var k = 0; k < script.length; k++) {
-                eval(script[k]);
+                try {
+                    eval(script[k]);
+                }
+                catch (e) {
+                    console.log("Caught during execution of node script:");
+                    console.log(e);
+                    if (e.stack) {
+                        console.log(e.stack);
+                    }
+                }
             }
         }
     }
@@ -317,7 +330,16 @@ larch.__executePopupScripts = function(popup_scripts) {
         // The 'unused' variables popup_id nad nodes are referenced by the source code contained in the initialiser; it is needed by eval()
         var popup_id = segment_id;        // <<-- DO NOT DELETE; needed by code executed by eval
         var nodes = larch.__getNodesInActiveSegment(state);        // <<-- DO NOT DELETE; needed by code executed by eval
-        eval(script);
+        try {
+            eval(script);
+        }
+        catch (e) {
+            console.log("Caught during execution of popup script:");
+            console.log(e);
+            if (e.stack) {
+                console.log(e.stack);
+            }
+        }
     }
 };
 
@@ -610,7 +632,7 @@ larch.__serverMessageHandlers = {
     },
 
     execute_js: function(message) {
-        larch.__executeJS(message.js_code);
+        larch.__executeJS(message.js_code, "execution of JS from server");
     },
 
     add_dependencies: function(message) {

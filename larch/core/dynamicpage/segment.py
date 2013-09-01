@@ -150,7 +150,7 @@ class DynamicSegment (object):
 
 	# Shutdown
 	def get_shutdown_scripts(self):
-		return self.__initialise_scripts
+		return self.__shutdown_scripts
 
 
 	def add_shutdown_script(self, script):

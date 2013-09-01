@@ -41,15 +41,19 @@ class Pres (object):
 		return KeyEventSource(keys_and_handlers, self)
 
 
+
+	def _wrap_in_eval(self, init_scripts, shutdown_scripts):
+		return JSEval(self, init_scripts, shutdown_scripts)
+
 	def js_eval(self, expr):
 		if isinstance(expr, str)  or  isinstance(expr, unicode):
 			expr = js.JSExprSrc(expr)
 		elif not isinstance(expr, js.JS):
 			raise TypeError, 'Javascript expression must be a string or a JS object'
-		return JSInitEval(self, expr)
+		return self._wrap_in_eval([expr], [])
 
 	def js_function_call(self, js_fn_name, *args):
-		return JSInitEval(self, js.JSCall(js_fn_name, (_node_js,) + args))
+		return self._wrap_in_eval([js.JSCall(js_fn_name, (_node_js,) + args)], [])
 
 
 	def js_shutdown_eval(self, expr):
@@ -57,10 +61,10 @@ class Pres (object):
 			expr = js.JSExprSrc(expr)
 		elif not isinstance(expr, js.JS):
 			raise TypeError, 'Javascript expression must be a string or a JS object'
-		return JSShutdownEval(self, expr)
+		return self._wrap_in_eval([], [expr])
 
 	def js_shutdown_function_call(self, js_fn_name, *args):
-		return JSShutdownEval(self, js.JSCall(js_fn_name, (_node_js,) + args))
+		return self._wrap_in_eval([], [js.JSCall(js_fn_name, (_node_js,) + args)])
 
 
 	def use_css(self, url=None, source=None):
@@ -192,28 +196,23 @@ class EventSource (SubSegmentPres):
 
 
 class JSEval (SubSegmentPres):
-	def __init__(self, child, expr):
+	def __init__(self, child, init_scripts, shutdown_scripts):
 		super(JSEval, self).__init__(child)
-		self._expr = expr
+		self.__init_scripts = init_scripts
+		self.__shutdown_scripts = shutdown_scripts
 
 
 	def initialise_segment(self, seg, pres_ctx):
-		raise NotImplementedError, 'abstract'
+		for init_script in self.__init_scripts:
+			init_src = init_script.build_js(pres_ctx)
+			seg.add_initialise_script(init_src)
+		for shutdown_script in self.__shutdown_scripts:
+			shutdown_src = shutdown_script.build_js(pres_ctx)
+			seg.add_shutdown_script(shutdown_src)
 
 
-
-class JSInitEval (JSEval):
-	def initialise_segment(self, seg, pres_ctx):
-		expr_src = self._expr.build_js(pres_ctx)
-		seg.add_initialise_script(expr_src)
-
-
-
-class JSShutdownEval (JSEval):
-	def initialise_segment(self, seg, pres_ctx):
-		expr_src = self._expr.build_js(pres_ctx)
-		seg.add_shutdown_script(expr_src)
-
+	def _wrap_in_eval(self, init_scripts, shutdown_scripts):
+		return JSEval(self._child, init_scripts + self.__init_scripts, self.__shutdown_scripts + shutdown_scripts)
 
 
 class AddDependency (SubSegmentPres):

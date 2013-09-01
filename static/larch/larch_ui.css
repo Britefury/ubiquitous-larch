@@ -5,3 +5,16 @@
 .larch_ui_focused {
     box-shadow: -1px 6px 21px #6c7884 !important;
 }
+
+
+.__larch_ui_ckeditor_edit_popover {
+    position: relative;
+    float: right;
+    background: rgba(0,0,0,0.7);
+    border: 1px solid rgba(0.5, 0.5, 0.5, 0.7);
+    border-radius: 5px;
+    box-shadow: 0 3px 5px #bbb;
+    padding: 3px 10px;
+
+    color: #fff;
+}
