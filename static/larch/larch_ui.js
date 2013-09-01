@@ -116,9 +116,11 @@ larch.controls.initCKEditorWithEditButton = function(node, config, immediate_eve
     // The edit button pop over
     var editButton = $('<button>Edit</button>');
     editButton.button({icons: {primary: 'ui-icon-pencil'}});
-    var editPopOver = $('<div class="__larch_ui_ckeditor_edit_popover"></div>');
-    editPopOver.append(editButton);
-    editPopOver.append(' (or Alt-click)');
+    var editPopOver = $('<div class="__larch_ui_ckeditor_edit_popover_container"></div>');
+    var editPopOverInner = $('<div class="__larch_ui_ckeditor_edit_popover"></div>');
+    editPopOverInner.append(editButton);
+    editPopOverInner.append(' (or Alt-click)');
+    editPopOver.append(editPopOverInner);
 
     editButton.click(function (ui, event) {
         editor.startEditing();
@@ -169,14 +171,7 @@ larch.controls.initCKEditorWithEditButton = function(node, config, immediate_eve
     };
 
 
-    // Display the pop-over on hover
-    editor.outerQ.hover(
-        function (event) {
-            editor.outerQ.prepend(editPopOver);
-        },
-        function (event) {
-            editPopOver.detach();
-        });
+    editor.outerQ.prepend(editPopOver);
 
     // Edit on alt-click
     editor.outerQ.click(function (event) {

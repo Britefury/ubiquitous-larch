@@ -8,8 +8,11 @@
 
 
 .__larch_ui_ckeditor_edit_popover {
-    position: relative;
-    float: right;
+    display: none;
+
+    width: 10em;
+    margin: 0 1em 0 auto;
+
     background: rgba(0,0,0,0.7);
     border: 1px solid rgba(0.5, 0.5, 0.5, 0.7);
     border-radius: 5px;
@@ -17,4 +20,17 @@
     padding: 3px 10px;
 
     color: #fff;
+}
+
+.__larch_ui_ckeditor_edit_popover_container {
+    position: absolute;
+    width: 95%;
+}
+
+.__larch_ui_ckeditor_edit_container:hover .__larch_ui_ckeditor_edit_popover {
+    display: block;
+}
+
+.__larch_ui_ckeditor_edit_container {
+    min-height: 1em;
 }

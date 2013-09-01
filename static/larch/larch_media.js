@@ -71,12 +71,13 @@ larch.media.__writeStringToMemoryView = function(view, pos, string){
 //      'raw8': raw 8-bit
 //      'rawf32': raw 32-bit float
 //      'wav' : 16-bit WAV file
+// gotCaptureFn is a callback of the form function(capture_object) that is called when the user allows access to the audio capture
+// deniedFn is a callback of the form function(capture_object) that is called when the user denies access to the audio capture
 // startFn is a callback of the form function(capture_object) that is called when recording starts
 // audioDataFn: function of the form function(capture_object, audioData)
 //      audioData is a list of channels, each of which is a blob. Note that the 'wav' format only generates 1 blob, which is the WAV file
-// deniedFn is a callback of the form function(capture_object) that is called when the user denies access to the audio capture
 
-larch.media.audioCapture = function(numChannels, format, startFn, audioDataFn, deniedFn) {
+larch.media.audioCapture = function(numChannels, format, gotCaptureFn, deniedFn, startFn, audioDataFn) {
     //
     //
     // ADAPTED FROM
@@ -97,10 +98,7 @@ larch.media.audioCapture = function(numChannels, format, startFn, audioDataFn, d
     }
 
 
-    var channelBuffers = [];
-    for (var i = 0; i < numChannels; i++) {
-        channelBuffers.push([]);
-    }
+
 
     // Capture object
 
@@ -108,13 +106,25 @@ larch.media.audioCapture = function(numChannels, format, startFn, audioDataFn, d
         numChannels: numChannels,
         sampleRate: 44100,
         numSamples: 0,
+        gotCapture: false,
         recording: false,
         __format: format,
-        __channelBuffers: channelBuffers,
+        __channelBuffers: null,
+        __sampleCount: 0,
         __recordingStream: null,
+        __gotCaptureFn: gotCaptureFn,
+        __deniedFn: deniedFn,
         __startFn: startFn,
         __audioDataFn: audioDataFn,
-        __deniedFn: deniedFn,
+
+        // Initialise channel buffers
+        __initChannelBuffers: function() {
+            capture.__channelBuffers = [];
+            capture.__sampleCount = 0;
+            for (var i = 0; i < capture.numChannels; i++) {
+                capture.__channelBuffers.push([]);
+            }
+        },
 
 
 
@@ -145,21 +155,22 @@ larch.media.audioCapture = function(numChannels, format, startFn, audioDataFn, d
             var recorder = context.createJavaScriptNode(bufferSize, capture.numChannels, capture.numChannels);
 
             recorder.onaudioprocess = function(e){
-                for (var i = 0; i < capture.numChannels; i++) {
-                    var samples = e.inputBuffer.getChannelData(i);
-                    // Clone the samples
-                    capture.__channelBuffers[i].push(new Float32Array(samples));
+                if (capture.recording) {
+                    for (var i = 0; i < capture.numChannels; i++) {
+                        var samples = e.inputBuffer.getChannelData(i);
+                        // Clone the samples
+                        capture.__channelBuffers[i].push(new Float32Array(samples));
+                    }
+                    capture.__sampleCount += bufferSize;
                 }
-                capture.numSamples += bufferSize;
             };
 
             // we connect the recorder
             volume.connect (recorder);
             recorder.connect (context.destination);
 
-            capture.__startFn(capture);
-
-            capture.recording = true;
+            capture.gotCapture = true;
+            capture.__gotCaptureFn(capture);
         },
 
         __failure: function(e) {
@@ -167,7 +178,9 @@ larch.media.audioCapture = function(numChannels, format, startFn, audioDataFn, d
         },
 
 
-        startRecording: function() {
+        acquireCapture: function() {
+            capture.__initChannelBuffers();
+
             if (navigator.getUserMedia) {
                 navigator.getUserMedia({video: false, audio: true}, capture.__success, capture.__failure);
             }
@@ -182,16 +195,22 @@ larch.media.audioCapture = function(numChannels, format, startFn, audioDataFn, d
             }
         },
 
+        startRecording: function() {
+            if (capture.__recordingStream !== null) {
+                capture.recording = true;
+                capture.__startFn(capture);
+            }
+        },
+
         stopRecording: function() {
             if (capture.__recordingStream !== null) {
                 capture.recording = false;
-                capture.__recordingStream.stop();
             }
 
             // Merge the buffers
             var merged = [];
             for (var i = 0; i < capture.numChannels; i++) {
-                merged.push(larch.media.__mergeAudioBuffers(capture.__channelBuffers[i], capture.numSamples));
+                merged.push(larch.media.__mergeAudioBuffers(capture.__channelBuffers[i], capture.__sampleCount));
             }
 
             // Interleave channels
@@ -280,7 +299,12 @@ larch.media.audioCapture = function(numChannels, format, startFn, audioDataFn, d
                 blob = new Blob ( [ view ], { type : 'audio/wav' } );
             }
 
+            // Put the value in __sampleCount into numSamples
+            capture.numSamples = capture.__sampleCount;
+
             capture.__audioDataFn(capture, blob);
+
+            capture.__initChannelBuffers();
         }
     };
 
@@ -291,12 +315,28 @@ larch.media.audioCapture = function(numChannels, format, startFn, audioDataFn, d
 
 larch.media.initAudioCaptureButton = function(node, numChannels, format) {
     var capture = larch.media.audioCapture(numChannels, format,
+        // Got capture callback
+        function(capture) {
+            button.button('option', 'label', 'Record');
+            button.button('option', 'icons', {primary: 'ui-icon-play', secondary: ''});
+            button.button('refresh');
+        },
+        // Denied access callback
+        function(capture) {
+            noty({text: 'User denied access to microphone', type:'alert', timeout: 2000, layout:'bottomCenter'});
+            button.button('option', 'label', 'Denied');
+            button.button('option', 'icons', {primary: 'ui-icon-alert', secondary: ''});
+            button.button('option', 'disabled', true);
+            button.button('refresh');
+        },
+        // Started recording callback
         function(capture) {
             noty({text: 'Recording', type:'warning', timeout: 2000, layout:'bottomCenter'});
             button.button('option', 'label', 'Stop');
             button.button('option', 'icons', {primary: 'ui-icon-stop', secondary: ''});
             button.button('refresh');
         },
+        // Audio data callback
         function(catpure, audioData) {
             var segment_id = larch.__getSegmentIDForEvent(node);
             var fd = new FormData();
@@ -318,26 +358,28 @@ larch.media.initAudioCaptureButton = function(node, numChannels, format) {
             });
 
             noty({text: 'Stopped', type:'success', timeout: 2000, layout:'bottomCenter'});
-        },
-        function(capture) {
-            noty({text: 'User denied access to microphone', type:'alert', timeout: 2000, layout:'bottomCenter'});
         }
     );
 
     var q = $(node);
-    var button = q.button({label: 'Record', icons: {primary: 'ui-icon-play', secondary: ''}});
+    var button = q.button({label: 'Get mic', icons: {primary: 'ui-icon-unlocked', secondary: ''}});
     button.click(function(ui, event) {
         if (!larch.media.hasGetUserMedia()) {
             noty({text: 'user media API unavailable', type:'error', timeout: 2000, layout:'bottomCenter'});
         }
-        if (capture.recording) {
-            capture.stopRecording();
-            button.button('option', 'label', 'Record');
-            button.button('option', 'icons', {primary: 'ui-icon-play', secondary: ''});
-            button.button('refresh');
+        if (!capture.gotCapture) {
+            capture.acquireCapture();
         }
         else {
-            capture.startRecording();
+            if (capture.recording) {
+                capture.stopRecording();
+                button.button('option', 'label', 'Record');
+                button.button('option', 'icons', {primary: 'ui-icon-play', secondary: ''});
+                button.button('refresh');
+            }
+            else {
+                capture.startRecording();
+            }
         }
     });
 };

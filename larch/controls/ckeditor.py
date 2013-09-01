@@ -53,7 +53,7 @@ class ckeditor (CompositePres):
 				self.__on_blur(event)
 
 		if self.__use_edit_button:
-			p = Html(u'<div><div>{text}</div></div>'.format(text=self.__text)).js_function_call('larch.controls.initCKEditorWithEditButton', self.__config, self.__immediate_events, self.__channel)
+			p = Html(u'<div class="__larch_ui_ckeditor_edit_container"><div>{text}</div></div>'.format(text=self.__text)).js_function_call('larch.controls.initCKEditorWithEditButton', self.__config, self.__immediate_events, self.__channel)
 		else:
 			p = Html(u'<div contenteditable="true">{text}</div>'.format(text=self.__text))
 			p = p.js_function_call('larch.controls.initCKEditor', self.__config, self.__immediate_events, self.__channel)

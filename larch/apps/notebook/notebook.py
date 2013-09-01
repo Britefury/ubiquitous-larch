@@ -54,7 +54,7 @@ class NotebookBlockText (NotebookBlock):
 
 
 	def __present__(self, fragment):
-		p = ckeditor.live_ckeditor(self.__text)
+		p = ckeditor.live_ckeditor(self.__text, use_edit_button=True)
 
 		p = Html('<div class="notebook_block notebook_richtext">', p, '</div>')
 		p = focusable.focusable(p)
