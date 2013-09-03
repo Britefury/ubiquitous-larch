@@ -345,3 +345,16 @@ class GLSLCode (AbstractSourceCode):
 		'indentUnit': 4,
 		'matchBrackets': True
 	}
+
+
+
+class ShellCode (AbstractSourceCode):
+	__codemirror_modes__ = ['shell']
+	__codemirror_config__ = {
+		'mode' : {
+				'name': 'shell',
+		},
+		'lineNumbers': True,
+		'indentUnit': 4,
+		'matchBrackets': True
+	}

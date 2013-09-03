@@ -492,7 +492,7 @@ class ConsoleList (object):
 		return len(self.__consoles)
 
 	def new_console(self):
-		con = console.Console()
+		con = console.PythonConsole()
 		self.__consoles.append(con)
 		self.__incr.on_changed()
 

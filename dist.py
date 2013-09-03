@@ -11,6 +11,7 @@ ularch_files = [
 	'Tutorial*.ularch',
 	'Documentation*.ularch',
 	'Speech processing.ularch',
+	'Shell.ularch',
 ]
 
 
