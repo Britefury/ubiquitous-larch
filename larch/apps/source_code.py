@@ -56,6 +56,11 @@ class AbstractSourceCode (object):
 		return self.__code.static_value
 
 
+	@property
+	def source_text_live(self):
+		return self.__code
+
+
 
 	def _filter_source_text(self, text):
 		"""
