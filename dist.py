@@ -12,6 +12,8 @@ ularch_files = [
 	'Documentation*.ularch',
 	'Speech processing.ularch',
 	'Shell.ularch',
+	'Function plotter.ularch',
+	'Turtle.ularch',
 ]
 
 

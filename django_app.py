@@ -142,6 +142,11 @@ __login_template = Template("""
 	<tr><td></td><td><input id="submit_button" type="submit" value="Login"/></td></tr>
 </table>
 </form>
+
+{% if prompt == 'Bad login' %}
+<p>Invalid username or password; please try again.</p>
+{% endif %}
+
 </div>
 
 <script type="text/javascript">
@@ -153,8 +158,12 @@ __login_template = Template("""
 
 
 def login_form(request):
-	ctx = RequestContext(request)
-	return HttpResponse(__login_template.render(ctx), content_type='text/html')
+	django_user = request.user
+	if django_user.is_authenticated():
+		return redirect('/pages')
+	else:
+		ctx = RequestContext(request)
+		return HttpResponse(__login_template.render(ctx), content_type='text/html')
 
 
 def process_login(request):
@@ -165,7 +174,7 @@ def process_login(request):
 		login(request, user)
 		return redirect('/pages')
 	else:
-		ctx = RequestContext(request, prompt='Bad login')
+		ctx = RequestContext(request, {'prompt': 'Bad login'})
 		return HttpResponse(__login_template.render(ctx), content_type='text/html')
 
 
