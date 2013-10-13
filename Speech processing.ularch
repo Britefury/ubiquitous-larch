@@ -243,7 +243,7 @@ Ntp98
 Rp99
 (dp100
 g27
-Vimport numpy as np\u000aimport pylab\u000aimport scipy\u000a\u000a\u000adata = sample.audio_data.value\u000ay=np.frombuffer(data, dtype='short').astype('float') * (1.0/0x7fff)\u000a\u000ascale_factor = int(sample_rate)/11000\u000a\u000ay = scipy.signal.resample(y, len(y)/scale_factor)\u000asample_rate = sample_rate / scale_factor\u000a\u000alen(y)
+Vimport numpy as np\u000aimport pylab\u000aimport scipy\u000aimport math\u000aimport sys\u000a\u000a\u000adata = sample.audio_data.value\u000ay=np.frombuffer(data, dtype='short').astype('float') * (1.0/0x7fff)\u000a\u000ascale_factor = int(sample_rate)/11000\u000a\u000ay = scipy.signal.resample(y, len(y)/scale_factor)\u000asample_rate = sample_rate / scale_factor\u000a\u000alen(y)
 p101
 sg33
 I01
@@ -274,7 +274,7 @@ Ntp109
 Rp110
 (dp111
 g27
-VFRAME_PERIOD = 0.02    # 20 ms frames\u000aFRAME_OFFSET = 0.01		# 10 ms apart\u000aHIGH_FREQ_CUTOFF = 4000	# 4KHz\u000aNUM_MEL_FILTERS = 30\u000aNOISE_SUPPRESSION = 0.000003\u000a
+VFRAME_PERIOD = 0.02    # 20 ms frames\u000aFRAME_OFFSET = 0.01		# 10 ms apart\u000aHIGH_FREQ_CUTOFF = 5000	# 4KHz\u000aNUM_MEL_FILTERS = 30\u000a#NOISE_SUPPRESSION = 0.000003\u000aNOISE_SUPPRESSION = 0\u000a
 p112
 sg33
 I01
@@ -429,7 +429,7 @@ Ntp164
 Rp165
 (dp166
 g27
-V# Convert to frequency domain. Save the phase information to allow reconstruction of the original audio.\u000acomplex_spectra = [fft(b)   for b in blocks]\u000athetas = [np.angle(c)   for c in complex_spectra]\u000a# Discard the DC component\u000acomplex_spectra = [c[1:]   for c in complex_spectra]\u000a\u000a# Get an array of frequencies that are represented\u000afrequencies = np.arange(1,complex_spectra[0].size+1) * frame_freq\u000a\u000a# Choose frequences less that the cut-off\u000aselection = [i   for i, f in enumerate(frequencies)   if f <= HIGH_FREQ_CUTOFF]\u000a\u000as_complex_spectra = [f[selection]   for f in complex_spectra]\u000as_frequencies = frequencies[selection]\u000a\u000a# Get power spectra\u000apower_spectra = [abs(c)**2   for c in s_complex_spectra]\u000a\u000a# Suppress noise\u000apeak = max([p.max()   for p in power_spectra])\u000anoise_threshold = peak * NOISE_SUPPRESSION\u000a\u000afor p in power_spectra:\u000a    low_value_flags = p < noise_threshold\u000a    p[low_value_flags] = 0.0\u000a\u000alen(s_frequencies)
+V# Convert to frequency domain. Save the phase information to allow reconstruction of the original audio.\u000acomplex_spectra = [fft(b)   for b in blocks]\u000athetas = [np.angle(c)   for c in complex_spectra]\u000a# Discard the DC component\u000acomplex_spectra = [c[1:]   for c in complex_spectra]\u000a\u000a# Get an array of frequencies that are represented\u000afrequencies = np.arange(1,complex_spectra[0].size+1) * frame_freq\u000a\u000a# Choose frequences less that the cut-off\u000aselection = [i   for i, f in enumerate(frequencies)   if f <= HIGH_FREQ_CUTOFF]\u000a\u000as_complex_spectra = [f[selection]   for f in complex_spectra]\u000as_frequencies = frequencies[selection]\u000a\u000a# Get power spectra\u000apower_spectra = [abs(c)**2   for c in s_complex_spectra]\u000a\u000a# Suppress noise\u000apeak = max([p.max()   for p in power_spectra])\u000anoise_threshold = peak * NOISE_SUPPRESSION\u000a\u000afor p in power_spectra:\u000a    low_value_flags = p < noise_threshold\u000a    p[low_value_flags] = 0.0\u000a    \u000a    \u000a# Randomise thetas\u000a#thetas = [np.random.random(len(t))*math.pi   for t in thetas]\u000a\u000alen(s_frequencies)
 p167
 sg33
 I01
@@ -491,7 +491,7 @@ Ntp186
 Rp187
 (dp188
 g27
-V# Display the log power spectra\u000alog_power_spectra = np.log(power_spectra)\u000a\u000apylab.figure(figsize=(16,6))\u000apylab.imshow(log_power_spectra.transpose(), origin='lower', cmap='binary',aspect=5, interpolation='bicubic')\u000apylab.show()
+V# Display the log power spectra\u000alog_power_spectra = np.log(np.array(power_spectra)+0.01)\u000a\u000apylab.figure(figsize=(16,6))\u000apylab.imshow(log_power_spectra.transpose(), origin='lower', cmap='binary',aspect=1, interpolation='bicubic')\u000apylab.show()
 p189
 sg33
 I01
@@ -553,8 +553,28 @@ Ntp208
 Rp209
 (dp210
 g27
-Vdef apply_mel_filter(pwr_spectra):\u000a    return [np.dot(p, filters)   for p in pwr_spectra]\u000a\u000adef inverse_mel_filter(filtered):\u000a    return [np.dot(filters, f)   for f in filtered]\u000a\u000a\u000a\u000awav_from_power_spectra(inverse_mel_filter(apply_mel_filter(power_spectra)), frame_off_samples, frame_samples, sample_rate)
+Vdef apply_mel_filter(pwr_spectra):\u000a    return [np.dot(p, filters)   for p in pwr_spectra]\u000a\u000adef inverse_mel_filter(filtered):\u000a    return [np.dot(filters, f)   for f in filtered]\u000a\u000a\u000apylab.figure(figsize=(12,8))\u000amel_filtered = np.array(apply_mel_filter(power_spectra)).transpose()\u000a#pylab.plot(features)\u000apylab.imshow(mel_filtered, origin='lower', aspect=4, interpolation='none')\u000apylab.show()\u000a
 p211
+sg33
+I01
+sbsg34
+g42
+sbag0
+(g23
+g2
+Ntp212
+Rp213
+(dp214
+g27
+g0
+(g28
+g2
+Ntp215
+Rp216
+(dp217
+g27
+Vwav_from_power_spectra(inverse_mel_filter(apply_mel_filter(power_spectra)), frame_off_samples, frame_samples, sample_rate)
+p218
 sg33
 I01
 sbsg34
@@ -562,33 +582,13 @@ g42
 sbag0
 (g45
 g2
-Ntp212
-Rp213
-(dp214
-g49
-V<p>Apply MFCC:</p>
-p215
-sg34
-g42
-sbag0
-(g23
-g2
-Ntp216
-Rp217
-(dp218
-g27
-g0
-(g28
-g2
 Ntp219
 Rp220
 (dp221
-g27
-Vdef mfcc(pwr_spectrum):\u000a    filteredSpec = pwr_spectrum\u000a    filteredSpec = np.dot(pwr_spectrum, filters)\u000a    logSpec = np.log(filteredSpec)\u000a    res = dct(logSpec, type=2)\u000a    return res\u000a\u000a\u000adef inv_mfcc(m):\u000a    logSpec = dct(m, type=3)\u000a    filteredSpec = np.exp(logSpec)\u000a    return np.dot(filters, filteredSpec.transpose())\u000a\u000adef wav_from_mfcc(m, frame_off_samples, frame_samples, sample_rate):\u000a    pow_spec = [inv_mfcc(x)   for x in m]\u000a    return wav_from_power_spectra(pow_spec, frame_off_samples, frame_samples, sample_rate)\u000a\u000a\u000a\u000am = [mfcc(p)   for p in power_spectra]\u000a\u000a\u000a\u000a\u000af = np.array(m, dtype=float)\u000a#f=f.transpose()\u000apylab.figure(figsize=(12,8))\u000afeatures = f.transpose()[:][1:12]\u000a#pylab.plot(features)\u000apylab.imshow(features, origin='lower', aspect=25, interpolation='none')\u000apylab.show()\u000a
+g49
+V<p>Apply MFCC:</p>
 p222
-sg33
-I01
-sbsg34
+sg34
 g42
 sbag0
 (g23
@@ -604,15 +604,35 @@ Ntp226
 Rp227
 (dp228
 g27
-Vwav_from_mfcc(m, frame_off_samples, frame_samples, sample_rate)
+Vdef mfcc(pwr_spectrum):\u000a    filteredSpec = pwr_spectrum\u000a    filteredSpec = np.dot(pwr_spectrum, filters)\u000a    logSpec = np.log(filteredSpec+1)\u000a    res = dct(logSpec, type=2)\u000a    return res\u000a\u000a\u000adef inv_mfcc(m):\u000a    logSpec = dct(m, type=3)\u000a    filteredSpec = np.exp(logSpec) - 1\u000a    return np.dot(filters, filteredSpec)\u000a\u000a\u000adef wav_from_mfcc(m, frame_off_samples, frame_samples, sample_rate):\u000a    pow_spec = [inv_mfcc(x)   for x in m]\u000a    return wav_from_power_spectra(pow_spec, frame_off_samples, frame_samples, sample_rate)\u000a\u000a\u000a\u000am = [mfcc(p)   for p in power_spectra]\u000a\u000a\u000a\u000af = np.array(m, dtype=float)\u000a#f=f.transpose()\u000apylab.figure(figsize=(12,8))\u000afeatures = f.transpose()[:][1:12]\u000a#pylab.plot(features)\u000apylab.imshow(features, origin='lower', aspect=10, interpolation='none')\u000apylab.show()\u000a
 p229
+sg33
+I01
+sbsg34
+g42
+sbag0
+(g23
+g2
+Ntp230
+Rp231
+(dp232
+g27
+g0
+(g28
+g2
+Ntp233
+Rp234
+(dp235
+g27
+Vwav_from_mfcc(m, frame_off_samples, frame_samples, sample_rate)
+p236
 sg33
 I01
 sbsg34
 g42
 sbasbsg35
 Vprocessing
-p230
+p237
 sg37
 I1
 sbasb.
