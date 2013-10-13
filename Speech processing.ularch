@@ -119,7 +119,7 @@ Ntp54
 Rp55
 (dp56
 g27
-Vfrom ap import sample
+Vfrom ap import sample\u000afrom larch.media import audio\u000a\u000a# Function to make wav player from numpy array\u000adef wav_player_from_np_array(y, sample_rate):\u000a    scaled = y * 0x7fff\u000a    raw16_np = np.array(scaled, dtype='short')\u000a    raw16_buffer = str(np.getbuffer(raw16_np))\u000a    return audio.wav_player_from_data(audio.raw16_to_wav(raw16_buffer, sample_rate, 1))\u000a
 p57
 sg33
 I01
@@ -225,7 +225,7 @@ Ntp91
 Rp92
 (dp93
 g49
-V<h2>Settings:</h2>
+V<h2>Convert to numpy array and resample:</h2>
 p94
 sg34
 g42
@@ -243,7 +243,7 @@ Ntp98
 Rp99
 (dp100
 g27
-VFRAME_PERIOD = 0.1    # 100 ms frames\u000aFRAME_OFFSET = 0.02		# 20 ms apart\u000aHIGH_FREQ_CUTOFF = 4000	# 5KHz\u000aNUM_MEL_FILTERS = 20\u000aNOISE_SUPPRESSION = 0.000003\u000a
+Vimport numpy as np\u000aimport pylab\u000aimport scipy\u000a\u000a\u000adata = sample.audio_data.value\u000ay=np.frombuffer(data, dtype='short').astype('float') * (1.0/0x7fff)\u000a\u000ascale_factor = int(sample_rate)/11000\u000a\u000ay = scipy.signal.resample(y, len(y)/scale_factor)\u000asample_rate = sample_rate / scale_factor\u000a\u000alen(y)
 p101
 sg33
 I01
@@ -256,7 +256,7 @@ Ntp102
 Rp103
 (dp104
 g49
-V<h2>Convert to numpy array and plot:</h2>
+V<h2>Settings:</h2>
 p105
 sg34
 g42
@@ -274,7 +274,7 @@ Ntp109
 Rp110
 (dp111
 g27
-Vimport numpy as np\u000aimport pylab\u000a\u000adata = sample.audio_data.value\u000ay=np.frombuffer(data, dtype='short') * 1.0/0x7fff\u000a\u000a\u000adef plot_waveform(y):\u000a    pylab.figure()\u000a    pylab.plot(np.arange(y.size)*1000/sample_rate,y)\u000a    pylab.xlabel('Time (ms)')\u000a    return pylab.show()\u000a\u000a\u000aplot_waveform(y)
+VFRAME_PERIOD = 0.02    # 20 ms frames\u000aFRAME_OFFSET = 0.01		# 10 ms apart\u000aHIGH_FREQ_CUTOFF = 4000	# 4KHz\u000aNUM_MEL_FILTERS = 30\u000aNOISE_SUPPRESSION = 0.000003\u000a
 p112
 sg33
 I01
@@ -287,7 +287,7 @@ Ntp113
 Rp114
 (dp115
 g49
-V<h2>Using hamming window to split into 20ms segments</h2><h3>Generate the window first:</h3>
+V<h2>Plot:</h2>
 p116
 sg34
 g42
@@ -305,7 +305,7 @@ Ntp120
 Rp121
 (dp122
 g27
-Vfrom scipy import signal\u000afrom scipy.fftpack import fft, fftshift\u000awindow = signal.hamming(51)\u000apylab.figure()\u000apylab.plot(window)\u000apylab.title("Hamming window")\u000apylab.ylabel("Amplitude")\u000apylab.xlabel("Sample")\u000apylab.show()\u000a
+V\u000a\u000a\u000adef plot_waveform(y):\u000a    pylab.figure(figsize=(16,6))\u000a    pylab.plot(np.arange(y.size)*1000/sample_rate,y)\u000a    pylab.xlabel('Time (ms)')\u000a    return pylab.show()\u000a\u000a\u000aplot_waveform(y)
 p123
 sg33
 I01
@@ -318,7 +318,7 @@ Ntp124
 Rp125
 (dp126
 g49
-V<p>Apply the hamming window:</p>
+V<h2>Using hamming window to split into 20ms segments</h2><h3>Generate the window first:</h3>
 p127
 sg34
 g42
@@ -336,7 +336,7 @@ Ntp131
 Rp132
 (dp133
 g27
-Vdef apply_window(x, N, step):\u000a    window = signal.hamming(N)\u000a    \u000a    res = []\u000a    for i in xrange(0,x.size-N,step):\u000a        res.append(x[i:i+N])\u000a    return res\u000a\u000adef period_to_window_size(time):\u000a    return int(sample.audio_sample_rate.value * time)\u000a\u000a\u000a\u000aframe_freq = 1.0 / FRAME_PERIOD\u000aframe_time_offset = FRAME_PERIOD * 0.5\u000aframe_samples = period_to_window_size(FRAME_PERIOD)\u000aframe_off_samples = period_to_window_size(FRAME_OFFSET)\u000a\u000a  \u000a\u000ablocks = apply_window(y,frame_samples,frame_off_samples)\u000a\u000aframe_samples, len(blocks)
+Vfrom scipy import signal\u000afrom scipy.fftpack import fft, fftshift, ifft\u000awindow = signal.hanning(51)\u000apylab.figure()\u000apylab.plot(window)\u000apylab.title("Hamming window")\u000apylab.ylabel("Amplitude")\u000apylab.xlabel("Sample")\u000apylab.show()\u000a
 p134
 sg33
 I01
@@ -349,7 +349,7 @@ Ntp135
 Rp136
 (dp137
 g49
-V<h2>Use FFT to convert to frequency domain</h2><p>The windowing function removes all frequences below 50hz.</p><p>Discard everything above 5khz</p>
+V<p>Apply the hamming window:</p>
 p138
 sg34
 g42
@@ -367,7 +367,7 @@ Ntp142
 Rp143
 (dp144
 g27
-Vcomplex_spectra = [fft(b)[1:]   for b in blocks]\u000a\u000afrequencies = np.arange(1,complex_spectra[0].size+1) * frame_freq\u000a\u000aselection = [i   for i, f in enumerate(frequencies)   if f <= HIGH_FREQ_CUTOFF]\u000a\u000as_complex_spectra = [f[selection]   for f in complex_spectra]\u000as_frequencies = frequencies[selection]\u000a\u000apower_spectra = [abs(c)**2   for c in s_complex_spectra]\u000a\u000apeak = max([p.max()   for p in power_spectra])\u000anoise_threshold = peak * NOISE_SUPPRESSION\u000a\u000apower_spectra = [p.clip(noise_threshold,peak)   for p in power_spectra]\u000a\u000alen(s_frequencies)
+Vdef apply_window(x, N, step):\u000a    window = signal.hanning(N)\u000a    \u000a    res = []\u000a    for i in xrange(0,x.size-N,step):\u000a        res.append(x[i:i+N])\u000a    return res\u000a\u000adef period_to_window_size(time):\u000a    return int(sample_rate * time)\u000a\u000a\u000a\u000aframe_freq = 1.0 / FRAME_PERIOD\u000aframe_time_offset = FRAME_PERIOD * 0.5\u000aframe_samples = period_to_window_size(FRAME_PERIOD)\u000aframe_off_samples = period_to_window_size(FRAME_OFFSET)\u000a\u000a  \u000a\u000ablocks = apply_window(y,frame_samples,frame_off_samples)\u000a\u000aframe_samples, len(blocks)
 p145
 sg33
 I01
@@ -380,7 +380,7 @@ Ntp146
 Rp147
 (dp148
 g49
-V<p>Plot frequency data:</p>
+V<p>Invert the hamming procedure:</p>
 p149
 sg34
 g42
@@ -398,7 +398,7 @@ Ntp153
 Rp154
 (dp155
 g27
-Vpylab.figure(figsize=(6,8))\u000apylab.imshow(np.log(np.array(power_spectra)).transpose(), origin='lower', cmap='gray',aspect=1, interpolation='none')\u000apylab.show()
+Vdef join_frames(frames, frame_offset, frame_size):\u000a    size = frame_size + frame_offset * (len(blocks)-1)\u000a    a = np.zeros(size)\u000a    off = 0\u000a    for frame in frames:\u000a        z = np.zeros(size)\u000a        z[off:off+frame_size] = frame\u000a        a = a + z\u000a        off += frame_offset\u000a    return a\u000a\u000adef wav_player_from_frames(frames, frame_offset, frame_size, sample_rate):\u000a    return wav_player_from_np_array(join_frames(frames, frame_offset, frame_size), sample_rate)\u000a\u000awav_player_from_frames(blocks, frame_off_samples, frame_samples, sample_rate)\u000a
 p156
 sg33
 I01
@@ -411,7 +411,7 @@ Ntp157
 Rp158
 (dp159
 g49
-V<h2>Apply Mel filter bank</h2><p>Generate the filters:</p>
+V<h2>Use FFT to convert to frequency domain</h2><p>The windowing function removes all frequences below 50hz.</p><p>Discard everything above 5khz</p>
 p160
 sg34
 g42
@@ -429,7 +429,7 @@ Ntp164
 Rp165
 (dp166
 g27
-Vfrom scipy.fftpack import dct\u000aimport scipy\u000aimport math\u000a\u000a\u000adef melFilterBank(numFilters, frequencies):\u000a    minHz = min(frequencies)\u000a    maxHz = max(frequencies)\u000a    minMel = freqToMel(minHz)\u000a    maxMel = freqToMel(maxHz)\u000a    \u000a    numPoints = numFilters + 2\u000a        \u000a    points = melToFreq(np.linspace(minMel, maxMel, numPoints))\u000a    \u000a    filterMatrix = np.zeros((numFilters, frequencies.size))\u000a    \u000a    for i in xrange(numFilters):\u000a        start = points[i]\u000a        centre = points[i+1]\u000a        end = points[i+2]\u000a        \u000a        f = scipy.interpolate.interp1d([minHz-1, start,centre,end, maxHz+1], [0.0, 0.0,1.0,0.0, 0.0])\u000a        coeffs = f(frequencies)\u000a        filterMatrix[i] = coeffs\u000a        \u000a        \u000a    return filterMatrix.transpose()\u000a        \u000a    \u000a    \u000a    \u000adef freqToMel(freq):\u000a    return 1127.01048 * np.log(1 + freq / 700.0)\u000a\u000adef melToFreq(mel):\u000a    return 700 * (np.exp(mel / 1127.01048) - 1)\u000a\u000afilters = melFilterBank(NUM_MEL_FILTERS,s_frequencies)\u000apylab.figure()\u000apylab.plot(filters)\u000a#pylab.imshow(filters)\u000apylab.show()\u000a\u000a\u000a\u000a
+V# Convert to frequency domain. Save the phase information to allow reconstruction of the original audio.\u000acomplex_spectra = [fft(b)   for b in blocks]\u000athetas = [np.angle(c)   for c in complex_spectra]\u000a# Discard the DC component\u000acomplex_spectra = [c[1:]   for c in complex_spectra]\u000a\u000a# Get an array of frequencies that are represented\u000afrequencies = np.arange(1,complex_spectra[0].size+1) * frame_freq\u000a\u000a# Choose frequences less that the cut-off\u000aselection = [i   for i, f in enumerate(frequencies)   if f <= HIGH_FREQ_CUTOFF]\u000a\u000as_complex_spectra = [f[selection]   for f in complex_spectra]\u000as_frequencies = frequencies[selection]\u000a\u000a# Get power spectra\u000apower_spectra = [abs(c)**2   for c in s_complex_spectra]\u000a\u000a# Suppress noise\u000apeak = max([p.max()   for p in power_spectra])\u000anoise_threshold = peak * NOISE_SUPPRESSION\u000a\u000afor p in power_spectra:\u000a    low_value_flags = p < noise_threshold\u000a    p[low_value_flags] = 0.0\u000a\u000alen(s_frequencies)
 p167
 sg33
 I01
@@ -442,7 +442,7 @@ Ntp168
 Rp169
 (dp170
 g49
-V<p>Apply filters:</p>
+V<p>Convert back to spatial and play:</p>
 p171
 sg34
 g42
@@ -460,15 +460,159 @@ Ntp175
 Rp176
 (dp177
 g27
-Vdef mfcc(pwr_spectrum, freqs):\u000a    filteredSpec = pwr_spectrum\u000a    filteredSpec = np.dot(pwr_spectrum, filters)\u000a    logSpec = np.log(filteredSpec)\u000a    res = dct(logSpec, type=2)\u000a    return res\u000a\u000a\u000a\u000am = [mfcc(p, s_frequencies)   for p in power_spectra]\u000a\u000a\u000a\u000a\u000af = np.array(m, dtype=float)\u000a#f=f.transpose()\u000apylab.figure(figsize=(12,8))\u000afeatures = f.transpose()[:][1:10]\u000a#pylab.plot(features)\u000apylab.imshow(features, origin='lower', aspect=5, interpolation='none')\u000apylab.show()\u000a
+Vdef wav_from_power_spectra(power_spectra, frame_offset, frame_size, sample_rate):\u000a    abs_spectra = [np.sqrt(p)   for p in power_spectra]\u000a    abs_spectra = [np.append(np.zeros(1), s)   for s in abs_spectra]\u000a    abs_spectra = [np.append(p, np.zeros(frame_samples - len(p)))   for p in abs_spectra]\u000a    #spectra = abs_spectra\u000a    spectra = [a * (np.cos(t) + np.sin(t)*1j)   for a, t in zip(abs_spectra, thetas)]\u000a    spatial = [ifft(f)   for f in spectra]\u000a\u000a    return wav_player_from_frames(spatial, frame_offset, frame_size, sample_rate)\u000a\u000awav_from_power_spectra(power_spectra, frame_off_samples, frame_samples, sample_rate)
 p178
+sg33
+I01
+sbsg34
+g42
+sbag0
+(g45
+g2
+Ntp179
+Rp180
+(dp181
+g49
+V<p>Plot frequency data:</p>
+p182
+sg34
+g42
+sbag0
+(g23
+g2
+Ntp183
+Rp184
+(dp185
+g27
+g0
+(g28
+g2
+Ntp186
+Rp187
+(dp188
+g27
+V# Display the log power spectra\u000alog_power_spectra = np.log(power_spectra)\u000a\u000apylab.figure(figsize=(16,6))\u000apylab.imshow(log_power_spectra.transpose(), origin='lower', cmap='binary',aspect=5, interpolation='bicubic')\u000apylab.show()
+p189
+sg33
+I01
+sbsg34
+g42
+sbag0
+(g45
+g2
+Ntp190
+Rp191
+(dp192
+g49
+V<h2>Apply Mel filter bank</h2><p>Generate the filters:</p>
+p193
+sg34
+g42
+sbag0
+(g23
+g2
+Ntp194
+Rp195
+(dp196
+g27
+g0
+(g28
+g2
+Ntp197
+Rp198
+(dp199
+g27
+Vfrom scipy.fftpack import dct\u000aimport scipy\u000aimport math\u000a\u000a\u000adef melFilterBank(numFilters, frequencies):\u000a    minHz = min(frequencies)\u000a    maxHz = max(frequencies)\u000a    minMel = freqToMel(minHz)\u000a    maxMel = freqToMel(maxHz)\u000a    \u000a    numPoints = numFilters + 2\u000a        \u000a    points = melToFreq(np.linspace(minMel, maxMel, numPoints))\u000a    \u000a    filterMatrix = np.zeros((numFilters, frequencies.size))\u000a    \u000a    for i in xrange(numFilters):\u000a        start = points[i]\u000a        centre = points[i+1]\u000a        end = points[i+2]\u000a        \u000a        f = scipy.interpolate.interp1d([minHz-1, start,centre,end, maxHz+1], [0.0, 0.0,1.0,0.0, 0.0])\u000a        coeffs = f(frequencies)\u000a        filterMatrix[i] = coeffs\u000a        \u000a        \u000a    return filterMatrix.transpose()\u000a        \u000a    \u000a    \u000a    \u000adef freqToMel(freq):\u000a    return 1127.01048 * np.log(1 + freq / 700.0)\u000a\u000adef melToFreq(mel):\u000a    return 700 * (np.exp(mel / 1127.01048) - 1)\u000a\u000afilters = melFilterBank(NUM_MEL_FILTERS,s_frequencies)\u000apylab.figure()\u000apylab.plot(filters)\u000a#pylab.imshow(filters)\u000apylab.show()\u000a\u000a\u000a\u000a
+p200
+sg33
+I01
+sbsg34
+g42
+sbag0
+(g45
+g2
+Ntp201
+Rp202
+(dp203
+g49
+V<p>Apply filters:</p>
+p204
+sg34
+g42
+sbag0
+(g23
+g2
+Ntp205
+Rp206
+(dp207
+g27
+g0
+(g28
+g2
+Ntp208
+Rp209
+(dp210
+g27
+Vdef apply_mel_filter(pwr_spectra):\u000a    return [np.dot(p, filters)   for p in pwr_spectra]\u000a\u000adef inverse_mel_filter(filtered):\u000a    return [np.dot(filters, f)   for f in filtered]\u000a\u000a\u000a\u000awav_from_power_spectra(inverse_mel_filter(apply_mel_filter(power_spectra)), frame_off_samples, frame_samples, sample_rate)
+p211
+sg33
+I01
+sbsg34
+g42
+sbag0
+(g45
+g2
+Ntp212
+Rp213
+(dp214
+g49
+V<p>Apply MFCC:</p>
+p215
+sg34
+g42
+sbag0
+(g23
+g2
+Ntp216
+Rp217
+(dp218
+g27
+g0
+(g28
+g2
+Ntp219
+Rp220
+(dp221
+g27
+Vdef mfcc(pwr_spectrum):\u000a    filteredSpec = pwr_spectrum\u000a    filteredSpec = np.dot(pwr_spectrum, filters)\u000a    logSpec = np.log(filteredSpec)\u000a    res = dct(logSpec, type=2)\u000a    return res\u000a\u000a\u000adef inv_mfcc(m):\u000a    logSpec = dct(m, type=3)\u000a    filteredSpec = np.exp(logSpec)\u000a    return np.dot(filters, filteredSpec.transpose())\u000a\u000adef wav_from_mfcc(m, frame_off_samples, frame_samples, sample_rate):\u000a    pow_spec = [inv_mfcc(x)   for x in m]\u000a    return wav_from_power_spectra(pow_spec, frame_off_samples, frame_samples, sample_rate)\u000a\u000a\u000a\u000am = [mfcc(p)   for p in power_spectra]\u000a\u000a\u000a\u000a\u000af = np.array(m, dtype=float)\u000a#f=f.transpose()\u000apylab.figure(figsize=(12,8))\u000afeatures = f.transpose()[:][1:12]\u000a#pylab.plot(features)\u000apylab.imshow(features, origin='lower', aspect=25, interpolation='none')\u000apylab.show()\u000a
+p222
+sg33
+I01
+sbsg34
+g42
+sbag0
+(g23
+g2
+Ntp223
+Rp224
+(dp225
+g27
+g0
+(g28
+g2
+Ntp226
+Rp227
+(dp228
+g27
+Vwav_from_mfcc(m, frame_off_samples, frame_samples, sample_rate)
+p229
 sg33
 I01
 sbsg34
 g42
 sbasbsg35
 Vprocessing
-p179
+p230
 sg37
 I1
 sbasb.
