@@ -112,7 +112,7 @@ class CoroutineBase (object):
 
 
 	@staticmethod
-	def _co_finish(c, caught_exception):
+	def _co_finish(c, value, caught_exception):
 		if c is not CoroutineBase.getcurrent():
 			raise RuntimeError, 'Finishing non-current co-routine {0}, current is {1} (thread={2})'.format(c, CoroutineBase._current_coroutine, threading.current_thread())
 
@@ -122,7 +122,7 @@ class CoroutineBase (object):
 			raise RuntimeError, '_co_finish: c has no parent'
 
 		# Resume it; this thread will continue to run and terminate
-		new_current.__set_value(None)
+		new_current.__set_value(((value,), {}))
 		new_current._raise_on_resume(caught_exception)
 		CoroutineBase._current_coroutine = new_current
 		new_current._resume()
@@ -227,7 +227,7 @@ class Coroutine (CoroutineBase):
 				self.__function()
 			else:
 				a, kw = v
-				self.__function(*a, **kw)
+				v = self.__function(*a, **kw)
 		except CoroutineExit, e:
 			pass
 		except Exception, e:
@@ -238,7 +238,7 @@ class Coroutine (CoroutineBase):
 		# We are done; clear up
 		self.__dead = True
 		self.__running = False
-		CoroutineBase._co_finish(self, caught_exception)
+		CoroutineBase._co_finish(self, v, caught_exception)
 
 		# Null the thread; no longer running
 		self.__thread = None
@@ -351,11 +351,12 @@ class TestCoroutine (unittest.TestCase):
 			self.assertEqual(x, 1)
 			x = a.parent.switch(42)
 			self.assertEqual(x, 'hello')
+			return 101
 
 		x = a.switch(1)
 		self.assertEqual(x, 42)
 		x = a.switch('hello')
-		self.assertIsNone(x)
+		self.assertEqual(x, 101)
 
 
 
@@ -371,7 +372,8 @@ class TestCoroutine (unittest.TestCase):
 		args, kwargs = a.switch(1, b=2)
 		self.assertEqual(args, (3.141,))
 		self.assertEqual(kwargs, {'e': 2.71828})
-		a.switch(0.707, s2=1.414)
+		x = a.switch(0.707, s2=1.414)
+		self.assertIsNone(x)
 
 
 
