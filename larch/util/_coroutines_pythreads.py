@@ -113,7 +113,7 @@ class CoroutineBase (object):
 
 	@staticmethod
 	def _co_finish(c, value, caught_exception):
-		if c is not CoroutineBase.getcurrent():
+		if c is not getcurrent():
 			raise RuntimeError, 'Finishing non-current co-routine {0}, current is {1} (thread={2})'.format(c, CoroutineBase._current_coroutine, threading.current_thread())
 
 		# Switch to the parent co-routine
@@ -169,9 +169,8 @@ class CoroutineBase (object):
 
 
 
-	@staticmethod
-	def getcurrent():
-		return CoroutineBase._current_coroutine
+def getcurrent():
+	return CoroutineBase._current_coroutine
 
 
 
@@ -181,7 +180,7 @@ class CoroutineBase (object):
 class Coroutine (CoroutineBase):
 	def __init__(self, function, parent=None, name=None):
 		if parent is None:
-			parent = CoroutineBase.getcurrent()
+			parent = getcurrent()
 		super(Coroutine, self).__init__(name, parent)
 		self.__function = function
 		self.__running = False
@@ -342,7 +341,7 @@ class TestCoroutine (unittest.TestCase):
 		empty.switch()
 
 		self.assertIs(RootCoroutine._root, empty.parent)
-		self.assertIs(RootCoroutine._root, CoroutineBase.getcurrent())
+		self.assertIs(RootCoroutine._root, getcurrent())
 
 
 	def test_simple_argument_passing(self):
@@ -391,12 +390,12 @@ class TestCoroutine (unittest.TestCase):
 		self.assertTrue(caught)
 
 		self.assertIs(RootCoroutine._root, raiser.parent)
-		self.assertIs(RootCoroutine._root, CoroutineBase.getcurrent())
+		self.assertIs(RootCoroutine._root, getcurrent())
 
 
 	# def test_unfinished_coroutine(self):
 	# 	def f():
-	# 		Coroutine.getcurrent().parent.switch()
+	# 		getcurrent().parent.switch()
 	#
 	# 	co = Coroutine(f, 'unfinished')
 	# 	co.switch()
@@ -408,7 +407,7 @@ class TestCoroutine (unittest.TestCase):
 		@coroutine
 		def throw():
 			x[0] = 1
-			Coroutine.getcurrent().parent.switch()
+			getcurrent().parent.switch()
 			x[0] = 2
 
 		self.assertFalse(bool(throw))
@@ -435,8 +434,8 @@ class TestCoroutine (unittest.TestCase):
 	def test_serial_coroutines(self):
 		@coroutine
 		def co1():
-			Coroutine.getcurrent().parent.switch()
-			Coroutine.getcurrent().parent.switch()
+			getcurrent().parent.switch()
+			getcurrent().parent.switch()
 
 		co1.switch()
 		co1.switch()
@@ -444,8 +443,8 @@ class TestCoroutine (unittest.TestCase):
 
 		@coroutine
 		def co2():
-			Coroutine.getcurrent().parent.switch()
-			Coroutine.getcurrent().parent.switch()
+			getcurrent().parent.switch()
+			getcurrent().parent.switch()
 
 		co2.switch()
 		co2.switch()

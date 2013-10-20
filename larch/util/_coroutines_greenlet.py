@@ -1,7 +1,7 @@
 try:
-	import greenlet
+	from greenlet import greenlet, getcurrent
 except ImportError:
 	coroutine = None
 else:
 	def coroutine(f):
-		return greenlet.greenlet(f)
+		return greenlet(f)
