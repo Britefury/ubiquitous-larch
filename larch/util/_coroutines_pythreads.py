@@ -107,7 +107,7 @@ class CoroutineBase (object):
 
 
 
-	def throw(self, typ, val):
+	def throw(self, typ, val=None):
 		raise NotImplementedError, 'abstract'
 
 
@@ -172,6 +172,9 @@ class CoroutineBase (object):
 def getcurrent():
 	return CoroutineBase._current_coroutine
 
+def terminate(co):
+	co.throw(CoroutineExit)
+
 
 
 
@@ -205,7 +208,7 @@ class Coroutine (CoroutineBase):
 
 
 
-	def throw(self, typ, val):
+	def throw(self, typ, val=None):
 		if not self.__dead  and  self.__running:
 			# Set the exception fields and resume
 			self.__exception_to_throw = typ, val
@@ -295,7 +298,7 @@ class RootCoroutine (CoroutineBase):
 
 
 
-	def throw(self, typ, val):
+	def throw(self, typ, val=None):
 		raise TypeError, 'Cannot throw exceptions on root co-routine'
 
 
@@ -426,6 +429,31 @@ class TestCoroutine (unittest.TestCase):
 			self.assertEqual(x.args, (1,))
 		else:
 			self.fail()
+
+		self.assertEqual(x[0], 1)
+		self.assertTrue(throw.dead)
+
+
+	def test_throw_exit(self):
+		x = [0]
+
+		@coroutine
+		def throw():
+			x[0] = 1
+			getcurrent().parent.switch()
+			x[0] = 2
+
+		self.assertFalse(bool(throw))
+		self.assertFalse(throw.dead)
+		self.assertEqual(x[0], 0)
+
+		throw.switch()
+
+		self.assertTrue(throw)
+		self.assertFalse(throw.dead)
+		self.assertEqual(x[0], 1)
+
+		throw.throw(CoroutineExit)
 
 		self.assertEqual(x[0], 1)
 		self.assertTrue(throw.dead)
