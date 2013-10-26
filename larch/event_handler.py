@@ -53,14 +53,14 @@ class EventHandler (object):
 		self._notify_unhook()
 
 
-	def __call__(self, event):
+	def __call__(self, event, *args, **kwargs):
 		# Iterate over a copy
 		for child in self._children[:]:
-			if child(event):
+			if child(event, *args, **kwargs):
 				return True
 
 		for listener in self._listeners[:]:
-			if listener(event):
+			if listener(event, *args, **kwargs):
 				return True
 
 

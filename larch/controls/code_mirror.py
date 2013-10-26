@@ -1,6 +1,7 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
+from larch.event_handler import EventHandler
 from larch.pres.html import Html
 from larch.pres.pres import CompositePres
 from larch.pres.resource import MessageChannel
@@ -82,9 +83,15 @@ class code_mirror (CompositePres):
 		self.__text = text
 		self.__immediate_events = immediate_events
 		self.__config = config
-		self.__on_edit = on_edit
-		self.__on_focus = on_focus
-		self.__on_blur = on_blur
+		self.edit = EventHandler()
+		self.focus = EventHandler()
+		self.blur = EventHandler()
+		if on_edit is not None:
+			self.edit.connect(on_edit)
+		if on_focus is not None:
+			self.focus.connect(on_focus)
+		if on_blur is not None:
+			self.blur.connect(on_blur)
 		self.__modes = modes
 
 		self.__channel = MessageChannel()
@@ -95,18 +102,6 @@ class code_mirror (CompositePres):
 
 
 	def pres(self, pres_ctx):
-		def on_edit(event):
-			if self.__on_edit is not None:
-				self.__on_edit(event, event.data)
-
-		def on_focus(event):
-			if self.__on_focus is not None:
-				self.__on_focus(event)
-
-		def on_blur(event):
-			if self.__on_blur is not None:
-				self.__on_blur(event)
-
 		textarea = Html(u'<textarea>{text}</textarea>'.format(text=Html.escape_str(self.__text)))
 		textarea = textarea.js_function_call('larch.controls.initCodeMirror', self.__config, self.__immediate_events, self.__channel)
 		p = Html('<div>', textarea, '</div>')
@@ -121,9 +116,9 @@ class code_mirror (CompositePres):
 		if _code_mirror_theme is not None:
 			p = p.use_css('/static/codemirror-3.14/theme/{0}.css'.format(_code_mirror_theme))
 		p = p.use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
-		p = p.with_event_handler('code_mirror_edit', on_edit)
-		p = p.with_event_handler('code_mirror_focus', on_focus)
-		p = p.with_event_handler('code_mirror_blur', on_blur)
+		p = p.with_event_handler('code_mirror_edit', lambda event: self.edit(event, event.data))
+		p = p.with_event_handler('code_mirror_focus', self.focus)
+		p = p.with_event_handler('code_mirror_blur', self.blur)
 		return p
 
 

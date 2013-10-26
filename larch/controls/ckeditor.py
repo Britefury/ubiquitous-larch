@@ -1,6 +1,7 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
+from larch.event_handler import EventHandler
 from larch.pres.html import Html
 from larch.pres.pres import CompositePres
 from larch.pres.resource import MessageChannel
@@ -28,9 +29,15 @@ class ckeditor (CompositePres):
 		self.__config = config
 		self.__immediate_events = immediate_events
 		self.__use_edit_button = use_edit_button
-		self.__on_edit = on_edit
-		self.__on_focus = on_focus
-		self.__on_blur = on_blur
+		self.edit = EventHandler()
+		self.focus = EventHandler()
+		self.blur = EventHandler()
+		if on_edit is not None:
+			self.edit.connect(on_edit)
+		if on_focus is not None:
+			self.focus.connect(on_focus)
+		if on_blur is not None:
+			self.blur.connect(on_blur)
 
 		self.__channel = MessageChannel()
 
@@ -40,18 +47,6 @@ class ckeditor (CompositePres):
 
 
 	def pres(self, pres_ctx):
-		def on_edit(event):
-			if self.__on_edit is not None:
-				self.__on_edit(event, event.data)
-
-		def on_focus(event):
-			if self.__on_focus is not None:
-				self.__on_focus(event)
-
-		def on_blur(event):
-			if self.__on_blur is not None:
-				self.__on_blur(event)
-
 		if self.__use_edit_button:
 			p = Html(u'<div class="__larch_ui_ckeditor_edit_container"><div>{text}</div></div>'.format(text=self.__text)).js_function_call('larch.controls.initCKEditorWithEditButton', self.__config, self.__immediate_events, self.__channel)
 		else:
@@ -61,9 +56,9 @@ class ckeditor (CompositePres):
 
 		p = p.use_js('/static/ckeditor/ckeditor.js')
 		p = p.use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
-		p = p.with_event_handler('ckeditor_edit', on_edit)
-		p = p.with_event_handler('ckeditor_focus', on_focus)
-		p = p.with_event_handler('ckeditor_blur', on_blur)
+		p = p.with_event_handler('ckeditor_edit', lambda event: self.edit(event, event.data))
+		p = p.with_event_handler('ckeditor_focus', self.focus)
+		p = p.with_event_handler('ckeditor_blur', self.blur)
 		return p
 
 
@@ -102,11 +97,11 @@ class live_ckeditor (CompositePres):
 			if not refreshing[0]:
 				pres_ctx.fragment_view.queue_task(set_value)
 
-		def __on_edit(event, value):
+		def __on_edit(event, html):
 			refreshing[0] = True
 			# WORKAROUND WHILE ckEditor kills caret position in response to OTHER ckEditor instances being modified
 			#self.__live.value = value
-			val[0] = value
+			val[0] = event.data
 			refreshing[0] = False
 
 		# WORKAROUND WHILE ckEditor kills caret position in response to OTHER ckEditor instances being modified
