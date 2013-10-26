@@ -1,7 +1,9 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
+from larch.event_handler import EventHandler
 from larch.pres.html import Html
+from larch.pres.pres import CompositePres
 
 
 def separator():
@@ -13,20 +15,24 @@ def separator():
 	return p
 
 
-def item(item_content, on_select=None):
-	"""
-	Create a menu item control. Must be placed within a menu control, created with :menu:.
+class item (CompositePres):
+	def __init__(self, item_content, on_select=None):
+		"""
+		Create a menu item control. Must be placed within a menu control, created with :menu:.
 
-	:param item_content: the HTML content of the menu item
-	:param on_select: a callback invoked when the menu item is activated by the user
-	:return: the menu item control
-	"""
-	def on_click(event):
+		:param item_content: the HTML content of the menu item
+		:param on_select: a callback invoked when the menu item is activated by the user
+		:return: the menu item control
+		"""
+		self.__item_content = item_content
+		self.select = EventHandler()
 		if on_select is not None:
-			on_select(event)
-	p = Html('<li><a>', item_content, '</a></li>')
-	p = p.with_event_handler('menu_select', on_click)
-	return p
+			self.select.connect(on_select)
+
+	def pres(self, pres_ctx):
+		p = Html('<li><a>', self.__item_content, '</a></li>')
+		p = p.with_event_handler('menu_select', self.select)
+		return p
 
 
 def sub_menu(item_content, items):

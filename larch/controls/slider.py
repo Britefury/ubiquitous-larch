@@ -1,12 +1,13 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
+from larch.event_handler import EventHandler
 from larch.pres.html import Html
 from larch.pres.pres import CompositePres
 from larch.pres.resource import MessageChannel
 
 
-class slider(CompositePres):
+class slider (CompositePres):
 	def __init__(self, release_fn=None, slide_fn=None, width=None, value=None, min=None, max=None, step=None,
 		     orientation=None, animate=False, disabled=False):
 		"""
@@ -24,8 +25,12 @@ class slider(CompositePres):
 		:param disabled: if True, causes the slider to appear disabled
 		:return: the slider control
 		"""
-		self.__release_fn = release_fn
-		self.__slide_fn = slide_fn
+		self.release = EventHandler()
+		self.slide = EventHandler()
+		if release_fn is not None:
+			self.release.connect(release_fn)
+		if slide_fn is not None:
+			self.slide.connect(slide_fn)
 		self.__channel = MessageChannel()
 
 		self.__width = '{0}px'.format(width) if isinstance(width, int) or isinstance(width, long)   else width
@@ -49,15 +54,6 @@ class slider(CompositePres):
 		self.__options = options
 
 
-	def __on_change(self, event):
-		if self.__release_fn is not None:
-			self.__release_fn(event, event.data)
-
-	def __on_slide(self, event):
-		if self.__slide_fn is not None:
-			self.__slide_fn(event, event.data)
-
-
 	def set_value(self, value):
 		self.__channel.send(value)
 
@@ -67,9 +63,9 @@ class slider(CompositePres):
 			div = Html('<div></div>')
 		else:
 			div = Html('<div style="width: {0};"></div>'.format(self.__width))
-		div = div.js_function_call('larch.controls.initSlider', self.__slide_fn is not None, self.__options, self.__channel)
-		div = div.with_event_handler("slider_change", self.__on_change)
-		div = div.with_event_handler("slider_slide", self.__on_slide)
+		div = div.js_function_call('larch.controls.initSlider', True, self.__options, self.__channel)
+		div = div.with_event_handler("slider_change", lambda event: self.release(event, event.data))
+		div = div.with_event_handler("slider_slide", lambda event: self.slide(event, event.data))
 		div = div.use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
 		return div
 
@@ -94,8 +90,12 @@ class range_slider (CompositePres):
 		:return: the slider control
 		"""
 
-		self.__release_fn = release_fn
-		self.__slide_fn = slide_fn
+		self.release = EventHandler()
+		self.slide = EventHandler()
+		if release_fn is not None:
+			self.release.connect(release_fn)
+		if slide_fn is not None:
+			self.slide.connect(slide_fn)
 		self.__channel = MessageChannel()
 
 		self.__width = '{0}px'.format(width) if isinstance(width, int) or isinstance(width, long)   else width
@@ -119,15 +119,6 @@ class range_slider (CompositePres):
 		self.__options = options
 
 
-	def __on_change(self, event):
-		if self.__release_fn is not None:
-			self.__release_fn(event, event.data)
-
-	def __on_slide(self, event):
-		if self.__slide_fn is not None:
-			self.__slide_fn(event, event.data)
-
-
 	def set_values(self, values):
 		self.__channel.send(values)
 
@@ -137,9 +128,9 @@ class range_slider (CompositePres):
 			div = Html('<div></div>')
 		else:
 			div = Html('<div style="width: {0};"></div>'.format(self.__width))
-		div = div.js_function_call('larch.controls.initRangeSlider', self.__slide_fn is not None, self.__options, self.__channel)
-		div = div.with_event_handler("slider_change", self.__on_change)
-		div = div.with_event_handler("slider_slide", self.__on_slide)
+		div = div.js_function_call('larch.controls.initRangeSlider', True, self.__options, self.__channel)
+		div = div.with_event_handler("slider_change", lambda event: self.release(event, event.data))
+		div = div.with_event_handler("slider_slide", lambda event: self.slide(event, event.data))
 		div = div.use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
 		return div
 
