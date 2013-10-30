@@ -3,6 +3,7 @@
 ##-*************************
 #import webbrowser
 
+import sys
 from bottle import Bottle, run, static_file, request, response, redirect
 
 from larch.core.dynamicpage.service import UploadedFile
@@ -87,5 +88,8 @@ def serve_static(filename):
 
 
 if __name__ == '__main__':
-	print 'Point your browser at http://127.0.0.1:5000/ to try The Ubiquitous Larch'
-	run(app, host='localhost', port=5000)
+	port = 5000
+	if len(sys.argv) == 2:
+		port = int(sys.argv[1])
+	print 'Point your browser at http://127.0.0.1:{0}/ to try The Ubiquitous Larch'.format(port)
+	run(app, host='localhost', port=port)

@@ -25,7 +25,7 @@ class dropdown_expander (CompositePres):
 		self.expand = EventHandler()
 
 		def expand_fn(x):
-			state.value = x
+			self.state.value = x
 
 		if state is None:
 			self.state = LiveValue(False)

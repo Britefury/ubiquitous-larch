@@ -117,7 +117,7 @@ class TextOutBlock (object):
 
 	def __present__(self, fragment):
 		escaped_content = Html.escape_str(self.content).replace('\n', '<br>')
-		return Html('<div class="{0}"><p class="{1}">{2}</p><pre class="{3}">{4}</pre></div>'.format(self.style.block_style, self.style.name_style, self.name, self.style.content_style, escaped_content))
+		return Html(u'<div class="{0}"><p class="{1}">{2}</p><pre class="{3}">{4}</pre></div>'.format(self.style.block_style, self.style.name_style, self.name, self.style.content_style, escaped_content))
 
 
 
