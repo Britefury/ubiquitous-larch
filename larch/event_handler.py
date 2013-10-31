@@ -100,7 +100,7 @@ class EventHandler (object):
 
 
 	def filter(self, name_or_function):
-		if isinstance(name_or_function, str)  or  isinstance(name_or_function, unicode):
+		if isinstance(name_or_function, basestring):
 			return EventHandlerFilterByName(self, name_or_function)
 		else:
 			return EventHandlerFilterByFunction(self, name_or_function)

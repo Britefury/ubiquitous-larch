@@ -47,7 +47,7 @@ class Popup (object):
 		:param js_expr: a javascript expression to be evaluated. The variables popup_id and nodes will be available in the local scope, providing the ID of the popup and the DOM nodes that it is to contain.
 		:return: the segment ID of the popup
 		"""
-		if isinstance(js_expr, str)  or  isinstance(js_expr, unicode):
+		if isinstance(js_expr, basestring):
 			js_expr = js.JSExprSrc(js_expr)
 		elif not isinstance(js_expr, js.JS):
 			raise TypeError, 'Javascript expression must be a string or a JS object'

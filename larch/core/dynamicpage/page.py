@@ -152,7 +152,7 @@ class DynamicPagePublicAPI (object):
 		:param expr: the Javascript script to execute, either in the form of a js.JS subclass or a string
 		:return: None
 		"""
-		if isinstance(expr, str)  or  isinstance(expr, unicode):
+		if isinstance(expr, basestring):
 			expr = js.JSExprSrc(expr)
 		elif not isinstance(expr, js.JS):
 			raise TypeError, 'Javascript expression must be a string or a JS object'

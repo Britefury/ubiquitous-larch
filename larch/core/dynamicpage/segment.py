@@ -192,7 +192,7 @@ class DynamicSegment (object):
 
 	def __connect_children_in_content(self, content):
 		for x in content:
-			if isinstance(x, str)  or  isinstance(x, unicode):
+			if isinstance(x, basestring):
 				continue
 			elif isinstance(x, SegmentRef):
 				seg = x.segment
@@ -204,7 +204,7 @@ class DynamicSegment (object):
 
 	def __disconnect_children_in_content(self, content):
 		for x in content:
-			if isinstance(x, str)  or  isinstance(x, unicode):
+			if isinstance(x, basestring):
 				continue
 			elif isinstance(x, SegmentRef):
 				seg = x.segment
@@ -275,7 +275,7 @@ class HtmlContent (list):
 	"""
 	def __init__(self, contents):
 		for x in contents:
-			assert isinstance(x, str)  or  isinstance(x, unicode)  or  isinstance(x, SegmentRef)  or  isinstance(x, HtmlContent)
+			assert isinstance(x, basestring)  or  isinstance(x, SegmentRef)  or  isinstance(x, HtmlContent)
 		super(HtmlContent, self).__init__(contents)
 
 
@@ -286,7 +286,7 @@ class HtmlContent (list):
 		ref_resolver - a function used to resolve segment references
 		"""
 		for x in self:
-			if isinstance(x, str)  or  isinstance(x, unicode):
+			if isinstance(x, basestring):
 				items.append(x)
 			else:
 				x._build_html(items, ref_resolver)
@@ -297,7 +297,7 @@ class HtmlContent (list):
 		xs = []
 		fixes = []
 		for x in self:
-			if isinstance(x, str)  or  isinstance(x, unicode):
+			if isinstance(x, basestring):
 				c.item(x)
 				item_fixes = c.item_fixes()
 				if len(item_fixes) > 0:

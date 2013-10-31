@@ -50,7 +50,7 @@ class JSName (JSSimpleExpr):
 
 class JSCall (JSExpr):
 	def __init__(self, target, args):
-		if isinstance(target, str)  or  isinstance(target, unicode):
+		if isinstance(target, basestring):
 			target = JSName(target)
 		self.__target = target
 		self.__args = tuple(args)

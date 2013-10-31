@@ -7,7 +7,7 @@ import json
 
 class Key (object):
 	def __init__(self, key_code, alt=None, ctrl=None, shift=None, meta=None):
-		if isinstance(key_code, str)  or  isinstance(key_code, unicode):
+		if isinstance(key_code, basestring):
 			key_code = ord(key_code)
 		elif isinstance(key_code, int)  or  key_code is None:
 			pass

@@ -11,7 +11,7 @@ class Html (Pres):
 	def __init__(self, *contents):
 		self.__contents = []
 		for c in contents:
-			if isinstance(c, str) or isinstance(c, unicode):
+			if isinstance(c, basestring):
 				self.__contents.append(c)
 			else:
 				self.__contents.append(Pres.coerce(c))
@@ -22,7 +22,7 @@ class Html (Pres):
 
 	def extend(self, contents):
 		for c in contents:
-			if isinstance(c, str) or isinstance(c, unicode):
+			if isinstance(c, basestring):
 				self.__contents.append(c)
 			else:
 				self.__contents.append(Pres.coerce(c))
@@ -32,7 +32,7 @@ class Html (Pres):
 	def build(self, pres_ctx):
 		cs = []
 		for c in self.__contents:
-			if isinstance(c, str) or isinstance(c, unicode):
+			if isinstance(c, basestring):
 				cs.append(c)
 			else:
 				cs.append(c.build(pres_ctx))
@@ -49,7 +49,7 @@ class Html (Pres):
 
 	@staticmethod
 	def coerce(x):
-		if isinstance(x, str)  or  isinstance(x, unicode):
+		if isinstance(x, basestring):
 			return Html(x)
 		else:
 			return Pres.coerce(x)
@@ -57,7 +57,7 @@ class Html (Pres):
 
 	@staticmethod
 	def coerce_none_as_none(x):
-		if isinstance(x, str)  or  isinstance(x, unicode):
+		if isinstance(x, basestring):
 			return Html(x)
 		else:
 			return Pres.coerce_none_as_none(x)

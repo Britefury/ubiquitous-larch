@@ -25,7 +25,7 @@ class Pres (object):
 		if event_handler is None:
 			return EventSource(event_filter_or_handler, self)
 		else:
-			if isinstance(event_filter_or_handler, str)  or  isinstance(event_filter_or_handler, unicode):
+			if isinstance(event_filter_or_handler, basestring):
 				def _handle(event):
 					if event.name == event_filter_or_handler:
 						return event_handler(event)
@@ -33,7 +33,7 @@ class Pres (object):
 						return False
 				return EventSource(_handle, self)
 			else:
-				raise TypeError, 'filter should be string or unicode'
+				raise TypeError, 'filter should be a string'
 
 
 	def with_key_handler(self, keys, handler):
@@ -46,7 +46,7 @@ class Pres (object):
 		return JSEval(self, init_scripts, shutdown_scripts)
 
 	def js_eval(self, expr):
-		if isinstance(expr, str)  or  isinstance(expr, unicode):
+		if isinstance(expr, basestring):
 			expr = js.JSExprSrc(expr)
 		elif not isinstance(expr, js.JS):
 			raise TypeError, 'Javascript expression must be a string or a JS object'
@@ -57,7 +57,7 @@ class Pres (object):
 
 
 	def js_shutdown_eval(self, expr):
-		if isinstance(expr, str)  or  isinstance(expr, unicode):
+		if isinstance(expr, basestring):
 			expr = js.JSExprSrc(expr)
 		elif not isinstance(expr, js.JS):
 			raise TypeError, 'Javascript expression must be a string or a JS object'
