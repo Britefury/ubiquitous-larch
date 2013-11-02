@@ -3,6 +3,7 @@
 ##-*************************
 import tempfile
 import os
+import sys
 
 from flask import Flask, request, Response, abort, redirect
 from larch.core.dynamicpage.service import UploadedFile
@@ -91,7 +92,10 @@ def rsc(view_id, rsc_id):
 
 
 if __name__ == '__main__':
-	print 'Point your browser at http://127.0.0.1:5000/ to try The Ubiquitous Larch'
-	#webbrowser.get().open('http://127.0.0.1:5000/')
-	app.run(debug=True)
+	port = 5000
+	if len(sys.argv) == 2:
+		port = int(sys.argv[1])
+	print 'Point your browser at http://127.0.0.1:{0}/ to try The Ubiquitous Larch'.format(port)
+	#webbrowser.get().open('http://127.0.0.1:{0}/'.format(port))
+	app.run(debug=True, port=port)
 	#app.run()

@@ -63,10 +63,11 @@ def _sanitise_filename(name):
 
 
 class PageFrame (CompositePres):
-	def __init__(self, subject, logout_url_path):
+	def __init__(self, subject, logout_url_path, documentation_url):
 		self.__page = subject.focus
 		self.__focii = subject.focii
 		self.__logout_url_path = logout_url_path
+		self.__documentation_url = documentation_url
 
 
 
@@ -93,6 +94,11 @@ class PageFrame (CompositePres):
 
 		liveliness_indicator = Html('<div class="larch_liveliness_indicator larch_liveliness_off">LIVE</div>').js_function_call('larch.initLivelinessToggle')
 		right_menu_bar_contents.append(liveliness_indicator)
+
+		# Documentation
+		if self.__documentation_url is not None:
+			doc_link = Html('<a class="__larch_app_doc_link" href="{0}">Documentation</a>'.format(self.__documentation_url))
+			right_menu_bar_contents.append(doc_link)
 
 		# Command bar button
 		cmd_bar_button = Html('<button class="__larch_app_cmd_bar_button">Cmd. bar (Esc)</button>').js_function_call("larch.controls.initToggleCommandBarButton")
@@ -139,9 +145,9 @@ class PageFrame (CompositePres):
 
 
 
-def _make_apply_page_frame(logout_url_path):
+def _make_apply_page_frame(logout_url_path, documentation_url):
 	def _apply_page_frame(subject):
-		return PageFrame(subject, logout_url_path)
+		return PageFrame(subject, logout_url_path, documentation_url)
 	return _apply_page_frame
 
 
@@ -744,7 +750,8 @@ class LarchApplication (object):
 
 
 	def __resolve_self__(self, subject):
-		subject.add_step(title='The Ubiquitous Larch', augment_page=_make_apply_page_frame(self.__logout_url_path))
+		doc_url = '/pages/docs/index'   if self.__docs is not None   else None
+		subject.add_step(title='The Ubiquitous Larch', augment_page=_make_apply_page_frame(self.__logout_url_path, doc_url))
 		return self
 
 
@@ -783,8 +790,6 @@ class LarchApplication (object):
 
 		contents = ["""
 			<div class="larch_app_title_bar">The Ubiquitous Larch</div>
-
-			<ul class="larch_app_menu"><li><a href="/pages/docs/index">Documentation</a></li></ul>
 
 			<div class="larch_app_enclosure">
 				<section class="larch_app_docs_section">

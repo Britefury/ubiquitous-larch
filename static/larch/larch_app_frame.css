@@ -1,3 +1,5 @@
+@import url(http://fonts.googleapis.com/css?family=Oswald:300);
+
 .__larch_app_frame_page_header {
     /*
     Place a 1x1px transparent image just below this div, in order to prevent it from being positioned over the next item, which will have a margin and therefore offset it
@@ -7,7 +9,7 @@
     z-index: 1000;
 
     margin: 0 0 5px 0;
-    padding: 3px 0em 2px 0;
+    padding: 3px 0 2px 0;
 
     background: #f0f0f0;
     border-bottom: 1px solid #a0a0a0;
@@ -36,5 +38,18 @@ body {
 
 .__larch_app_cmd_bar_button {
     margin: 0 0 0 0.5em;
+}
+
+.__larch_app_doc_link {
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    display: block;
+    color: #409040;
+    padding: 0 10px;
+}
+
+.__larch_app_doc_link:hover {
+    color: #4595e6;
 }
 
