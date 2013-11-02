@@ -292,7 +292,7 @@ class Document (object):
 			self.save_and_display_notification(page)
 
 		save_button = button.button('Save', on_save)
-		doc_title = '<a href="/pages/docs/{0}" class="larch_app_doc_title">{1}</a>'.format(self.__loc, self.__name)
+		doc_title = '<a href="/pages/{0}/{1}" class="larch_app_doc_title">{2}</a>'.format(self.__doc_list.loc_prefix, self.__loc, self.__name)
 		doc_filename = '<span class="larch_app_doc_filename">{0}</span><span class="larch_app_doc_extension">.ularch</span>'.format(self.__filename)
 		controls = Html('<div class="larch_app_doc_controls">', save_button, '</div>')
 		return Html('<tr class="larch_app_doc">	<td>', doc_title, '</td><td>', doc_filename, '</td><td>', controls, '</td></tr>')
@@ -337,10 +337,11 @@ class _DocListImportHooks (object):
 
 
 class DocumentList (object):
-	def __init__(self, path):
+	def __init__(self, path, loc_prefix):
 		self.__incr = IncrementalValueMonitor()
 
 		self.__path = path
+		self.__loc_prefix = loc_prefix
 
 		self.__documents = []
 		self.__docs_by_location = {}
@@ -357,6 +358,10 @@ class DocumentList (object):
 	@property
 	def path(self):
 		return self.__path
+
+	@property
+	def loc_prefix(self):
+		return self.__loc_prefix
 
 
 	def __iter__(self):
@@ -690,23 +695,34 @@ class ToolList (object):
 
 
 class LarchApplication (object):
-	def __init__(self, documents_path=None, logout_url_path=None):
-		if documents_path is None:
-			documents_path = os.getcwd()
+	def __init__(self, files_path=None, documentation_path=None, logout_url_path=None):
+		if files_path is None:
+			files_path = os.getcwd()
+		if documentation_path is None:
+			documentation_path = os.path.join(os.getcwd(), 'docs')
+			if not os.path.exists(documentation_path):
+				documentation_path = None
 
-		self.__documents_path = documents_path
+		self.__files_path = files_path
 		self.__logout_url_path = logout_url_path
 
-		self.__docs = DocumentList(documents_path)
-		self.__docs.enable_import_hooks()
+		self.__files = DocumentList(files_path, 'files')
+		self.__files.enable_import_hooks()
+
+		if documentation_path is not None:
+			self.__docs = DocumentList(documentation_path, 'docs')
+			self.__docs.enable_import_hooks()
+		else:
+			self.__docs = None
+
 		self.__consoles = ConsoleList()
 
 		self.__tools = ToolList()
 
 
 	@property
-	def docs(self):
-		return self.__docs
+	def files(self):
+		return self.__files
 
 	@property
 	def consoles(self):
@@ -714,7 +730,10 @@ class LarchApplication (object):
 
 
 	def __resolve__(self, name, subject):
-		if name == 'docs':
+		if name == 'files':
+			subject.add_step(focus=self.__files, location_trail=[name])
+			return self.__files
+		elif name == 'docs'  and  self.__docs is not None:
 			subject.add_step(focus=self.__docs, location_trail=[name])
 			return self.__docs
 		elif name == 'consoles':
@@ -731,20 +750,22 @@ class LarchApplication (object):
 
 	def __present__(self, fragment):
 		def _on_reload(event):
-			self.__docs.reload()
+			self.__files.reload()
+			if self.__docs is not None:
+				self.__docs.reload()
 
 
 		reset_button = button.button('Reload', _on_reload)
 		reset_section = Html('<div class="larch_app_menu">', reset_button, '</div>')
 
-		add_notebook = menu.item('Notebook', lambda event: self.__tools.add(NewDocumentTool(self.__docs, lambda: notebook.Notebook(), 'Notebook')))
-		add_project = menu.item('Project', lambda event: self.__tools.add(NewDocumentTool(self.__docs, lambda: project_root.ProjectRoot(), 'Project')))
+		add_notebook = menu.item('Notebook', lambda event: self.__tools.add(NewDocumentTool(self.__files, lambda: notebook.Notebook(), 'Notebook')))
+		add_project = menu.item('Project', lambda event: self.__tools.add(NewDocumentTool(self.__files, lambda: project_root.ProjectRoot(), 'Project')))
 		new_item = menu.sub_menu('New', [add_notebook, add_project])
 		new_document_menu = menu.menu([new_item], drop_down=True)
 
 
-		upload_ipynb = menu.item('Upload', lambda event: self.__tools.add(UploadIPynbTool(self.__docs)))
-		web_ipynb = menu.item('Download from web', lambda event: self.__tools.add(DownloadIPynbFromWebTool(self.__docs)))
+		upload_ipynb = menu.item('Upload', lambda event: self.__tools.add(UploadIPynbTool(self.__files)))
+		web_ipynb = menu.item('Download from web', lambda event: self.__tools.add(DownloadIPynbFromWebTool(self.__files)))
 		import_ipynb_item = menu.sub_menu('Import IPython notebook', [upload_ipynb, web_ipynb])
 		import_ipynb_menu = menu.menu([import_ipynb_item], drop_down=True)
 
@@ -763,12 +784,14 @@ class LarchApplication (object):
 		contents = ["""
 			<div class="larch_app_title_bar">The Ubiquitous Larch</div>
 
+			<ul class="larch_app_menu"><li><a href="/pages/docs/index">Documentation</a></li></ul>
+
 			<div class="larch_app_enclosure">
 				<section class="larch_app_docs_section">
 				<h2>Open documents:</h2>
 			""",
 			reset_section,
-			self.__docs,
+			self.__files,
 			document_controls,
 			self.__tools,
 			"""</section>
@@ -800,7 +823,7 @@ class LarchApplication (object):
 
 
 
-def create_service(documents_path=None, logout_url_path=None):
-	app = LarchApplication(documents_path, logout_url_path)
+def create_service(files_path=None, documentation_path=None, logout_url_path=None):
+	app = LarchApplication(files_path, documentation_path, logout_url_path)
 
 	return ProjectionService(app)
