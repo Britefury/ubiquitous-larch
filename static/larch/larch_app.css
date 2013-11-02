@@ -131,10 +131,3 @@ h1.larch_app_title {
 .larch_app_pwr_link:hover {
     color: #4f9b3d;
 }
-
-.larch_app_menu {
-    list-style: none;
-    height: 45px;
-    background: #f8f8f8;
-    padding: 0 20px;
-}
