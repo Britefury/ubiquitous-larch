@@ -13,7 +13,7 @@ from larch.core.projection_service import CouldNotResolveLocationError
 from larch.apps import larch_app
 
 
-service = larch_app.create_service()
+service = None
 
 
 app = Bottle()
@@ -89,8 +89,9 @@ def serve_static(filename):
 
 
 if __name__ == '__main__':
-	port = 5000
-	if len(sys.argv) == 2:
-		port = int(sys.argv[1])
-	print 'Point your browser at http://127.0.0.1:{0}/ to try The Ubiquitous Larch'.format(port)
-	run(app, host='localhost', port=port)
+	options = larch_app.parse_cmd_line()
+	service = larch_app.create_service(options)
+	print 'Point your browser at http://127.0.0.1:{0}/ to try The Ubiquitous Larch'.format(options.port)
+	run(app, host='localhost', port=options.port)
+else:
+	service = larch_app.create_service()

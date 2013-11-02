@@ -11,7 +11,7 @@ from larch.core.projection_service import CouldNotResolveLocationError
 from larch.apps import larch_app
 
 
-service = larch_app.create_service()
+service = None
 
 app = Flask(__name__, static_url_path='/static', static_folder='static')
 
@@ -92,10 +92,11 @@ def rsc(view_id, rsc_id):
 
 
 if __name__ == '__main__':
-	port = 5000
-	if len(sys.argv) == 2:
-		port = int(sys.argv[1])
-	print 'Point your browser at http://127.0.0.1:{0}/ to try The Ubiquitous Larch'.format(port)
-	#webbrowser.get().open('http://127.0.0.1:{0}/'.format(port))
-	app.run(debug=True, port=port)
+	options = larch_app.parse_cmd_line()
+	service = larch_app.create_service(options)
+	print 'Point your browser at http://127.0.0.1:{0}/ to try The Ubiquitous Larch'.format(options.port)
+	#webbrowser.get().open('http://127.0.0.1:{0}/'.format(options.port))
+	app.run(debug=True, port=options.port)
 	#app.run()
+else:
+	service = larch_app.create_service()

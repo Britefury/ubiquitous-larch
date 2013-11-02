@@ -8,6 +8,7 @@ import pickle
 import imp
 import sys
 import urllib2
+from optparse import OptionParser
 from larch.apps.notebook import ipynb_filter
 from larch.apps.project import project_root
 from larch.apps.notebook import notebook
@@ -431,8 +432,9 @@ class DocumentList (object):
 				content = load_document(p)
 			except:
 				print 'Error: could not load {0}'.format(p)
-			doc = Document(self, name, name, content)
-			self.__add_document(doc)
+			else:
+				doc = Document(self, name, name, content)
+				self.__add_document(doc)
 
 
 
@@ -701,19 +703,19 @@ class ToolList (object):
 
 
 class LarchApplication (object):
-	def __init__(self, files_path=None, documentation_path=None, logout_url_path=None):
-		if files_path is None:
-			files_path = os.getcwd()
+	def __init__(self, user_docs_path=None, documentation_path=None, logout_url_path=None):
+		if user_docs_path is None:
+			user_docs_path = os.getcwd()
 		if documentation_path is None:
 			documentation_path = os.path.join(os.getcwd(), 'docs')
 			if not os.path.exists(documentation_path):
 				documentation_path = None
 
-		self.__files_path = files_path
+		self.__user_docs_path = user_docs_path
 		self.__logout_url_path = logout_url_path
 
-		self.__files = DocumentList(files_path, 'files')
-		self.__files.enable_import_hooks()
+		self.__user_docs = DocumentList(user_docs_path, 'files')
+		self.__user_docs.enable_import_hooks()
 
 		if documentation_path is not None:
 			self.__docs = DocumentList(documentation_path, 'docs')
@@ -727,8 +729,8 @@ class LarchApplication (object):
 
 
 	@property
-	def files(self):
-		return self.__files
+	def user_docs(self):
+		return self.__user_docs
 
 	@property
 	def consoles(self):
@@ -737,8 +739,8 @@ class LarchApplication (object):
 
 	def __resolve__(self, name, subject):
 		if name == 'files':
-			subject.add_step(focus=self.__files, location_trail=[name])
-			return self.__files
+			subject.add_step(focus=self.__user_docs, location_trail=[name])
+			return self.__user_docs
 		elif name == 'docs'  and  self.__docs is not None:
 			subject.add_step(focus=self.__docs, location_trail=[name])
 			return self.__docs
@@ -757,7 +759,7 @@ class LarchApplication (object):
 
 	def __present__(self, fragment):
 		def _on_reload(event):
-			self.__files.reload()
+			self.__user_docs.reload()
 			if self.__docs is not None:
 				self.__docs.reload()
 
@@ -765,14 +767,14 @@ class LarchApplication (object):
 		reset_button = button.button('Reload', _on_reload)
 		reset_section = Html('<div>', reset_button, '</div>')
 
-		add_notebook = menu.item('Notebook', lambda event: self.__tools.add(NewDocumentTool(self.__files, lambda: notebook.Notebook(), 'Notebook')))
-		add_project = menu.item('Project', lambda event: self.__tools.add(NewDocumentTool(self.__files, lambda: project_root.ProjectRoot(), 'Project')))
+		add_notebook = menu.item('Notebook', lambda event: self.__tools.add(NewDocumentTool(self.__user_docs, lambda: notebook.Notebook(), 'Notebook')))
+		add_project = menu.item('Project', lambda event: self.__tools.add(NewDocumentTool(self.__user_docs, lambda: project_root.ProjectRoot(), 'Project')))
 		new_item = menu.sub_menu('New', [add_notebook, add_project])
 		new_document_menu = menu.menu([new_item], drop_down=True)
 
 
-		upload_ipynb = menu.item('Upload', lambda event: self.__tools.add(UploadIPynbTool(self.__files)))
-		web_ipynb = menu.item('Download from web', lambda event: self.__tools.add(DownloadIPynbFromWebTool(self.__files)))
+		upload_ipynb = menu.item('Upload', lambda event: self.__tools.add(UploadIPynbTool(self.__user_docs)))
+		web_ipynb = menu.item('Download from web', lambda event: self.__tools.add(DownloadIPynbFromWebTool(self.__user_docs)))
 		import_ipynb_item = menu.sub_menu('Import IPython notebook', [upload_ipynb, web_ipynb])
 		import_ipynb_menu = menu.menu([import_ipynb_item], drop_down=True)
 
@@ -796,7 +798,7 @@ class LarchApplication (object):
 				<h2>Open documents:</h2>
 			""",
 			reset_section,
-			self.__files,
+			self.__user_docs,
 			document_controls,
 			self.__tools,
 			"""</section>
@@ -828,7 +830,18 @@ class LarchApplication (object):
 
 
 
-def create_service(files_path=None, documentation_path=None, logout_url_path=None):
-	app = LarchApplication(files_path, documentation_path, logout_url_path)
+def create_service(options=None, documentation_path=None, logout_url_path=None):
+	docpath = options.docpath   if options is not None   else None
+	app = LarchApplication(docpath, documentation_path, logout_url_path)
 
 	return ProjectionService(app)
+
+
+
+def parse_cmd_line():
+	parser = OptionParser()
+	parser.add_option('-p', '--port', dest='port', help='server port', type='int', default=5000)
+	parser.add_option('-d', '--docpath', dest='docpath', help='Documents path', default=None)
+
+	options, args = parser.parse_args()
+	return options

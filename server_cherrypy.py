@@ -20,9 +20,9 @@ config = {'/static':
 
 
 
-class LarchService (object):
-	def __init__(self):
-		self.service = larch_app.create_service()
+class LarchWebApp (object):
+	def __init__(self, service):
+		self.service = service
 
 
 	def index(self):
@@ -97,10 +97,8 @@ class LarchService (object):
 
 
 if __name__ == '__main__':
-	port = 5000
-	if len(sys.argv) == 2:
-		port = int(sys.argv[1])
-	print 'Point your browser at http://127.0.0.1:{0}/ to try The Ubiquitous Larch'.format(port)
-	larch = LarchService()
-	cherrypy.server.socket_port = port
+	options = larch_app.parse_cmd_line()
+	print 'Point your browser at http://127.0.0.1:{0}/ to try The Ubiquitous Larch'.format(options.port)
+	larch = LarchWebApp(larch_app.create_service(larch_app.parse_cmd_line()))
+	cherrypy.server.socket_port = options.port
 	cherrypy.quickstart(larch, config=config)
