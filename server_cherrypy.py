@@ -1,7 +1,7 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-import os
+import os, sys
 
 import cherrypy
 from cherrypy import _cpreqbody
@@ -97,7 +97,10 @@ class LarchService (object):
 
 
 if __name__ == '__main__':
-	print 'Point your browser at http://127.0.0.1:5000/ to try The Ubiquitous Larch'
+	port = 5000
+	if len(sys.argv) == 2:
+		port = int(sys.argv[1])
+	print 'Point your browser at http://127.0.0.1:{0}/ to try The Ubiquitous Larch'.format(port)
 	larch = LarchService()
-	cherrypy.server.socket_port = 5000
+	cherrypy.server.socket_port = port
 	cherrypy.quickstart(larch, config=config)
