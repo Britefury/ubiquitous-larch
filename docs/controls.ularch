@@ -276,7 +276,7 @@ Ntp109
 Rp110
 (dp111
 g27
-V<h1 style="text-align:center">Button control</h1><p>The button control creates a JQuery push button.</p><h2>API</h2><p><code>class button (CompositePres)</code></p><h3>Constructor</h3><p><code>button(self,&nbsp;text=None, action_fn=None, primary_icon=None, secondary_icon=None, disabled=False)</code></p><p>Parameters:</p><ul><li><code>text</code>: the text to display in the button, can use HTML</li><li><code>action_fn</code>: a function of the form <code>fn(event)</code> that is invoked when the button is clicked</li><li><code>primary_icon</code>: a string identifying the <a data-cke-saved-href="http://api.jqueryui.com/theming/icons/" href="http://api.jqueryui.com/theming/icons/">JQuery UI icon</a> to display on the left of the button</li><li><code>secondary_icon</code>: a string identifying the <a data-cke-saved-href="http://api.jqueryui.com/theming/icons/" href="http://api.jqueryui.com/theming/icons/">JQuery UI icon</a> to display on the right of the button</li><li><code>disabled</code>: the button will be disabled if True</li></ul>
+V<h1 style="text-align:center">Button control</h1><p>The button control creates a JQuery push button.</p><h2>API</h2><p>Package: <code>larch.controls.button</code></p><p><code>class button (CompositePres)</code></p><h3>Constructor</h3><p><code>button(self,&nbsp;text=None, action_fn=None, primary_icon=None, secondary_icon=None, disabled=False)</code></p><p>Parameters:</p><ul><li><code>text</code>: the text to display in the button, can use HTML</li><li><code>action_fn</code>: a function of the form <code>fn(event)</code> that is invoked when the button is clicked</li><li><code>primary_icon</code>: a string identifying the <a data-cke-saved-href="http://api.jqueryui.com/theming/icons/" href="http://api.jqueryui.com/theming/icons/">JQuery UI icon</a> to display on the left of the button</li><li><code>secondary_icon</code>: a string identifying the <a data-cke-saved-href="http://api.jqueryui.com/theming/icons/" href="http://api.jqueryui.com/theming/icons/">JQuery UI icon</a> to display on the right of the button</li><li><code>disabled</code>: the button will be disabled if True</li></ul>
 p112
 sg29
 g106
@@ -338,7 +338,7 @@ Ntp132
 Rp133
 (dp134
 g27
-V<h1 style="text-align:center">Drop-down expander&nbsp;control</h1><p>The drop-down expander control displays a header and contents, with the header in a button and the contents below. The contents are only visible when it is in an expanded state. The user may toggle the state by clicking the button.</p><h2>API</h2><p><code>class dropdown_expander&nbsp;(CompositePres)</code></p><h3>Constructor</h3><p><code>dropdown_expander(self, header, content, state=None, on_expand=None)</code></p><p>Parameters:</p><ul><li><font face="monospace">header</font>: the header that will be displayed in the button</li><li><code>content</code>: the content that will be displayed below the button</li><li><code>state</code>: the expander state; use a boolean to set the initial state (False=collapsed, True=expanded) or use a live value containing the state (the live value will be updated when the user expands or collapses the control)</li><li><code>on_expand</code>: a callback function of the form <code>fn(state)</code> that is invoked when the user expands or collapses the expander</li></ul>
+V<h1 style="text-align:center">Drop-down expander&nbsp;control</h1><p>The drop-down expander control displays a header and contents, with the header in a button and the contents below. The contents are only visible when it is in an expanded state. The user may toggle the state by clicking the button.</p><h2>API</h2><p><code></code>\u200bPackage:&nbsp;<code>larch.controls.expander</code><br></p><p><code>class dropdown_expander&nbsp;(CompositePres)</code></p><h3>Constructor</h3><p><code>dropdown_expander(self, header, content, state=None, on_expand=None)</code></p><p>Parameters:</p><ul><li>header: the header that will be displayed in the button</li><li><code>content</code>: the content that will be displayed below the button</li><li><code>state</code>: the expander state; use a boolean to set the initial state (False=collapsed, True=expanded) or use a live value containing the state (the live value will be updated when the user expands or collapses the control)</li><li><code>on_expand</code>: a callback function of the form <code>fn(state)</code> that is invoked when the user expands or collapses the expander</li></ul>
 p135
 sg29
 g129
@@ -595,7 +595,7 @@ Ntp225
 Rp226
 (dp227
 g27
-V<h1 style="text-align:center">ckEditor control</h1><p>The ckEditor&nbsp;control creates a ckEditor based rich text editing pane.</p><h2>API</h2><p><code>class ckeditor (CompositePres)</code></p><h3>Constructor</h3><p><code>ckeditor(self, text, immediate_events=False, use_edit_button=False, config=None, on_edit=None, on_focus=None, on_blur=None)</code></p><p>Parameters:</p><ul><li><code>text</code>: the HTML to display and edit</li><li><code>immediate_events</code>: if True, an edit event is emitted on each edit operation, if False, edit event is sent after a period of 1 second during which no edits took place</li><li><code>use_edit_button</code>: if False the component&nbsp;is always editable, if True the use must enable edit mode by Alt-clicking or hovering over the component&nbsp;and clicking the edit button that appears</li><li><code>config</code>: ckEditor <a data-cke-saved-href="http://docs.ckeditor.com/#!/api/CKEDITOR.config" href="http://docs.ckeditor.com/#!/api/CKEDITOR.config">configuration</a></li><li><code>on_edit</code>: a function of the form <code>fn(event)</code> that is invoked when the content is edited</li><li><code>on_focus</code>:&nbsp;a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the component gains focus</li><li><code>on_blur</code>:&nbsp;a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the component loses focus</li></ul>
+V<h1 style="text-align:center">ckEditor control</h1><p>The ckEditor&nbsp;control creates a ckEditor based rich text editing pane.</p><h2>API</h2><p><code></code>Package:&nbsp;<code>larch.controls.ckeditor</code><br></p><p><code>class ckeditor (CompositePres)</code></p><h3>Constructor</h3><p><code>ckeditor(self, text, immediate_events=False, use_edit_button=False, config=None, on_edit=None, on_focus=None, on_blur=None)</code></p><p>Parameters:</p><ul><li><code>text</code>: the HTML to display and edit</li><li><code>immediate_events</code>: if True, an edit event is emitted on each edit operation, if False, edit event is sent after a period of 1 second during which no edits took place</li><li><code>use_edit_button</code>: if False the component&nbsp;is always editable, if True the use must enable edit mode by Alt-clicking or hovering over the component&nbsp;and clicking the edit button that appears</li><li><code>config</code>: ckEditor <a data-cke-saved-href="http://docs.ckeditor.com/#!/api/CKEDITOR.config" href="http://docs.ckeditor.com/#!/api/CKEDITOR.config">configuration</a></li><li><code>on_edit</code>: a function of the form <code>fn(event)</code> that is invoked when the content is edited</li><li><code>on_focus</code>:&nbsp;a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the component gains focus</li><li><code>on_blur</code>:&nbsp;a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the component loses focus</li></ul>
 p228
 sg29
 g222
@@ -894,7 +894,7 @@ Ntp332
 Rp333
 (dp334
 g27
-V<h1 style="text-align:center">CodeMirror control</h1><p>The CodeMirror control creates a CodeMirror&nbsp;based source code&nbsp;editing pane.</p><h2>API</h2><p><code>class code_mirror (CompositePres)</code></p><h3>Constructor</h3><p><code>code_mirror(self,&nbsp;text, immediate_events=False, config=None, on_edit=None, on_focus=None, on_blur=None, modes=None)</code></p><p>Parameters:</p><ul><li><code>text</code>: the text display and edit</li><li><code>immediate_events</code>: if True, an edit event is emitted on each edit operation, if False, edit event is sent after a period of 1 second during which no edits took place</li><li><code>config</code>: CodeMirror&nbsp;<a data-cke-saved-href="http://codemirror.net/doc/manual.html#config" href="http://codemirror.net/doc/manual.html#config">configuration</a></li><li><code>on_edit</code>: a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the content is edited</li><li><code>on_focus</code>:&nbsp;a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the component gains focus</li><li><code>on_blur</code>:&nbsp;a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the component loses focus</li><li><code>modes</code>:&nbsp;a list of names of CodeMirror&nbsp;language plugins to load (e.g. '<code>python</code>', '<code>javascript</code>', '<code>glsl</code>', etc; see CodeMirror <a data-cke-saved-href="http://codemirror.net/mode/" href="http://codemirror.net/mode/">modes</a>)</li></ul>
+V<h1 style="text-align:center">CodeMirror control</h1><p>The CodeMirror control creates a CodeMirror&nbsp;based source code&nbsp;editing pane.</p><h2>API</h2><p><code></code>Package:&nbsp;<code>larch.controls.code_mirror</code><br></p><p><code>class code_mirror (CompositePres)</code></p><h3>Constructor</h3><p><code>code_mirror(self,&nbsp;text, immediate_events=False, config=None, on_edit=None, on_focus=None, on_blur=None, modes=None)</code></p><p>Parameters:</p><ul><li><code>text</code>: the text display and edit</li><li><code>immediate_events</code>: if True, an edit event is emitted on each edit operation, if False, edit event is sent after a period of 1 second during which no edits took place</li><li><code>config</code>: CodeMirror&nbsp;<a data-cke-saved-href="http://codemirror.net/doc/manual.html#config" href="http://codemirror.net/doc/manual.html#config">configuration</a></li><li><code>on_edit</code>: a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the content is edited</li><li><code>on_focus</code>:&nbsp;a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the component gains focus</li><li><code>on_blur</code>:&nbsp;a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the component loses focus</li><li><code>modes</code>:&nbsp;a list of names of CodeMirror&nbsp;language plugins to load (e.g. '<code>python</code>', '<code>javascript</code>', '<code>glsl</code>', etc; see CodeMirror <a data-cke-saved-href="http://codemirror.net/mode/" href="http://codemirror.net/mode/">modes</a>)</li></ul>
 p335
 sg29
 g329
@@ -1171,7 +1171,7 @@ Ntp432
 Rp433
 (dp434
 g27
-V<h1 style="text-align:center">Noty control</h1><p>The noty control displays it's contents in a Noty.js notification box. There are few limitations on the content that can be placed in a noty; live, interactive content and objects may be used as normal. You will however need to bear in mind that Noty catches some events (e.g. clicks) for itself; this can interfere with your the operation of its contents.</p><h2>API</h2><p><code>class noty (object)</code></p><h3>Constructor</h3><p><code>noty(self, contents, **options)</code></p><p>Parameters:</p><ul><li><code>contents</code>: the noty contents</li><li><code>options</code>: noty&nbsp;<a data-cke-saved-href="http://needim.github.io/noty/#options" href="http://needim.github.io/noty/#options">options</a></li></ul><h3>Methods</h3><p><code>def show_on(self, target)</code></p><p>Paremeters:</p><ul><li><code>target</code>: identifies the page on which to show the noty.&nbsp;Can be: an&nbsp;<code>Event</code>,&nbsp;<code>DynamicPage</code>,&nbsp;<code>DynamicSegment</code>,&nbsp;<code>_FragmentView</code>&nbsp;or&nbsp;<code>IncrementalView</code>.</li></ul>
+V<h1 style="text-align:center">Noty control</h1><p>The noty control displays it's contents in a Noty.js notification box. There are few limitations on the content that can be placed in a noty; live, interactive content and objects may be used as normal. You will however need to bear in mind that Noty catches some events (e.g. clicks) for itself; this can interfere with your the operation of its contents.</p><h2>API</h2><p><code></code>\u200bPackage:&nbsp;<code>larch.controls.noty</code><br></p><p><code>class noty (object)</code></p><h3>Constructor</h3><p><code>noty(self, contents, **options)</code></p><p>Parameters:</p><ul><li><code>contents</code>: the noty contents</li><li><code>options</code>: noty&nbsp;<a data-cke-saved-href="http://needim.github.io/noty/#options" href="http://needim.github.io/noty/#options">options</a></li></ul><h3>Methods</h3><p><code>def show_on(self, target)</code></p><p>Paremeters:</p><ul><li><code>target</code>: identifies the page on which to show the noty.&nbsp;Can be: an&nbsp;<code>Event</code>,&nbsp;<code>DynamicPage</code>,&nbsp;<code>DynamicSegment</code>,&nbsp;<code>_FragmentView</code>&nbsp;or&nbsp;<code>IncrementalView</code>.</li></ul>
 p435
 sg29
 g429
@@ -1233,7 +1233,7 @@ Ntp455
 Rp456
 (dp457
 g27
-V<h1 style="text-align:center">Dialog&nbsp;control</h1><p>The dialog control displays it's contents in a JQuery dialog box. There are few limitations on the content that can be placed in a dialog; live, interactive content and objects may be used as normal.</p><h2>API</h2><p><code>class dialog (object)</code></p><h3>Constructor</h3><p><code>dialog(self,&nbsp;contents, **options)</code></p><p>Parameters:</p><ul><li><code>contents</code>: the dialog box contents</li><li><code>options</code>: JQuery UI dialog <a data-cke-saved-href="http://api.jqueryui.com/dialog/" href="http://api.jqueryui.com/dialog/">options</a></li></ul><h3>Methods</h3><p><code>def show_on(self, target)</code></p><p>Paremeters:</p><ul><li><code>target</code>: identifies the page on which to show the dialog box.&nbsp;Can be: an <code>Event</code>,&nbsp;<code>DynamicPage</code>, <code>DynamicSegment</code>, <code>_FragmentView</code> or&nbsp;<code>IncrementalView</code>.</li></ul>
+V<h1 style="text-align:center">Dialog&nbsp;control</h1><p>The dialog control displays it's contents in a JQuery dialog box. There are few limitations on the content that can be placed in a dialog; live, interactive content and objects may be used as normal.</p><h2>API</h2><p><code></code>\u200bPackage:&nbsp;<code>larch.controls.dialog</code><br></p><p><code>class dialog (object)</code></p><h3>Constructor</h3><p><code>dialog(self,&nbsp;contents, **options)</code></p><p>Parameters:</p><ul><li><code>contents</code>: the dialog box contents</li><li><code>options</code>: JQuery UI dialog <a data-cke-saved-href="http://api.jqueryui.com/dialog/" href="http://api.jqueryui.com/dialog/">options</a></li></ul><h3>Methods</h3><p><code>def show_on(self, target)</code></p><p>Paremeters:</p><ul><li><code>target</code>: identifies the page on which to show the dialog box.&nbsp;Can be: an <code>Event</code>,&nbsp;<code>DynamicPage</code>, <code>DynamicSegment</code>, <code>_FragmentView</code> or&nbsp;<code>IncrementalView</code>.</li></ul>
 p458
 sg29
 g452
@@ -1365,4 +1365,89 @@ Veventview
 p506
 sg101
 I9
-sbasbasb.
+sbasbag0
+(g12
+g2
+Ntp507
+Rp508
+(dp509
+g16
+g0
+(g17
+g2
+Ntp510
+Rp511
+(dp512
+g21
+(lp513
+g0
+(g23
+g2
+Ntp514
+Rp515
+(dp516
+g27
+V<h1 style="text-align:center">Focusable</h1><p>Focusable wraps its contents and emits events when they gain or lose focus. The Larch client-side libraries keep track of which component currently has focus. The component that has focus will have a box shadow beneath it.</p><h2>API</h2><p>Package:&nbsp;<code>larch.controls.focusable</code></p><p><code>class focusable(CompositePres)</code></p><h3>Constructor</h3><p><code>focusable(self,&nbsp;contents, on_gain_focus=None, on_lose_focus=None)</code></p><p>Parameters:</p><ul><li><code>contents</code>: the focusable contents</li><li><code>on_gain_focus</code>: a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the contents gain focus</li><li><code>on_lose_focus</code>: a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the contents lose focus</li></ul>
+p517
+sg29
+g511
+sbag0
+(g23
+g2
+Ntp518
+Rp519
+(dp520
+g27
+V<h2>Example</h2>
+p521
+sg29
+g511
+sbag0
+(g488
+g2
+Ntp522
+Rp523
+(dp524
+g34
+g0
+(g492
+g2
+Ntp525
+Rp526
+(dp527
+g34
+V.focus_test_item {\u000a    padding: 5px;\u000a    margin: 5px;\u000a    border: 1px solid #d0d0d0;\u000a}
+p528
+sg40
+I01
+sbsg497
+Vfocus_test_item_css
+p529
+sg29
+g511
+sbag0
+(g30
+g2
+Ntp530
+Rp531
+(dp532
+g34
+g0
+(g35
+g2
+Ntp533
+Rp534
+(dp535
+g34
+V# Import the event viewer so that we can show the events\u000afrom ctltest.lib.eventview import EventViewer\u000a\u000a# import focusable and Html\u000afrom larch.controls import focusable\u000afrom larch.pres.html import Html\u000a\u000a\u000a# Create an event viewer\u000aev = EventViewer()\u000a\u000a\u000a# Function to make cell contents; text in a div that uses the 'focus_test_item' class.\u000adef make_contents(text):\u000a    return Html('<div class="focus_test_item">{0}</div>'.format(text)).use_css(source=focus_test_item_css)\u000a\u000a# Table cell\u000adef cell(x):\u000a    return Html('<td>', x, '</td>')\u000a\u000a# Table that arranges cells horizontally\u000adef table(*cells):\u000a    return Html('<table><tr>').extend(cells).append('</tr></table>')\u000a\u000a\u000a# Focusable item; wrap the results of calling make_contens(), and attach event handlers that add messages to the event viewer\u000adef make_item(item_text):\u000a    return focusable.focusable(make_contents(item_text),\u000a                               on_gain_focus=lambda event: ev('{0} gained focus'.format(item_text)),\u000a                               on_lose_focus=lambda event: ev('{0} lost focus'.format(item_text)))\u000a\u000a# Make the focusable items\u000af1 = make_item('Item 1')\u000af2 = make_item('Item 2')\u000af3 = make_item('Item 3')\u000af4 = make_item('Item 4')\u000a\u000a# Arrange them with a table\u000ax = table(cell(f1), cell(f2), cell(f3), cell(f4))\u000a# Arrange the event viewer below the items\u000aev.below(x)
+p536
+sg40
+I01
+sbsg29
+g511
+sbasbsg99
+VFocusable
+p537
+sg101
+I10
+sbasb.

@@ -358,8 +358,13 @@ larch.controls.__focus = null;
 larch.controls.initFocusable = function (node) {
     var q = $(node);
     q.addClass("larch_ui_focusable");
-    q.click(function () {
-        larch.controls.grabFocus(node);
+    q.click(function (e) {
+        // Use the property '__larch_focus_handled' on the original event structure to ensure that
+        // the event does not cause the focus to shift to an outer element
+        if (!e.originalEvent.hasOwnProperty('__larch_focus_handled')) {
+            larch.controls.grabFocus(node);
+            e.originalEvent.__larch_focus_handled = true;
+        }
     });
 };
 
