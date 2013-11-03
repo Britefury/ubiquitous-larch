@@ -33,20 +33,6 @@ class DocumentNameInUseError (object):
 
 
 
-def load_document(path):
-	with open(path, 'rU') as f:
-		return pickle.load(f)
-
-def save_document(path, content):
-	# Convert to string first, in case we encounter an exception while pickling
-	# This way, the save process bails *before* overwriting the file with nonsense
-	s = pickle.dumps(content)
-	with open(path, 'w') as f:
-		f.write(s)
-
-
-
-
 larch_app_css = '/static/larch/larch_app.css'
 
 
@@ -261,7 +247,7 @@ class Document (object):
 
 	def save(self):
 		file_path = os.path.join(self.__doc_list.path, self.__filename + _EXTENSION)
-		save_document(file_path, self.__content)
+		self.__doc_list._app._save_document(file_path, self.__content)
 		return self.__filename
 
 
@@ -344,9 +330,10 @@ class _DocListImportHooks (object):
 
 
 class DocumentList (object):
-	def __init__(self, path, loc_prefix):
+	def __init__(self, app, path, loc_prefix):
 		self.__incr = IncrementalValueMonitor()
 
+		self._app = app
 		self.__path = path
 		self.__loc_prefix = loc_prefix
 
@@ -429,9 +416,9 @@ class DocumentList (object):
 			directory, filename = os.path.split(p)
 			name, ext = os.path.splitext(filename)
 			try:
-				content = load_document(p)
+				content = self._app._load_document(p)
 			except:
-				print 'Error: could not load {0}'.format(p)
+				print 'Error: could not load {0}: {1}'.format(p, sys.exc_info())
 			else:
 				doc = Document(self, name, name, content)
 				self.__add_document(doc)
@@ -704,6 +691,8 @@ class ToolList (object):
 
 class LarchApplication (object):
 	def __init__(self, user_docs_path=None, documentation_path=None, logout_url_path=None):
+		self.__path_to_document = {}
+
 		if user_docs_path is None:
 			user_docs_path = os.getcwd()
 		if documentation_path is None:
@@ -714,11 +703,11 @@ class LarchApplication (object):
 		self.__user_docs_path = user_docs_path
 		self.__logout_url_path = logout_url_path
 
-		self.__user_docs = DocumentList(user_docs_path, 'files')
+		self.__user_docs = DocumentList(self, user_docs_path, 'files')
 		self.__user_docs.enable_import_hooks()
 
 		if documentation_path is not None:
-			self.__docs = DocumentList(documentation_path, 'docs')
+			self.__docs = DocumentList(self, documentation_path, 'docs')
 			self.__docs.enable_import_hooks()
 		else:
 			self.__docs = None
@@ -735,6 +724,24 @@ class LarchApplication (object):
 	@property
 	def consoles(self):
 		return self.__consoles
+
+
+	def _load_document(self, path):
+		a = os.path.abspath(path)
+		try:
+			return self.__path_to_document[a]
+		except KeyError:
+			with open(path, 'rU') as f:
+				doc = pickle.load(f)
+			self.__path_to_document[a] = doc
+			return doc
+
+	def _save_document(self, path, content):
+		# Convert to string first, in case we encounter an exception while pickling
+		# This way, the save process bails *before* overwriting the file with nonsense
+		s = pickle.dumps(content)
+		with open(path, 'w') as f:
+			f.write(s)
 
 
 	def __resolve__(self, name, subject):
