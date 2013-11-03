@@ -12,15 +12,17 @@ class form (CompositePres):
 		Wrap the contents in a form that will be sent to Larch
 
 		:param contents: The contents of the form, including the enclosing <form> tag
-		:param on_submit: A callback invoked when the form is submitted. Callback signature: function(form_data)
+		:param on_submit: A callback invoked when the form is submitted. Callback signature: function(event); the form data is accessible through event.data
 		:return: the form control
 		"""
 		self.__contents = contents
 		self.submit = EventHandler()
+		if on_submit is not None:
+			self.submit.connect(on_submit)
 
 
 	def pres(self, pres_ctx):
-		p = Html('<form enctype="multipart/form-data">', self.__contents, '</form>').js_function_call('larch.controls.initForm').with_event_handler('form_submit', lambda event: self.submit(event, event.data))
+		p = Html('<form enctype="multipart/form-data">', self.__contents, '</form>').js_function_call('larch.controls.initForm').with_event_handler('form_submit', self.submit)
 		p = p.use_js('/static/jquery/js/jquery.form.min.js').use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
 		return p
 

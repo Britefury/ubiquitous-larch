@@ -276,7 +276,7 @@ Ntp109
 Rp110
 (dp111
 g27
-V<h1 style="text-align:center">Button control</h1><p>The button control creates a JQuery push button.</p><h2>API</h2><p>Package: <code>larch.controls.button</code></p><p><code>class button (CompositePres)</code></p><h3>Constructor</h3><p><code>button(self,&nbsp;text=None, action_fn=None, primary_icon=None, secondary_icon=None, disabled=False)</code></p><p>Parameters:</p><ul><li><code>text</code>: the text to display in the button, can use HTML</li><li><code>action_fn</code>: a function of the form <code>fn(event)</code> that is invoked when the button is clicked</li><li><code>primary_icon</code>: a string identifying the <a data-cke-saved-href="http://api.jqueryui.com/theming/icons/" href="http://api.jqueryui.com/theming/icons/">JQuery UI icon</a> to display on the left of the button</li><li><code>secondary_icon</code>: a string identifying the <a data-cke-saved-href="http://api.jqueryui.com/theming/icons/" href="http://api.jqueryui.com/theming/icons/">JQuery UI icon</a> to display on the right of the button</li><li><code>disabled</code>: the button will be disabled if True</li></ul>
+V<h1 style="text-align:center">Button control</h1><p>The button control creates a JQuery push button.</p><h2>API</h2><p>Package: <code>larch.controls.button</code></p><p><code>class button (CompositePres)</code></p><p style="margin-left:40px">Constructor: <code>button(self,&nbsp;text=None, action_fn=None, primary_icon=None, secondary_icon=None, disabled=False)</code></p><p style="margin-left:80px">Parameters:</p><ul style="margin-left:80px"><li><code>text</code>: the text to display in the button, can use HTML</li><li><code>action_fn</code>: a function of the form <code>fn(event)</code> that is invoked when the button is clicked</li><li><code>primary_icon</code>: a string identifying the <a data-cke-saved-href="http://api.jqueryui.com/theming/icons/" href="http://api.jqueryui.com/theming/icons/">JQuery UI icon</a> to display on the left of the button</li><li><code>secondary_icon</code>: a string identifying the <a data-cke-saved-href="http://api.jqueryui.com/theming/icons/" href="http://api.jqueryui.com/theming/icons/">JQuery UI icon</a> to display on the right of the button</li><li><code>disabled</code>: the button will be disabled if True</li></ul>
 p112
 sg29
 g106
@@ -338,7 +338,7 @@ Ntp132
 Rp133
 (dp134
 g27
-V<h1 style="text-align:center">Drop-down expander&nbsp;control</h1><p>The drop-down expander control displays a header and contents, with the header in a button and the contents below. The contents are only visible when it is in an expanded state. The user may toggle the state by clicking the button.</p><h2>API</h2><p><code></code>\u200bPackage:&nbsp;<code>larch.controls.expander</code><br></p><p><code>class dropdown_expander&nbsp;(CompositePres)</code></p><h3>Constructor</h3><p><code>dropdown_expander(self, header, content, state=None, on_expand=None)</code></p><p>Parameters:</p><ul><li>header: the header that will be displayed in the button</li><li><code>content</code>: the content that will be displayed below the button</li><li><code>state</code>: the expander state; use a boolean to set the initial state (False=collapsed, True=expanded) or use a live value containing the state (the live value will be updated when the user expands or collapses the control)</li><li><code>on_expand</code>: a callback function of the form <code>fn(state)</code> that is invoked when the user expands or collapses the expander</li></ul>
+V<h1 style="text-align:center">Drop-down expander&nbsp;control</h1><p>The drop-down expander control displays a header and contents, with the header in a button and the contents below. The contents are only visible when it is in an expanded state. The user may toggle the state by clicking the button.</p><h2>API</h2><p>\u200bPackage:&nbsp;<code>larch.controls.expander</code></p><p><code>class dropdown_expander&nbsp;(CompositePres)</code></p><p style="margin-left: 40px;">Constructor: <code>dropdown_expander(self, header, content, state=None, on_expand=None)</code></p><p style="margin-left: 80px;">Parameters:</p><ul style="margin-left: 80px;"><li>header: the header that will be displayed in the button</li><li><code>content</code>: the content that will be displayed below the button</li><li><code>state</code>: the expander state; use a boolean to set the initial state (False=collapsed, True=expanded) or use a live value containing the state (the live value will be updated when the user expands or collapses the control)</li><li><code>on_expand</code>: a callback function of the form <code>fn(state)</code> that is invoked when the user expands or collapses the expander</li></ul>
 p135
 sg29
 g129
@@ -595,7 +595,7 @@ Ntp225
 Rp226
 (dp227
 g27
-V<h1 style="text-align:center">ckEditor control</h1><p>The ckEditor&nbsp;control creates a ckEditor based rich text editing pane.</p><h2>API</h2><p><code></code>Package:&nbsp;<code>larch.controls.ckeditor</code><br></p><p><code>class ckeditor (CompositePres)</code></p><h3>Constructor</h3><p><code>ckeditor(self, text, immediate_events=False, use_edit_button=False, config=None, on_edit=None, on_focus=None, on_blur=None)</code></p><p>Parameters:</p><ul><li><code>text</code>: the HTML to display and edit</li><li><code>immediate_events</code>: if True, an edit event is emitted on each edit operation, if False, edit event is sent after a period of 1 second during which no edits took place</li><li><code>use_edit_button</code>: if False the component&nbsp;is always editable, if True the use must enable edit mode by Alt-clicking or hovering over the component&nbsp;and clicking the edit button that appears</li><li><code>config</code>: ckEditor <a data-cke-saved-href="http://docs.ckeditor.com/#!/api/CKEDITOR.config" href="http://docs.ckeditor.com/#!/api/CKEDITOR.config">configuration</a></li><li><code>on_edit</code>: a function of the form <code>fn(event)</code> that is invoked when the content is edited</li><li><code>on_focus</code>:&nbsp;a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the component gains focus</li><li><code>on_blur</code>:&nbsp;a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the component loses focus</li></ul>
+V<h1 style="text-align:center">ckEditor control</h1><p>The ckEditor&nbsp;control creates a ckEditor based rich text editing pane.</p><h2>API</h2><p>Package:&nbsp;<code>larch.controls.ckeditor</code></p><p><code>class ckeditor (CompositePres)</code></p><p style="margin-left:40px">Constructor: <code>ckeditor(self, text, immediate_events=False, use_edit_button=False, config=None, on_edit=None, on_focus=None, on_blur=None)</code></p><p style="margin-left:80px">Parameters:</p><ul style="margin-left:80px"><li><code>text</code>: the HTML to display and edit</li><li><code>immediate_events</code>: if True, an edit event is emitted on each edit operation, if False, edit event is sent after a period of 1 second during which no edits took place</li><li><code>use_edit_button</code>: if False the component&nbsp;is always editable, if True the use must enable edit mode by Alt-clicking or hovering over the component&nbsp;and clicking the edit button that appears</li><li><code>config</code>: ckEditor <a data-cke-saved-href="http://docs.ckeditor.com/#!/api/CKEDITOR.config" href="http://docs.ckeditor.com/#!/api/CKEDITOR.config">configuration</a></li><li><code>on_edit</code>: a function of the form <code>fn(event)</code> that is invoked when the content is edited</li><li><code>on_focus</code>:&nbsp;a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the component gains focus</li><li><code>on_blur</code>:&nbsp;a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the component loses focus</li></ul>
 p228
 sg29
 g222
@@ -894,7 +894,7 @@ Ntp332
 Rp333
 (dp334
 g27
-V<h1 style="text-align:center">CodeMirror control</h1><p>The CodeMirror control creates a CodeMirror&nbsp;based source code&nbsp;editing pane.</p><h2>API</h2><p><code></code>Package:&nbsp;<code>larch.controls.code_mirror</code><br></p><p><code>class code_mirror (CompositePres)</code></p><h3>Constructor</h3><p><code>code_mirror(self,&nbsp;text, immediate_events=False, config=None, on_edit=None, on_focus=None, on_blur=None, modes=None)</code></p><p>Parameters:</p><ul><li><code>text</code>: the text display and edit</li><li><code>immediate_events</code>: if True, an edit event is emitted on each edit operation, if False, edit event is sent after a period of 1 second during which no edits took place</li><li><code>config</code>: CodeMirror&nbsp;<a data-cke-saved-href="http://codemirror.net/doc/manual.html#config" href="http://codemirror.net/doc/manual.html#config">configuration</a></li><li><code>on_edit</code>: a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the content is edited</li><li><code>on_focus</code>:&nbsp;a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the component gains focus</li><li><code>on_blur</code>:&nbsp;a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the component loses focus</li><li><code>modes</code>:&nbsp;a list of names of CodeMirror&nbsp;language plugins to load (e.g. '<code>python</code>', '<code>javascript</code>', '<code>glsl</code>', etc; see CodeMirror <a data-cke-saved-href="http://codemirror.net/mode/" href="http://codemirror.net/mode/">modes</a>)</li></ul>
+V<h1 style="text-align:center">CodeMirror control</h1><p>The CodeMirror control creates a CodeMirror&nbsp;based source code&nbsp;editing pane.</p><h2>API</h2><p>Package:&nbsp;<code>larch.controls.code_mirror</code></p><p><code>class code_mirror (CompositePres)</code></p><p style="margin-left:40px">Constructor: <code>code_mirror(self,&nbsp;text, immediate_events=False, config=None, on_edit=None, on_focus=None, on_blur=None, modes=None)</code></p><p style="margin-left:80px">Parameters:</p><ul style="margin-left:80px"><li><code>text</code>: the text display and edit</li><li><code>immediate_events</code>: if True, an edit event is emitted on each edit operation, if False, edit event is sent after a period of 1 second during which no edits took place</li><li><code>config</code>: CodeMirror&nbsp;<a data-cke-saved-href="http://codemirror.net/doc/manual.html#config" href="http://codemirror.net/doc/manual.html#config">configuration</a></li><li><code>on_edit</code>: a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the content is edited</li><li><code>on_focus</code>:&nbsp;a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the component gains focus</li><li><code>on_blur</code>:&nbsp;a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the component loses focus</li><li><code>modes</code>:&nbsp;a list of names of CodeMirror&nbsp;language plugins to load (e.g. '<code>python</code>', '<code>javascript</code>', '<code>glsl</code>', etc; see CodeMirror <a data-cke-saved-href="http://codemirror.net/mode/" href="http://codemirror.net/mode/">modes</a>)</li></ul>
 p335
 sg29
 g329
@@ -1171,7 +1171,7 @@ Ntp432
 Rp433
 (dp434
 g27
-V<h1 style="text-align:center">Noty control</h1><p>The noty control displays it's contents in a Noty.js notification box. There are few limitations on the content that can be placed in a noty; live, interactive content and objects may be used as normal. You will however need to bear in mind that Noty catches some events (e.g. clicks) for itself; this can interfere with your the operation of its contents.</p><h2>API</h2><p><code></code>\u200bPackage:&nbsp;<code>larch.controls.noty</code><br></p><p><code>class noty (object)</code></p><h3>Constructor</h3><p><code>noty(self, contents, **options)</code></p><p>Parameters:</p><ul><li><code>contents</code>: the noty contents</li><li><code>options</code>: noty&nbsp;<a data-cke-saved-href="http://needim.github.io/noty/#options" href="http://needim.github.io/noty/#options">options</a></li></ul><h3>Methods</h3><p><code>def show_on(self, target)</code></p><p>Paremeters:</p><ul><li><code>target</code>: identifies the page on which to show the noty.&nbsp;Can be: an&nbsp;<code>Event</code>,&nbsp;<code>DynamicPage</code>,&nbsp;<code>DynamicSegment</code>,&nbsp;<code>_FragmentView</code>&nbsp;or&nbsp;<code>IncrementalView</code>.</li></ul>
+V<h1 style="text-align:center">Noty control</h1><p>The noty control displays it's contents in a Noty.js notification box. There are few limitations on the content that can be placed in a noty; live, interactive content and objects may be used as normal. You will however need to bear in mind that Noty catches some events (e.g. clicks) for itself; this can interfere with your the operation of its contents.&nbsp;Note that it is not enough to simply construct the dialog control; you must call the&nbsp;<code>show_on</code>&nbsp;method to display it.</p><h2>API</h2><p>\u200bPackage:&nbsp;<code>larch.controls.noty</code></p><p><code>class noty (object)</code></p><p style="margin-left: 40px;">Constructor: <code>noty(self, contents, **options)</code></p><p style="margin-left: 80px;">Parameters:</p><ul style="margin-left: 80px;"><li><code>contents</code>: the noty contents</li><li><code>options</code>: noty&nbsp;<a data-cke-saved-href="http://needim.github.io/noty/#options" href="http://needim.github.io/noty/#options">options</a></li></ul><p style="margin-left: 40px;">Methods:</p><p style="margin-left: 80px;"><code>def show_on(self, target)</code></p><p style="margin-left: 120px;">Shows the noty notification box. You must call this method to show the noty.</p><p style="margin-left: 120px;">Parameters:</p><ul style="margin-left: 120px;"><li><code>target</code>: identifies the page on which to show the noty.&nbsp;Can be: an&nbsp;<code>Event</code>,&nbsp;<code>DynamicPage</code>,&nbsp;<code>DynamicSegment</code>,&nbsp;<code>_FragmentView</code>&nbsp;or&nbsp;<code>IncrementalView</code>.</li></ul>
 p435
 sg29
 g429
@@ -1233,7 +1233,7 @@ Ntp455
 Rp456
 (dp457
 g27
-V<h1 style="text-align:center">Dialog&nbsp;control</h1><p>The dialog control displays it's contents in a JQuery dialog box. There are few limitations on the content that can be placed in a dialog; live, interactive content and objects may be used as normal.</p><h2>API</h2><p><code></code>\u200bPackage:&nbsp;<code>larch.controls.dialog</code><br></p><p><code>class dialog (object)</code></p><h3>Constructor</h3><p><code>dialog(self,&nbsp;contents, **options)</code></p><p>Parameters:</p><ul><li><code>contents</code>: the dialog box contents</li><li><code>options</code>: JQuery UI dialog <a data-cke-saved-href="http://api.jqueryui.com/dialog/" href="http://api.jqueryui.com/dialog/">options</a></li></ul><h3>Methods</h3><p><code>def show_on(self, target)</code></p><p>Paremeters:</p><ul><li><code>target</code>: identifies the page on which to show the dialog box.&nbsp;Can be: an <code>Event</code>,&nbsp;<code>DynamicPage</code>, <code>DynamicSegment</code>, <code>_FragmentView</code> or&nbsp;<code>IncrementalView</code>.</li></ul>
+V<h1 style="text-align:center">Dialog&nbsp;control</h1><p>The dialog control displays it's contents in a JQuery dialog box. There are few limitations on the content that can be placed in a dialog; live, interactive content and objects may be used as normal. Note that it is not enough to simply construct the dialog control; you must call the&nbsp;<code>show_on</code> method to display it.</p><h2>API</h2><p>\u200bPackage:&nbsp;<code>larch.controls.dialog</code></p><p><code>class dialog (object)</code></p><p style="margin-left: 40px;">Constructor: <code>dialog(self,&nbsp;contents, **options)</code></p><p style="margin-left: 80px;">Parameters:</p><ul style="margin-left: 80px;"><li><code>contents</code>: the dialog box contents</li><li><code>options</code>: JQuery UI dialog <a data-cke-saved-href="http://api.jqueryui.com/dialog/" href="http://api.jqueryui.com/dialog/">options</a></li></ul><p style="margin-left: 40px;">Methods:</p><p style="margin-left: 80px;"><code>def show_on(self, target)</code></p><p style="margin-left: 120px;">Shows the dialog box. You must call this method to display the dialog box.</p><p style="margin-left: 120px;">Parameters:</p><ul style="margin-left: 120px;"><li><code>target</code>: identifies the page on which to show the dialog box.&nbsp;Can be: an <code>Event</code>,&nbsp;<code>DynamicPage</code>, <code>DynamicSegment</code>, <code>_FragmentView</code> or&nbsp;<code>IncrementalView</code>.</li></ul>
 p458
 sg29
 g452
@@ -1387,7 +1387,7 @@ Ntp514
 Rp515
 (dp516
 g27
-V<h1 style="text-align:center">Focusable</h1><p>Focusable wraps its contents and emits events when they gain or lose focus. The Larch client-side libraries keep track of which component currently has focus. The component that has focus will have a box shadow beneath it.</p><h2>API</h2><p>Package:&nbsp;<code>larch.controls.focusable</code></p><p><code>class focusable(CompositePres)</code></p><h3>Constructor</h3><p><code>focusable(self,&nbsp;contents, on_gain_focus=None, on_lose_focus=None)</code></p><p>Parameters:</p><ul><li><code>contents</code>: the focusable contents</li><li><code>on_gain_focus</code>: a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the contents gain focus</li><li><code>on_lose_focus</code>: a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the contents lose focus</li></ul>
+V<h1 style="text-align:center">Focusable</h1><p>Focusable wraps its contents and emits events when they gain or lose focus. The Larch client-side libraries keep track of which component currently has focus. The component that has focus will have a box shadow beneath it.</p><h2>API</h2><p>Package:&nbsp;<code>larch.controls.focusable</code></p><p><code>class focusable (CompositePres)</code></p><p style="margin-left: 40px;">Constructor: <code>focusable(self,&nbsp;contents, on_gain_focus=None, on_lose_focus=None)</code></p><p style="margin-left: 80px;">Parameters:</p><ul style="margin-left: 80px;"><li><code>contents</code>: the focusable contents</li><li><code>on_gain_focus</code>: a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the contents gain focus</li><li><code>on_lose_focus</code>: a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the contents lose focus</li></ul>
 p517
 sg29
 g511
@@ -1450,4 +1450,221 @@ VFocusable
 p537
 sg101
 I10
+sbag0
+(g12
+g2
+Ntp538
+Rp539
+(dp540
+g16
+g0
+(g17
+g2
+Ntp541
+Rp542
+(dp543
+g21
+(lp544
+g0
+(g23
+g2
+Ntp545
+Rp546
+(dp547
+g27
+V<h1 style="text-align:center">Forms</h1><p>The form control is used in place of an HTML form element; the form control wraps around the form contents. The form control handles the client side form submission and routes the form data on the server side to an event handler.</p><p>A function is also provided that creates a submit button and uses JQuery UI to alter/improve its appearance. You can use a standard HTML submit button if you wish.</p><h2>API</h2><p>Package:&nbsp;<code>larch.controls.form</code></p><p><code>class form (CompositePres)</code></p><p style="margin-left: 40px;">Constructor: <code>focusable(self,&nbsp;contents, on_submit=None)</code></p><p style="margin-left: 80px;">Parameters:</p><ul style="margin-left: 80px;"><li><code>contents</code>: the form contents</li><li><code>on_submit</code>: a function of the form&nbsp;<code>fn(event)</code>&nbsp;that is invoked when the use submits the form. The form data is accessible as a dictionary via <code>event.data\u200b<code>\u200b</code></code></li></ul><p><code>def submit_button(text)</code></p><p style="margin-left:40px">Parameters:</p><ul style="margin-left:40px"><li><code>text</code>: the button text</li></ul>
+p548
+sg29
+g542
+sbag0
+(g23
+g2
+Ntp549
+Rp550
+(dp551
+g27
+V<h2>Example</h2>
+p552
+sg29
+g542
+sbag0
+(g30
+g2
+Ntp553
+Rp554
+(dp555
+g34
+g0
+(g35
+g2
+Ntp556
+Rp557
+(dp558
+g34
+Vfrom ctltest.lib.eventview import EventViewer\u000a\u000afrom larch.pres.html import Html\u000afrom larch.controls import form\u000a\u000a# Event viewer so we can see the sutmit events\u000aev = EventViewer()\u000a\u000a# Build the form contents; a text entry box, a select and a submit button\u000aform_contents = Html('File base name: <input type="text" name="name"><br>',\u000a                     'Extension: <select name="ext">',\u000a                     '<option value="py">Python</option>',\u000a                     '<option value="java">Java</option>',\u000a                     '<option value="cs">C#</option>',\u000a                     '<option value="rb">Ruby</option>',\u000a                     '</select><br>',\u000a                     form.submit_button('Submit'))\u000a\u000a    \u000a# Build the form. Add a line to the event veiwer on submit\u000af = form.form(form_contents, on_submit=lambda event: ev('Submit: {0}'.format(event.data)))\u000a\u000a# Arrange the event veiwer below the form\u000aev.below(f)
+p559
+sg40
+I01
+sbsg29
+g542
+sbasbsg99
+VForm
+p560
+sg101
+I11
+sbag0
+(g12
+g2
+Ntp561
+Rp562
+(dp563
+g16
+g0
+(g17
+g2
+Ntp564
+Rp565
+(dp566
+g21
+(lp567
+g0
+(g23
+g2
+Ntp568
+Rp569
+(dp570
+g27
+V<h1 style="text-align:center">Menu controls</h1><p>The <code>menu</code> module supports the construction of nested popup menus that are built using JQuery UI.</p><h2>API</h2><p>Package: <code>larch.controls.menu</code></p><p><code>def separator()</code></p><p style="margin-left:40px">The separator function creates a horizontal separator that can be placed in a menu.</p><p><code>class item (CompositePres)</code></p><p style="margin-left:40px">Constructor: <code>item(self, item_content, on_select=None)</code></p><p style="margin-left:80px">Parameters:</p><ul style="margin-left:80px"><li><code>item_content</code>: the content to be displayed within the menu item</li><li><code>on_select</code>: a callback of the form <code>fn(event)</code> that is invoked when the user selects the menu item</li></ul><p><code>def sub_menu(item_content, items)</code></p><p style="margin-left:40px">Create a sub-menu that is accessible through an item.</p><p style="margin-left:40px">Parameters:</p><ul style="margin-left:40px"><li><code>item_content</code>: the content to be displayed within the menu item that displays the sub-menu</li><li><code>items</code>: the items within the sub-menu</li></ul><p><code>def menu(items, drop_down=False)</code></p><p style="margin-left:40px">Creates a JQuery UI with the given items.</p><p style="margin-left:40px">Parameters:</p><ul style="margin-left:40px"><li><code>items</code>: the items to be placed in the menu</li><li><code>drop_down</code>: if True, the menu appears below the item that spawned it</li></ul><p><br></p>
+p571
+sg29
+g565
+sbag0
+(g23
+g2
+Ntp572
+Rp573
+(dp574
+g27
+V<h2>Example</h2><p>First, we shall create the contents:</p>
+p575
+sg29
+g565
+sbag0
+(g30
+g2
+Ntp576
+Rp577
+(dp578
+g34
+g0
+(g35
+g2
+Ntp579
+Rp580
+(dp581
+g34
+Vfrom ctltest.lib.eventview import EventViewer\u000a\u000afrom larch.controls import menu\u000afrom larch.pres.html import Html\u000a\u000aev = EventViewer()\u000a\u000acpu = menu.sub_menu('CPU',\u000a                    [menu.item('x86', lambda event: ev('cpu_x86')),\u000a                     menu.item('ARM', lambda event: ev('cpu_arm'))])\u000ascreen = menu.sub_menu('Display',\u000a                       [menu.item('Touch', lambda event: ev('disp_touch')),\u000a                        menu.item('Monitor', lambda event: ev('disp_monitor'))])\u000aos = menu.sub_menu('OS',\u000a                   [menu.item('Windows', lambda event: ev('os_win')),\u000a                    menu.item('Linux', lambda event: ev('os_linux')),\u000a                    menu.item('Mac', lambda event: ev('os_mac'))])\u000alanguage = menu.sub_menu('Language',\u000a                         [menu.item('Python', lambda event: ev('lang_py')),\u000a                          menu.item('Java', lambda event: ev('lang_java')),\u000a                          menu.item('C#', lambda event: ev('lang_cs'))])\u000acontents = [cpu, screen, menu.separator(), os, language]\u000a
+p582
+sg40
+I01
+sbsg29
+g565
+sbag0
+(g23
+g2
+Ntp583
+Rp584
+(dp585
+g27
+V<p>Using the&nbsp;<code>menu</code>&nbsp;function to display the menu directly, within a <code>div</code> with a width of 200px:</p>
+p586
+sg29
+g565
+sbag0
+(g30
+g2
+Ntp587
+Rp588
+(dp589
+g34
+g0
+(g35
+g2
+Ntp590
+Rp591
+(dp592
+g34
+VHtml('<div style="width: 200px;">', menu.menu(contents), '</div>')
+p593
+sg40
+I01
+sbsg29
+g565
+sbag0
+(g23
+g2
+Ntp594
+Rp595
+(dp596
+g27
+V<p>Using the <code>sub_menu</code>&nbsp;function to display a button from which we can access the menu:</p>
+p597
+sg29
+g565
+sbag0
+(g30
+g2
+Ntp598
+Rp599
+(dp600
+g34
+g0
+(g35
+g2
+Ntp601
+Rp602
+(dp603
+g34
+VHtml('<div style="width: 200px;">', menu.menu([menu.sub_menu('system', contents)]), '</div>')
+p604
+sg40
+I01
+sbsg29
+g565
+sbag0
+(g23
+g2
+Ntp605
+Rp606
+(dp607
+g27
+V<p>Finally, our event log:</p>
+p608
+sg29
+g565
+sbag0
+(g30
+g2
+Ntp609
+Rp610
+(dp611
+g34
+g0
+(g35
+g2
+Ntp612
+Rp613
+(dp614
+g34
+Vev
+p615
+sg40
+I01
+sbsg29
+g565
+sbasbsg99
+VMenu
+p616
+sg101
+I12
 sbasb.
