@@ -26,6 +26,8 @@ class dropdown_expander (CompositePres):
 
 		def expand_fn(x):
 			self.state.value = x
+			if on_expand is not None:
+				on_expand(x)
 
 		if state is None:
 			self.state = LiveValue(False)
@@ -38,7 +40,7 @@ class dropdown_expander (CompositePres):
 			self.__expand_fn = expand_fn
 		elif isinstance(state, AbstractLive):
 			self.state = state
-			self.__expand_fn = None
+			self.__expand_fn = on_expand
 		else:
 			raise TypeError, 'state must be None, a bool or an AbstractLive, not an {0}'.format(type(state).__name__)
 
