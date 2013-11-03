@@ -23,7 +23,7 @@ Rp10
 (dp11
 S'text'
 p12
-V<h1 style="text-align:center">Javascript and CSS</h1><p>In this notebook, you will learn how to apply CSS to HTML to affect its appearance and connect Javascript code to DOM nodes to enable interactive behaviour.</p><p>You can add CSS style-sheets and Javascript code to your pages by referencing them using simple API calls. The API calls attach them to the HTML content that requires them.</p><h2>Referencing CSS style sheets and JS scripts</h2><p>We must allow content to reference the CSS and JS files&nbsp;required to display it. The <code>use_css</code>&nbsp;and <code>use_js</code>&nbsp;methods provided by presentation types 'attach' the CSS and Javascript assets (either in the form of source code or URLs at which they can be found) to the content that is to be displayed. If the content is constructed, but never displayed on the browser, assets attached to it will not be loaded.</p><h3>CSS Stylesheets</h3><p>First, lets look at referencing files:</p>
+V<h1 style="text-align:center">Javascript and CSS</h1><p>In this notebook, you will learn how to apply CSS to HTML to affect its appearance and connect Javascript code to DOM nodes to enable interactive behaviour.</p><p>You can add CSS style-sheets and Javascript code to your pages by referencing them using simple API calls. The API calls attach them to the HTML content that requires them.</p><h2>Adding CSS style sheets and Javascript code</h2><p>We must allow content to reference the CSS and JS files&nbsp;required to display it. The <code>use_css</code>&nbsp;and <code>use_js</code>&nbsp;methods provided by presentation types 'attach' the CSS and Javascript assets (either in the form of source code or URLs at which they can be found) to the content that is to be displayed. If the content is constructed, but never displayed on the browser, assets attached to it will not be loaded.</p><h3>CSS Stylesheets</h3><p>First, lets look at referencing CSS contained in a file located at a specified URL:</p>
 p13
 sS'notebook'
 p14
@@ -61,7 +61,7 @@ Ntp26
 Rp27
 (dp28
 g12
-V<p>Invoking <code>use_css</code>&nbsp;will add a <code>link</code> to the <code>head</code> element of the page, loading the CSS file from the specified URL.</p><p>Now, lets look at providing the CSS source directly. Once again, we use the <code>use_css</code>&nbsp;method, but this time we pass the css source to a parameter named 'source'.</p><p>The CSS is specified in a CSS code block, which you can create from the edit menu. Note the 'Variable name' field at the top of the block; this names the global variable from which the CSS will be available in text form. Note that the variable <code>css_source</code> is used in the python code below.</p>
+V<p>Invoking <code>use_css</code>&nbsp;will add a <code>link</code> to the <code>head</code> element of the page, loading the CSS file from the specified URL.</p><p>Now, lets look at providing the CSS source directly. Once again, we use the <code>use_css</code>&nbsp;method, but this time we pass the css source to a parameter named <code>source</code>.</p><p>The CSS is specified in a CSS code block, which you can create from the edit menu. Note the <em>Variable name</em>&nbsp;field at the top of the block; this names the global variable from which the CSS will be available in text form. Note that the variable <code>css_source</code> is used in the python code below.</p>
 p29
 sg14
 g4
@@ -176,7 +176,7 @@ Ntp68
 Rp69
 (dp70
 g12
-V<h2>Javascript DOM node initialisation</h2><p>We can also ask Ubiquitous Larch&nbsp;to invoke a Javascript function to initialise a browser DOM node that has been constructed. We can use this approach as an alternative to selecting DOM nodes by class or ID.&nbsp;To do this, we use the <code>js_function_call</code> method.</p><p>In this example, we will use jQuery to convert an <code>input</code> element into a spinner widget:</p>
+V<h2>Initialising DOM nodes using Javascript</h2><p>We can also ask Ubiquitous Larch&nbsp;to invoke a Javascript function to initialise a browser DOM node that has been constructed. We can use this approach as an alternative to selecting DOM nodes by class or ID.&nbsp;To do this, we use the <code>js_function_call</code> method.</p><p>In this example, we will use jQuery to convert an <code>input</code> element into a spinner widget:</p>
 p71
 sg14
 g4
