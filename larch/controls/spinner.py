@@ -1,30 +1,34 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
+from larch.event_handler import EventHandler
 from larch.pres.html import Html
 from larch.pres.pres import CompositePres
 from larch.pres.resource import MessageChannel
 
 
 class spinner (CompositePres):
-	def __init__(self, action_fn=None, value=0, name='spinner'):
+	def __init__(self, on_change=None, value=0, input_name='spinner'):
 		"""
 		jQuery UI spinner control
 
-		:param action_fn: callback that is invoked when the spinner's value changes; function(value)
+		:param on_change: callback that is invoked when the spinner's value changes; function(value)
 		:param value: [optional] initial value
-		:param name: [option] name attribute for input tag
+		:param input_name: [optional] name attribute for input tag
 		"""
-		self.__action_fn = action_fn
+		self.change = EventHandler()
+
 		self.__value = value
-		self.__name = name
+		self.__input_name = input_name
 		self.__channel = MessageChannel()
+
+		if on_change is not None:
+			self.change.connect(on_change)
 
 
 
 	def __on_spinner_change(self, event):
-		if self.__action_fn is not None:
-			self.__action_fn(event, event.data)
+		self.change(event, event.data)
 
 
 	def set_value(self, value):
@@ -32,7 +36,7 @@ class spinner (CompositePres):
 
 
 	def pres(self, pres_ctx):
-		spin = Html('<input name={0} value={1} />'.format(self.__name, self.__value))
+		spin = Html('<input name={0} value={1} />'.format(self.__input_name, self.__value))
 		spin = spin.js_function_call('larch.controls.initSpinner', self.__channel)
 		spin = spin.with_event_handler("spinner_change", self.__on_spinner_change)
 		spin = spin.use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
@@ -69,7 +73,7 @@ class live_spinner (CompositePres):
 
 		self.__live.add_listener(on_live_change)
 
-		s = spinner(__on_spin, value=self.__live.static_value, name=self.__name)
+		s = spinner(__on_spin, value=self.__live.static_value, input_name=self.__name)
 		return s
 
 
