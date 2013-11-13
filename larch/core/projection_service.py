@@ -45,8 +45,8 @@ class ProjectionService (DynamicPageService):
 		self.__front_page_model = front_page_model
 
 
-	def page(self, location='', get_params=None, user=None):
-		view = self.new_view(location, get_params, user=user)
+	def page(self, root_url, location='', get_params=None, user=None):
+		view = self.new_view(root_url, location, get_params, user=user)
 		subject = self.__resolve_location(location)
 
 		# Augment page
@@ -62,8 +62,8 @@ class ProjectionService (DynamicPageService):
 
 
 
-	def page_for_subject(self, subject, location='', get_params=None, user=None):
-		view = self.new_view(location, get_params, user=user)
+	def page_for_subject(self, root_url, subject, location='', get_params=None, user=None):
+		view = self.new_view(root_url, location, get_params, user=user)
 
 		# Augment page
 		self.__augment_page(subject)
