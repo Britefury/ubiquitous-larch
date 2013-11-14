@@ -280,7 +280,7 @@ class Document (object):
 			self.save_and_display_notification(page)
 
 		save_button = button.button('Save', on_save)
-		doc_title = '<a href="/pages/{0}/{1}" class="larch_app_doc_title">{2}</a>'.format(self.__doc_list.loc_prefix, self.__loc, self.__name)
+		doc_title = '<a href="/{0}/{1}" class="larch_app_doc_title">{2}</a>'.format(self.__doc_list.loc_prefix, self.__loc, self.__name)
 		doc_filename = '<span class="larch_app_doc_filename">{0}</span><span class="larch_app_doc_extension">.ularch</span>'.format(self.__filename)
 		controls = Html('<div class="larch_app_doc_controls">', save_button, '</div>')
 		return Html('<tr class="larch_app_doc">	<td>', doc_title, '</td><td>', doc_filename, '</td><td>', controls, '</td></tr>')
@@ -498,7 +498,8 @@ class DocumentList (object):
 
 
 class ConsoleList (object):
-	def __init__(self):
+	def __init__(self, app):
+		self._app = app
 		self.__consoles = []
 		self.__incr = IncrementalValueMonitor()
 
@@ -538,7 +539,7 @@ class ConsoleList (object):
 		self.__incr.on_access()
 		contents = ['<div class="larch_app_console_list">']
 		for i, con in enumerate(self.__consoles):
-			console_link = '<p class="larch_app_console"><a href="/pages/consoles/{0}">Console {0}</a></p>'.format(i)
+			console_link = '<p class="larch_app_console"><a href="{0}/pages/consoles/{1}">Console {1}</a></p>'.format(self._app.app_location, i)
 			contents.append( console_link)
 		contents.append('</div>')
 		return Html(*contents)
@@ -709,8 +710,9 @@ class ToolList (object):
 
 
 class LarchApplication (object):
-	def __init__(self, user_docs_path=None, documentation_path=None, logout_url_path=None):
+	def __init__(self, app_location, user_docs_path=None, documentation_path=None, logout_url_path=None):
 		self.__path_to_document = {}
+		self.__app_location = app_location
 
 		if user_docs_path is None:
 			user_docs_path = os.getcwd()
@@ -731,10 +733,14 @@ class LarchApplication (object):
 		else:
 			self.__docs = None
 
-		self.__consoles = ConsoleList()
+		self.__consoles = ConsoleList(self)
 
 		self.__tools = ToolList()
 
+
+	@property
+	def app_location(self):
+		return self.__app_location
 
 	@property
 	def user_docs(self):
@@ -771,7 +777,7 @@ class LarchApplication (object):
 
 
 	def __resolve_self__(self, subject):
-		doc_url = '/pages/docs/index'   if self.__docs is not None   else None
+		doc_url = '/docs/index'   if self.__docs is not None   else None
 		subject.add_step(title='The Ubiquitous Larch', augment_page=_make_apply_page_frame(self.__logout_url_path, doc_url))
 		return self
 
@@ -849,9 +855,9 @@ class LarchApplication (object):
 
 
 
-def create_service(options=None, documentation_path=None, logout_url_path=None):
+def create_service(app_location, options=None, documentation_path=None, logout_url_path=None):
 	docpath = options.docpath   if options is not None   else None
-	app = LarchApplication(docpath, documentation_path, logout_url_path)
+	app = LarchApplication(app_location, docpath, documentation_path, logout_url_path)
 
 	return ProjectionService(app)
 

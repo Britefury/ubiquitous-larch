@@ -68,10 +68,11 @@ class DynamicPageService (object):
 
 
 
-	def page(self, location='', get_params=None, user=None):
+	def page(self, root_url, location='', get_params=None, user=None):
 		"""
 		The web service will invoke this method when the user opens a page. The HTML returned must be send to the client.
 
+		:param root_url: The location under which event, form and resource URLs can be found
 		:param location: The location being access by the browser, identifying the content that the user wishes to see. You should set up your app so that all paths under a specific URL prefix should take the suffix and pass it as the location.
 		:param get_params: The GET parameters received as part of the location
 		:param user: The user, if a user is logged in
@@ -82,11 +83,12 @@ class DynamicPageService (object):
 
 
 
-	def new_view(self, location='', get_params=None, user=None):
+	def new_view(self, root_url, location='', get_params=None, user=None):
 		"""
 		Creates a new view, with a newly allocated ID.
 		The view contains a dynamic page, a location, and get parameters
 
+		:param root_url: The location under which event, form and resource URLs can be found
 		:param location: The location being access by the browser, identifying the content that the user wishes to see. You should set up your app so that all paths under a specific URL prefix should take the suffix and pass it as the location.
 		:param get_params: The GET parameters received as part of the location
 		:param user_id: The user ID, if a user is logged in
@@ -101,7 +103,7 @@ class DynamicPageService (object):
 
 		our_user = self.__get_user(user)
 
-		dynamic_page = DynamicPage(self, view_id, location, get_params, our_user)
+		dynamic_page = DynamicPage(self, root_url, view_id, location, get_params, our_user)
 		view.dynamic_page = dynamic_page
 		view.location = location
 		view.get_params = get_params
@@ -113,7 +115,7 @@ class DynamicPageService (object):
 
 	def event(self, view_id, event_data):
 		"""
-		Event response. Map the URL /event/<view_id> to this. You will need to extract the view_id from the URL and the event_data field from the POST data and pass them through
+		Event response. Map the URL <root_url>/event/<view_id> to this. You will need to extract the view_id from the URL and the event_data field from the POST data and pass them through
 
 		:param view_id: view_id field from URL
 		:param event_data: event_data field from POST data
@@ -142,7 +144,7 @@ class DynamicPageService (object):
 
 	def form(self, view_id, form_data):
 		"""
-		Form response. Map the URL /form/<view_id> to this. You will need to extract the view_id from the URL and pass it as the first argument, along with the POST data as the second
+		Form response. Map the URL <root_url>/form/<view_id> to this. You will need to extract the view_id from the URL and pass it as the first argument, along with the POST data as the second
 
 		:param view_id: view_id field from URL
 		:param form_data: the post data
@@ -208,7 +210,7 @@ class DynamicPageService (object):
 
 	def resource(self, view_id, rsc_id):
 		"""
-		Resource acquisition. Map the URL /rsc to this. You will need to extract the view_id and rsc_id fields from the GET parameters and pass them through
+		Resource acquisition. Map the URL <root_url>/rsc to this. You will need to extract the view_id and rsc_id fields from the GET parameters and pass them through
 
 		:param view_id: view_id field from GET parameters
 		:param rsc_id: rsc_id field from GET parameters

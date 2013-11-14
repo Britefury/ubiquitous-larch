@@ -47,6 +47,7 @@ _page_content = u"""
 		<script type="text/javascript">
 			<!--
 			larch.__view_id="{view_id}";
+			larch.__root_url = "{root_url}";
 			// -->
 		</script>
 
@@ -204,7 +205,8 @@ class DynamicPage (object):
 	You must create and set the root segment before using the page. Create using new_segment, then set the root_segment attribute.
 
 	"""
-	def __init__(self, service, view_id, location, get_params, user):
+	def __init__(self, service, root_url, view_id, location, get_params, user):
+		self._root_url = root_url
 		self.__service = service
 		self._view_id = view_id
 		self.__location = location
@@ -888,7 +890,7 @@ class DynamicPage (object):
 
 		self._table._clear_changes()
 
-		return _page_content.format(title=self.__title, view_id=self._view_id, dependency_tags=dependency_tags, content=root_content, init_script=js_to_exec, initialisers=initialisers_json_str)
+		return _page_content.format(title=self.__title, root_url=self._root_url, view_id=self._view_id, dependency_tags=dependency_tags, content=root_content, init_script=js_to_exec, initialisers=initialisers_json_str)
 
 
 
@@ -1130,4 +1132,4 @@ class DynamicPageResourceInstance (object):
 	def url(self):
 		if not self.__resource.requires_url:
 			raise RuntimeError, 'Attempting to acquire a URL for a resource that does not support URL based access'
-		return '/rsc/{0}/{1}'.format(self.__page._view_id, self.__rsc_id)
+		return '{0}/rsc/{1}/{2}'.format(self.__page._root_url, self.__page._view_id, self.__rsc_id)
