@@ -245,11 +245,6 @@ class Document (object):
 			noty.noty(Html('No modules to unload'), type='success', timeout=2000, layout='bottomCenter').show_on(display_on)
 
 
-	def save(self):
-		file_path = os.path.join(self.__doc_list.path, self.__filename + _EXTENSION)
-		self.__doc_list._app._save_document(file_path, self.__content)
-		return self.__filename
-
 
 	def save_and_display_notification(self, display_on):
 		name = self.save()
@@ -289,6 +284,36 @@ class Document (object):
 		doc_filename = '<span class="larch_app_doc_filename">{0}</span><span class="larch_app_doc_extension">.ularch</span>'.format(self.__filename)
 		controls = Html('<div class="larch_app_doc_controls">', save_button, '</div>')
 		return Html('<tr class="larch_app_doc">	<td>', doc_title, '</td><td>', doc_filename, '</td><td>', controls, '</td></tr>')
+
+
+	def save(self):
+		file_path = os.path.join(self.__doc_list.path, self.__filename + _EXTENSION)
+		# Convert to string first, in case we encounter an exception while pickling
+		# This way, the save process bails *before* overwriting the file with nonsense
+		s = pickle.dumps(self.__content)
+		with open(file_path, 'w') as f:
+			f.write(s)
+		return self.__filename
+
+
+	@staticmethod
+	def load(app, doc_list, path):
+		doc = app._get_document_for_path(path)
+		if doc is None:
+			try:
+				with open(path, 'rU') as f:
+					content = pickle.load(f)
+			except:
+				print 'Error: could not load {0}: {1}'.format(path, sys.exc_info())
+			else:
+				filename = os.path.split(path)[1]
+				name = os.path.splitext(filename)[0]
+				doc = Document(doc_list, name, name, content)
+				app._set_document_for_path(path, doc)
+				return doc
+		else:
+			return doc
+
 
 
 
@@ -413,14 +438,8 @@ class DocumentList (object):
 	def __load_documents(self):
 		file_paths = glob.glob(os.path.join(self.__path, '*' + _EXTENSION))
 		for p in sorted(file_paths):
-			directory, filename = os.path.split(p)
-			name, ext = os.path.splitext(filename)
-			try:
-				content = self._app._load_document(p)
-			except:
-				print 'Error: could not load {0}: {1}'.format(p, sys.exc_info())
-			else:
-				doc = Document(self, name, name, content)
+			doc = Document.load(self._app, self, p)
+			if doc is not None:
 				self.__add_document(doc)
 
 
@@ -726,22 +745,15 @@ class LarchApplication (object):
 		return self.__consoles
 
 
-	def _load_document(self, path):
+	def _get_document_for_path(self, path):
 		a = os.path.abspath(path)
-		try:
-			return self.__path_to_document[a]
-		except KeyError:
-			with open(path, 'rU') as f:
-				doc = pickle.load(f)
-			self.__path_to_document[a] = doc
-			return doc
+		return self.__path_to_document.get(a)
 
-	def _save_document(self, path, content):
-		# Convert to string first, in case we encounter an exception while pickling
-		# This way, the save process bails *before* overwriting the file with nonsense
-		s = pickle.dumps(content)
-		with open(path, 'w') as f:
-			f.write(s)
+	def _set_document_for_path(self, path, doc):
+		a = os.path.abspath(path)
+		self.__path_to_document[a] = doc
+
+
 
 
 	def __resolve__(self, name, subject):
