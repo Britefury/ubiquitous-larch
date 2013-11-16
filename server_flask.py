@@ -103,4 +103,5 @@ if __name__ == '__main__':
 	app.run(debug=True, port=options.port)
 	#app.run()
 else:
-	service = larch_app.create_service()
+	hub = larch_hub.LarchDefaultHub()
+	hub.new_service('main', 'larchapp', larch_app.create_service, '/main/larchapp')

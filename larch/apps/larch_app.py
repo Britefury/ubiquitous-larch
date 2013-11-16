@@ -49,6 +49,15 @@ def _sanitise_filename(name):
 
 
 
+
+
+#
+#
+# PAGE FRAME
+#
+#
+
+
 class PageFrame (CompositePres):
 	def __init__(self, subject, logout_url_path, documentation_url):
 		self.__page = subject.focus
@@ -140,8 +149,46 @@ def _make_apply_page_frame(logout_url_path, documentation_url):
 
 
 
+#
+#
+# IMPORTED MODULE REGISTRY
+#
+#
+
+class ImportedModuleRegistry (object):
+	def __init__(self):
+		self.__imported_module_registry = set()
+
+	def _register_imported_module(self, fullname):
+		"""Register a module imported via the import hooks"""
+		self.__imported_module_registry.add( fullname )
+
+	def _unregister_imported_modules(self, module_names):
+		"""Unregister a set of modules imported via the import hooks"""
+		self.__imported_module_registry -= set(module_names)
+
+
+	def unload_imported_modules(self, module_fullnames):
+		"""Unload a list of modules
+
+		Only unloads those imported via the import hooks
+		"""
+		modules = set(module_fullnames)
+		modules_to_remove = self.__imported_module_registry & modules
+		for module_fullname in modules_to_remove:
+			del sys.modules[module_fullname]
+		self.__imported_module_registry -= modules_to_remove
+		return modules_to_remove
+
+
+
+
 class Document (object):
-	def __init__(self, doc_list, name, filename, content):
+	def __init__(self, doc_list, name, filename, content, imported_module_registry=None):
+		if imported_module_registry is None:
+			imported_module_registry = ImportedModuleRegistry()
+		self.__imported_module_registry = imported_module_registry
+
 		self.__doc_list = doc_list
 		self.__name = name
 		self.__filename = filename
@@ -177,7 +224,7 @@ class Document (object):
 		mod.__loader__ = loader
 		mod.__path__ = fullname.split( '.' )
 		self.__document_modules[fullname] = mod
-		self.__doc_list._register_imported_module( fullname )
+		self.__imported_module_registry._register_imported_module( fullname )
 		return mod
 
 	def unload_imported_modules(self, module_fullnames):
@@ -186,7 +233,7 @@ class Document (object):
 		for module_fullname in modules_to_remove:
 			del sys.modules[module_fullname]
 			del self.__document_modules[module_fullname]
-		self.__doc_list._unregister_imported_modules( modules_to_remove )
+		self.__imported_module_registry._unregister_imported_modules( modules_to_remove )
 		return modules_to_remove
 
 	def unload_all_imported_modules(self):
@@ -194,7 +241,7 @@ class Document (object):
 		for module_fullname in modules_to_remove:
 			del sys.modules[module_fullname]
 		self.__document_modules = {}
-		self.__doc_list._unregister_imported_modules( modules_to_remove )
+		self.__imported_module_registry._unregister_imported_modules( modules_to_remove )
 		return modules_to_remove
 
 
@@ -275,17 +322,6 @@ class Document (object):
 
 
 
-	def presentation_table_row(self, page):
-		def on_save(event):
-			self.save_and_display_notification(page)
-
-		save_button = button.button('Save', on_save)
-		doc_title = '<a href="/{0}/{1}" class="larch_app_doc_title">{2}</a>'.format(self.__doc_list.loc_prefix, self.__loc, self.__name)
-		doc_filename = '<span class="larch_app_doc_filename">{0}</span><span class="larch_app_doc_extension">.ularch</span>'.format(self.__filename)
-		controls = Html('<div class="larch_app_doc_controls">', save_button, '</div>')
-		return Html('<tr class="larch_app_doc">	<td>', doc_title, '</td><td>', doc_filename, '</td><td>', controls, '</td></tr>')
-
-
 	def save(self):
 		file_path = os.path.join(self.__doc_list.path, self.__filename + _EXTENSION)
 		# Convert to string first, in case we encounter an exception while pickling
@@ -297,7 +333,7 @@ class Document (object):
 
 
 	@staticmethod
-	def load(app, doc_list, path):
+	def load(app, doc_list, path, imported_module_registry):
 		doc = app._get_document_for_path(path)
 		if doc is None:
 			try:
@@ -308,7 +344,7 @@ class Document (object):
 			else:
 				filename = os.path.split(path)[1]
 				name = os.path.splitext(filename)[0]
-				doc = Document(doc_list, name, name, content)
+				doc = Document(doc_list, name, name, content, imported_module_registry)
 				app._set_document_for_path(path, doc)
 				return doc
 		else:
@@ -358,6 +394,8 @@ class DocumentList (object):
 	def __init__(self, app, path, loc_prefix):
 		self.__incr = IncrementalValueMonitor()
 
+		self.__imported_module_registry = ImportedModuleRegistry()
+
 		self._app = app
 		self.__path = path
 		self.__loc_prefix = loc_prefix
@@ -367,8 +405,6 @@ class DocumentList (object):
 		self.__docs_by_filename = {}
 
 		self.__load_documents()
-
-		self.__imported_module_registry = set()
 
 		self.__import_hooks = _DocListImportHooks(self)
 
@@ -419,11 +455,6 @@ class DocumentList (object):
 		self.__add_document(doc)
 
 
-	def save_all(self):
-		for doc in self.__documents:
-			doc.save()
-
-
 	def reload(self):
 		self.__documents = []
 		self.__docs_by_location = {}
@@ -438,32 +469,9 @@ class DocumentList (object):
 	def __load_documents(self):
 		file_paths = glob.glob(os.path.join(self.__path, '*' + _EXTENSION))
 		for p in sorted(file_paths):
-			doc = Document.load(self._app, self, p)
+			doc = Document.load(self._app, self, p, self.__imported_module_registry)
 			if doc is not None:
 				self.__add_document(doc)
-
-
-
-	def _register_imported_module(self, fullname):
-		"""Register a module imported via the import hooks"""
-		self.__imported_module_registry.add( fullname )
-
-	def _unregister_imported_modules(self, module_names):
-		"""Unregister a set of modules imported via the import hooks"""
-		self.__imported_module_registry -= set(module_names)
-
-
-	def unload_imported_modules(self, module_fullnames):
-		"""Unload a list of modules
-
-		Only unloads those imported via the import hooks
-		"""
-		modules = set(module_fullnames)
-		modules_to_remove = self.__imported_module_registry & modules
-		for module_fullname in modules_to_remove:
-			del sys.modules[module_fullname]
-		self.__imported_module_registry -= modules_to_remove
-		return modules_to_remove
 
 
 
@@ -484,12 +492,26 @@ class DocumentList (object):
 			return None
 
 
+
+	def __doc_table_row(self, doc, page):
+		def on_save(event):
+			doc.save_and_display_notification(page)
+
+		save_button = button.button('Save', on_save)
+		doc_title = '<a href="/{0}/{1}" class="larch_app_doc_title">{2}</a>'.format(self.loc_prefix, doc.location, doc.name)
+		doc_filename = '<span class="larch_app_doc_filename">{0}</span><span class="larch_app_doc_extension">.ularch</span>'.format(doc.filename)
+		controls = Html('<div class="larch_app_doc_controls">', save_button, '</div>')
+		return Html('<tr class="larch_app_doc">	<td>', doc_title, '</td><td>', doc_filename, '</td><td>', controls, '</td></tr>')
+
+
+
+
 	def __present__(self, fragment):
 		self.__incr.on_access()
 		contents = ['<table class="larch_app_doc_list">']
 		contents.append('<thead class="larch_app_doc_list_header"><td>Title</td><td>Filename</td><td>Save</td></thead>')
 		contents.append('<tbody>')
-		contents.extend([doc.presentation_table_row(fragment.page)   for doc in self.__documents])
+		contents.extend([self.__doc_table_row(doc, fragment.page)   for doc in self.__documents])
 		contents.append('</tbody></table>')
 		return Html(*contents)
 

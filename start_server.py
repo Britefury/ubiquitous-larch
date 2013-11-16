@@ -11,9 +11,10 @@ from larch.core.dynamicpage.service import UploadedFile
 from larch.core.projection_service import CouldNotResolveLocationError
 
 from larch.apps import larch_app
+from larch.hub import larch_hub
 
 
-service = None
+hub = None
 
 
 app = Bottle()
@@ -21,42 +22,44 @@ app = Bottle()
 
 @app.route('/')
 def index():
-	redirect('/pages')
+	redirect('/main/larchapp/pages')
 
 
-@app.route('/pages')
-@app.route('/pages/')
-def root_page():
+@app.route('/<category>/<name>')
+@app.route('/<category>/<name>/')
+@app.route('/<category>/<name>/pages')
+@app.route('/<category>/<name>/pages/')
+def root_page(category, name):
 	try:
 		get_params = {}
 		get_params.update(request.params)
-		return service.page('', get_params)
+		return hub.page(category, name, '', get_params)
 	except CouldNotResolveLocationError:
 		response.status = 404
 		return 'Page at {0} not found'.format('')
 
 
-@app.route('/pages/<location:path>')
-def page(location):
+@app.route('/<category>/<name>/pages/<location:path>')
+def page(category, name, location):
 	try:
 		get_params = {}
 		get_params.update(request.params)
-		return service.page(location, get_params)
+		return hub.page(category, name, location, get_params)
 	except CouldNotResolveLocationError:
 		response.status = 404
 		return 'Page at {0} not found'.format(location)
 
 
-@app.route('/event/<view_id>', method='POST')
-def event(view_id):
+@app.route('/<category>/<name>/event/<view_id>', method='POST')
+def event(category, name, view_id):
 	event_data = request.forms.get('event_data')
-	data = service.event(view_id, event_data)
+	data = hub.event(category, name, view_id, event_data)
 	response.content_type = 'application/json; charset=UTF8'
 	return data
 
 
-@app.route('/form/<view_id>', method='POST')
-def form(view_id):
+@app.route('/<category>/<name>/form/<view_id>', method='POST')
+def form(category, name, view_id):
 	form_data = {}
 
 	for k in request.forms.keys():
@@ -66,15 +69,15 @@ def form(view_id):
 		f = UploadedFile(upload.filename, upload.file)
 		form_data[k] = f
 
-	data = service.form(view_id, form_data)
+	data = hub.form(category, name, view_id, form_data)
 
 	response.content_type = 'application/json; charset=UTF8'
 	return data
 
 
-@app.route('/rsc/<view_id>/<rsc_id>', method='GET')
-def rsc(view_id, rsc_id):
-	data_and_mime_type = service.resource(view_id, rsc_id)
+@app.route('/<category>/<name>/rsc/<view_id>/<rsc_id>', method='GET')
+def rsc(category, name, view_id, rsc_id):
+	data_and_mime_type = hub.resource(category, name, view_id, rsc_id)
 	if data_and_mime_type is not None:
 		data, mime_type = data_and_mime_type
 		response.content_type = mime_type
@@ -90,8 +93,10 @@ def serve_static(filename):
 
 if __name__ == '__main__':
 	options = larch_app.parse_cmd_line()
-	service = larch_app.create_service(options)
+	hub = larch_hub.LarchDefaultHub()
+	hub.new_service('main', 'larchapp', larch_app.create_service, '/main/larchapp', options)
 	print 'Point your browser at http://127.0.0.1:{0}/ to try The Ubiquitous Larch'.format(options.port)
 	run(app, host='localhost', port=options.port)
 else:
-	service = larch_app.create_service()
+	hub = larch_hub.LarchDefaultHub()
+	hub.new_service('main', 'larchapp', larch_app.create_service, '/main/larchapp')
