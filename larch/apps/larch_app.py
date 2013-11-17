@@ -51,6 +51,12 @@ def _sanitise_filename(name):
 
 
 
+class LarchAppContext (object):
+	def __init__(self, logout_url_path, documentation_url):
+		self.logout_url_path = logout_url_path
+		self.documentation_url = documentation_url
+
+
 
 #
 #
@@ -60,11 +66,10 @@ def _sanitise_filename(name):
 
 
 class PageFrame (CompositePres):
-	def __init__(self, subject, logout_url_path, documentation_url):
+	def __init__(self, subject, app_context):
 		self.__page = subject.focus
 		self.__focii = subject.focii
-		self.__logout_url_path = logout_url_path
-		self.__documentation_url = documentation_url
+		self.__app_context = app_context
 
 
 
@@ -93,8 +98,8 @@ class PageFrame (CompositePres):
 		right_menu_bar_contents.append(liveliness_indicator)
 
 		# Documentation
-		if self.__documentation_url is not None:
-			doc_link = Html('<a class="__larch_app_doc_link" href="{0}">Documentation</a>'.format(self.__documentation_url))
+		if self.__app_context.documentation_url is not None:
+			doc_link = Html('<a class="__larch_app_doc_link" href="{0}">Documentation</a>'.format(self.__app_context.documentation_url))
 			right_menu_bar_contents.append(doc_link)
 
 		# Command bar button
@@ -102,9 +107,9 @@ class PageFrame (CompositePres):
 		right_menu_bar_contents.append(cmd_bar_button)
 
 		# Logout link
-		if self.__logout_url_path is not None:
+		if self.__app_context.logout_url_path is not None:
 			#right_menu_bar_contents.append(Html('<div class="__larch_app_frame_logout_link"><a href="{0}">Logout</a></div>'.format(self.__logout_url_path)))
-			right_menu_bar_contents.append(Html('<a href="{0}">Logout</a>'.format(self.__logout_url_path)).js_eval('$(node).button();'))
+			right_menu_bar_contents.append(Html('<a href="{0}">Logout</a>'.format(self.__app_context.logout_url_path)).js_eval('$(node).button();'))
 
 		# Build the menu bar contents by iterating through the focii, accumulating them as we go by concatenating the results of calling the __menu_bar_cumulative_contents__ method
 		for f in self.__focii:
@@ -142,9 +147,9 @@ class PageFrame (CompositePres):
 
 
 
-def _make_apply_page_frame(logout_url_path, documentation_url):
+def _make_apply_page_frame(app_context):
 	def _apply_page_frame(subject):
-		return PageFrame(subject, logout_url_path, documentation_url)
+		return PageFrame(subject, app_context)
 	return _apply_page_frame
 
 
@@ -245,10 +250,11 @@ class _DocKernelImportHooks (object):
 #
 
 class DocumentKernel (object):
-	def __init__(self, path, name, content, imported_module_registry=None):
+	def __init__(self, path, name, content, app_context, imported_module_registry=None):
 		if imported_module_registry is None:
 			imported_module_registry = ImportedModuleRegistry()
 		self.__imported_module_registry = imported_module_registry
+		self.__app_context = app_context
 
 		self.__path = path
 		self.__name = name
@@ -374,7 +380,7 @@ class DocumentKernel (object):
 
 
 	def __resolve_self__(self, subject):
-		subject.add_step(focus=self.__content, title=self.__name)
+		subject.add_step(focus=self.__content, title=self.__name, augment_page=_make_apply_page_frame(self.__app_context))
 		return self.__content
 
 
@@ -389,25 +395,25 @@ class DocumentKernel (object):
 
 
 	@staticmethod
-	def load(path, name, imported_module_registry):
+	def load(path, name, app_context, imported_module_registry):
 		try:
 			with open(path, 'rU') as f:
 				content = pickle.load(f)
 		except:
 			print 'Error: could not load {0}: {1}'.format(path, sys.exc_info())
 		else:
-			return DocumentKernel(path, name, content, imported_module_registry)
+			return DocumentKernel(path, name, content, app_context, imported_module_registry)
 
 
 
-def make_kernel_service_for_content_factory(kernel_interface, path, name, content_factory, imported_module_registry):
+def make_kernel_service_for_content_factory(kernel_interface, path, name, content_factory, app_context, imported_module_registry):
 	content = content_factory()
-	kernel = DocumentKernel(path, name, content, imported_module_registry)
+	kernel = DocumentKernel(path, name, content, app_context, imported_module_registry)
 	service = ProjectionService(kernel)
 	return service
 
-def make_kernel_service_from_file(kernel_interface, path, name, imported_module_registry):
-	kernel = DocumentKernel.load(path, name, imported_module_registry)
+def make_kernel_service_from_file(kernel_interface, path, name, app_context, imported_module_registry):
+	kernel = DocumentKernel.load(path, name, app_context, imported_module_registry)
 	service = ProjectionService(kernel)
 	return service
 
@@ -451,14 +457,14 @@ class Document (object):
 
 
 	@staticmethod
-	def load(app, doc_list, path, imported_module_registry):
+	def load(app, doc_list, path, app_context, imported_module_registry):
 		doc = app._get_document_for_path(path)
 		if doc is None:
 			filename = os.path.split(path)[1]
 			name = os.path.splitext(filename)[0]
 			location = name_to_location(name)
 
-			app.kernel_interface.new_kernel(doc_list.category, location, make_kernel_service_from_file, path, name, imported_module_registry)
+			app.kernel_interface.new_kernel(doc_list.category, location, make_kernel_service_from_file, path, name, app_context, imported_module_registry)
 
 			# Document file names do NOT include the extension
 			doc = Document(doc_list, name, name, location)
@@ -469,10 +475,10 @@ class Document (object):
 
 
 	@staticmethod
-	def for_content(doc_list, name, filename, path, content_factory, imported_module_registry):
+	def for_content(doc_list, name, filename, path, content_factory, app_context, imported_module_registry):
 		location = name_to_location(name)
 
-		doc_list._app.kernel_interface.new_kernel(doc_list.category, location, make_kernel_service_for_content_factory, path, name, content_factory, imported_module_registry)
+		doc_list._app.kernel_interface.new_kernel(doc_list.category, location, make_kernel_service_for_content_factory, path, name, content_factory, app_context, imported_module_registry)
 
 		return Document(doc_list, name, filename, location)
 
@@ -484,10 +490,11 @@ class Document (object):
 
 
 class DocumentList (object):
-	def __init__(self, app, category, path, loc_prefix):
+	def __init__(self, app, category, path, loc_prefix, app_context):
 		self.__incr = IncrementalValueMonitor()
 
 		self.category = category
+		self.__app_context = app_context
 
 		self.__imported_module_registry = ImportedModuleRegistry()
 
@@ -546,7 +553,7 @@ class DocumentList (object):
 		# Document file names do NOT include the extension
 		filename = _sanitise_filename(name)
 		file_path = os.path.join(self.__path, filename + '.ularch')
-		doc = Document.for_content(self, name, filename, file_path, content_factory, self.__imported_module_registry)
+		doc = Document.for_content(self, name, filename, file_path, content_factory, self.__app_context, self.__imported_module_registry)
 		doc.save()
 		self.__add_document(doc)
 
@@ -565,7 +572,7 @@ class DocumentList (object):
 	def __load_documents(self):
 		file_paths = glob.glob(os.path.join(self.__path, '*' + _EXTENSION))
 		for p in sorted(file_paths):
-			doc = Document.load(self._app, self, p, self.__imported_module_registry)
+			doc = Document.load(self._app, self, p, self.__app_context, self.__imported_module_registry)
 			if doc is not None:
 				self.__add_document(doc)
 
@@ -863,19 +870,23 @@ class LarchApplication (object):
 			if not os.path.exists(documentation_path):
 				documentation_path = None
 
+		self.__app_context = LarchAppContext(logout_url_path, '/pages/docs/index'   if documentation_path is not None   else None)
+
+
 		self.__user_docs_path = user_docs_path
 		self.__logout_url_path = logout_url_path
 
-		self.__user_docs = DocumentList(self, 'files', user_docs_path, 'files')
+		self.__user_docs = DocumentList(self, 'files', user_docs_path, 'files', self.__app_context)
 
 		if documentation_path is not None:
-			self.__docs = DocumentList(self, 'docs', documentation_path, 'docs')
+			self.__docs = DocumentList(self, 'docs', documentation_path, 'docs', self.__app_context)
 		else:
 			self.__docs = None
 
 		self.__consoles = ConsoleList(self)
 
 		self.__tools = ToolList()
+
 
 
 	@property
@@ -923,8 +934,7 @@ class LarchApplication (object):
 
 
 	def __resolve_self__(self, subject):
-		doc_url = '/pages/docs/index'   if self.__docs is not None   else None
-		subject.add_step(title='The Ubiquitous Larch', augment_page=_make_apply_page_frame(self.__logout_url_path, doc_url))
+		subject.add_step(title='The Ubiquitous Larch', augment_page=_make_apply_page_frame(self.__app_context))
 		return self
 
 
