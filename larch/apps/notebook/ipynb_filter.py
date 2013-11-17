@@ -12,12 +12,23 @@ except ImportError:
 from larch.pres.html import Html
 
 
-def load_json(ipynb):
+
+def get_name_from_ipynb_json(ipynb):
 	"""
-	Imports an IPython notebook, in JSON form
+	Gets the name of an IPython notebook in JSON form
 
 	:param ipynb: IPython notebook in JSON form
-	:return: (notebooks, notebook_name)  where notebooks in a list of notebooks and notebook_name is the name of the IPython notebook
+	:return: name (string)
+	"""
+	return ipynb['metadata']['name']
+
+
+def convert_ipynb_json(ipynb):
+	"""
+	Converts an IPython notebook in JSON form to a list of Larch notebook
+
+	:param ipynb: IPython notebook in JSON form
+	:return: (notebooks, notebook_name)  where notebooks is a list of notebooks and notebook_name is the name of the IPython notebook
 	"""
 	# Get the name
 	notebook_name = ipynb['metadata']['name']
@@ -84,7 +95,7 @@ def loads(s):
 	:param s: IPython notebook JSON serialised as a string
 	:return: (notebooks, notebook_name)  where notebooks in a list of notebooks and notebook_name is the name of the notebook
 	"""
-	return load_json(json.loads(s))
+	return convert_ipynb_json(json.loads(s))
 
 
 def load(fp):
@@ -94,7 +105,7 @@ def load(fp):
 	:param fp: a file object that reads as an IPython notebook
 	:return: (notebooks, notebook_name)  where notebooks in a list of notebooks and notebook_name is the name of the notebook
 	"""
-	return load_json(json.load(fp))
+	return convert_ipynb_json(json.load(fp))
 
 
 

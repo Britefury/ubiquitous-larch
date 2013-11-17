@@ -8,6 +8,7 @@ import pickle
 import imp
 import sys
 import urllib2
+import json
 from optparse import OptionParser
 from larch.apps.notebook import ipynb_filter
 from larch.apps.project import project_root
@@ -260,7 +261,10 @@ class DocumentKernel (object):
 
 
 	def kernel_message(self, message, *args, **kwargs):
-		raise ValueError, 'Unreckognised message {0}'.format(message)
+		if message == 'save':
+			self.save()
+		else:
+			raise ValueError, 'Unreckognised message {0}'.format(message)
 
 
 	def enable_import_hooks(self):
@@ -441,6 +445,7 @@ class Document (object):
 
 
 	def save(self):
+		print 'SENDING SAVE MESSAGE TO {0}/{1}'.format(self.__doc_list.category, self.__loc)
 		self.__doc_list._app.kernel_interface.kernel_message(self.__doc_list.category, self.__loc, 'save')
 		return self.__filename
 
@@ -455,7 +460,8 @@ class Document (object):
 
 			app.kernel_interface.new_kernel(doc_list.category, location, make_kernel_service_from_file, path, name, imported_module_registry)
 
-			doc = Document(doc_list, name, filename, location)
+			# Document file names do NOT include the extension
+			doc = Document(doc_list, name, name, location)
 			app._set_document_for_path(path, doc)
 			return doc
 		else:
@@ -463,11 +469,10 @@ class Document (object):
 
 
 	@staticmethod
-	def for_content(doc_list, name, filename, content_factory, imported_module_registry):
-		path = os.path.join(doc_list.path, filename)
+	def for_content(doc_list, name, filename, path, content_factory, imported_module_registry):
 		location = name_to_location(name)
 
-		doc_list._app.new_kernel(doc_list.category, location, make_kernel_service_for_content_factory, path, name, content_factory, imported_module_registry)
+		doc_list._app.kernel_interface.new_kernel(doc_list.category, location, make_kernel_service_for_content_factory, path, name, content_factory, imported_module_registry)
 
 		return Document(doc_list, name, filename, location)
 
@@ -538,7 +543,10 @@ class DocumentList (object):
 	def new_document_for_content(self, name, content_factory):
 		if name in self.__docs_by_filename:
 			raise DocumentNameInUseError, name
-		doc = Document.for_content(self, name, _sanitise_filename(name), content_factory, self.__imported_module_registry)
+		# Document file names do NOT include the extension
+		filename = _sanitise_filename(name)
+		file_path = os.path.join(self.__path, filename + '.ularch')
+		doc = Document.for_content(self, name, filename, file_path, content_factory, self.__imported_module_registry)
 		doc.save()
 		self.__add_document(doc)
 
@@ -706,6 +714,33 @@ class NewDocumentTool (Tool):
 				'</div>')
 
 
+
+class _IPynbContentFactory (object):
+	def __init__(self, ipynb_json):
+		self.__ipynb_json = ipynb_json
+
+
+	def __call__(self):
+		notebooks, notebook_name = ipynb_filter.convert_ipynb_json(self.__ipynb_json)
+		return notebooks[0]
+
+
+	@staticmethod
+	def load(f):
+		ipynb_json = json.load(f)
+		name = ipynb_filter.get_name_from_ipynb_json(ipynb_json)
+		factory = _IPynbContentFactory(ipynb_json)
+		return name, factory
+
+	@staticmethod
+	def loads(s):
+		ipynb_json = json.loads(s)
+		name = ipynb_filter.get_name_from_ipynb_json(ipynb_json)
+		factory = _IPynbContentFactory(ipynb_json)
+		return name, factory
+
+
+
 class UploadIPynbTool (Tool):
 	def __init__(self, doc_list):
 		super(UploadIPynbTool, self).__init__()
@@ -713,14 +748,14 @@ class UploadIPynbTool (Tool):
 
 
 	def __present__(self, fragment):
-		def _on_upload(event, form_data):
-			f = form_data.get('file')
+		def _on_upload(event):
+			f = event.data.get('file')
 			if f is not None:
-				notebooks, notebook_name = ipynb_filter.load(f.file)
+				notebook_name, factory = _IPynbContentFactory.load(f.file)
 
 				filename = _sanitise_filename(notebook_name)
 				filename = self.__doc_list.unused_filename(filename)
-				self.__doc_list.new_document_for_content(filename, notebooks[0])
+				self.__doc_list.new_document_for_content(filename, factory)
 			self.close()
 
 		def on_cancel(event):
@@ -765,11 +800,11 @@ class DownloadIPynbFromWebTool (Tool):
 			opener = urllib2.build_opener()
 			fp = opener.open(request)
 
-			notebooks, notebook_name = ipynb_filter.load(fp)
+			notebook_name, factory = _IPynbContentFactory.load(fp)
 
 			filename = _sanitise_filename(notebook_name)
 			filename = self.__doc_list.unused_filename(filename)
-			self.__doc_list.new_document_for_content(filename, notebooks[0])
+			self.__doc_list.new_document_for_content(filename, factory)
 
 			self.close()
 
