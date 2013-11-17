@@ -45,9 +45,9 @@ class ProjectionService (DynamicPageService):
 		self.__front_page_model = front_page_model
 
 
-	def page(self, root_url, location='', get_params=None, user=None):
-		view = self.new_view(root_url, location, get_params, user=user)
-		subject = self.__resolve_location(location)
+	def page(self, doc_url, location='', get_params=None, user=None):
+		view = self.new_view(doc_url, location, get_params, user=user)
+		subject = self.__resolve_location(doc_url, location)
 
 		# Augment page
 		self.__augment_page(subject)
@@ -62,8 +62,8 @@ class ProjectionService (DynamicPageService):
 
 
 
-	def page_for_subject(self, root_url, subject, location='', get_params=None, user=None):
-		view = self.new_view(root_url, location, get_params, user=user)
+	def page_for_subject(self, doc_url, subject, location='', get_params=None, user=None):
+		view = self.new_view(doc_url, location, get_params, user=user)
 
 		# Augment page
 		self.__augment_page(subject)
@@ -75,6 +75,11 @@ class ProjectionService (DynamicPageService):
 		view.view_data = IncrementalView(subject, view.dynamic_page)
 
 		return view.dynamic_page.page_html()
+
+
+
+	def kernel_message(self, message, *args, **kwargs):
+		return self.__front_page_model.kernel_message(message, *args, **kwargs)
 
 
 
@@ -114,7 +119,7 @@ class ProjectionService (DynamicPageService):
 			return None
 		return __resolve__(name, subject)
 
-	def __resolve_location(self, location):
+	def __resolve_location(self, root_url, location):
 		"""
 		Resolves a location
 
@@ -123,7 +128,7 @@ class ProjectionService (DynamicPageService):
 		:return: The subject identified by :param location:
 		"""
 		subject = Subject()
-		subject.add_step(focus=self.__front_page_model, location_trail=['pages'], perspective=None, title='Service front page')
+		subject.add_step(focus=self.__front_page_model, location_trail=['pages', root_url], perspective=None, title='Service front page')
 		if location == '':
 			self.__resolve_step(self.__front_page_model, subject)
 			return subject
