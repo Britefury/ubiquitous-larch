@@ -78,6 +78,11 @@ class ProjectionService (DynamicPageService):
 
 
 
+	def kernel_message(self, message, *args, **kwargs):
+		return self.__front_page_model.kernel_message(message, *args, **kwargs)
+
+
+
 
 
 	def __resolve_step(self, model, subject):

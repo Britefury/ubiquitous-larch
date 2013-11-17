@@ -20,6 +20,12 @@ hub = None
 app = Bottle()
 
 
+
+@app.route('/static/<filename:path>')
+def serve_static(filename):
+	return static_file(filename, root='static')
+
+
 @app.route('/')
 def index():
 	redirect('/main/larchapp/pages')
@@ -86,17 +92,13 @@ def rsc(category, name, view_id, rsc_id):
 		response.status=404
 		return 'Resource not found'
 
-@app.route('/static/<filename:path>')
-def serve_static(filename):
-	return static_file(filename, root='static')
-
 
 if __name__ == '__main__':
 	options = larch_app.parse_cmd_line()
 	hub = larch_hub.LarchDefaultHub()
-	hub.new_service('main', 'larchapp', larch_app.create_service, '/main/larchapp', options)
+	hub.new_kernel('main', 'larchapp', larch_app.create_service, '/main/larchapp', options)
 	print 'Point your browser at http://127.0.0.1:{0}/ to try The Ubiquitous Larch'.format(options.port)
 	run(app, host='localhost', port=options.port)
 else:
 	hub = larch_hub.LarchDefaultHub()
-	hub.new_service('main', 'larchapp', larch_app.create_service, '/main/larchapp')
+	hub.new_kernel('main', 'larchapp', larch_app.create_service, '/main/larchapp')

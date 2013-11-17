@@ -148,6 +148,18 @@ def _make_apply_page_frame(logout_url_path, documentation_url):
 
 
 
+def name_to_location(name):
+	return ''.join([x   for x in name   if x in string.ascii_letters + string.digits + '_'])
+
+def path_to_name(path):
+	filename = os.path.split(path)[1]
+	return os.path.splitext(filename)
+
+def path_to_location(path):
+	return name_to_location(path_to_name(path))
+
+
+
 
 #
 #
@@ -183,36 +195,76 @@ class ImportedModuleRegistry (object):
 
 
 
-class Document (object):
-	def __init__(self, doc_list, name, filename, content, imported_module_registry=None):
+
+#
+#
+# IMPORT HOOK HELPERS
+#
+#
+
+
+import traceback
+
+class _ImportHookFinderWrapper (object):
+	def __init__(self, kernel,  finder):
+		self.__kernel = kernel
+		self.__finder = finder
+
+	def load_module(self, fullname):
+		try:
+			return self.__finder.__load_module__(self.__kernel, fullname)
+		except:
+			traceback.print_exc()
+			raise
+
+
+
+
+class _DocKernelImportHooks (object):
+	def __init__(self, doc_kernel):
+		self.__doc_kernel = doc_kernel
+
+
+	def find_module(self, fullname, path=None):
+		try:
+			finder = self.__doc_kernel.find_module(fullname, path)
+			if finder is not None:
+				return _ImportHookFinderWrapper(self.__doc_kernel, finder)
+			return None
+		except:
+			traceback.print_exc()
+			raise
+
+
+
+#
+#
+# DOCUMENT KERNEL
+#
+#
+
+class DocumentKernel (object):
+	def __init__(self, path, content, imported_module_registry=None):
 		if imported_module_registry is None:
 			imported_module_registry = ImportedModuleRegistry()
 		self.__imported_module_registry = imported_module_registry
 
-		self.__doc_list = doc_list
-		self.__name = name
-		self.__filename = filename
-		loc = ''.join([x   for x in name   if x in string.ascii_letters + string.digits + '_'])
-		self.__loc = loc
+		self.__path = path
 		self.__content = content
 		self.__document_modules = {}
 
+		self.__import_hooks = _DocKernelImportHooks(self)
+		self.enable_import_hooks()
 
-	@property
-	def name(self):
-		return self.__name
 
-	@property
-	def filename(self):
-		return self.__filename
 
-	@property
-	def location(self):
-		return self.__loc
+	def kernel_message(self, message, *args, **kwargs):
+		raise ValueError, 'Unreckognised message {0}'.format(message)
 
-	@property
-	def content(self):
-		return self.__content
+
+	def enable_import_hooks(self):
+		if self.__import_hooks not in sys.meta_path:
+			sys.meta_path.append(self.__import_hooks)
 
 
 
@@ -317,18 +369,78 @@ class Document (object):
 
 
 	def __resolve_self__(self, subject):
-		subject.add_step(focus=self.content)
-		return self.content
+		subject.add_step(focus=self.__content)
+		return self.__content
 
 
 
 	def save(self):
-		file_path = os.path.join(self.__doc_list.path, self.__filename + _EXTENSION)
 		# Convert to string first, in case we encounter an exception while pickling
 		# This way, the save process bails *before* overwriting the file with nonsense
 		s = pickle.dumps(self.__content)
-		with open(file_path, 'w') as f:
+		with open(self.__path, 'w') as f:
 			f.write(s)
+		return os.path.split(self.__path)[1]
+
+
+	@staticmethod
+	def load(path, imported_module_registry):
+		try:
+			with open(path, 'rU') as f:
+				content = pickle.load(f)
+		except:
+			print 'Error: could not load {0}: {1}'.format(path, sys.exc_info())
+		else:
+			return DocumentKernel(path, content, imported_module_registry)
+
+
+
+def make_kernel_service_for_content_factory(kernel_interface, path, content_factory, imported_module_registry):
+	content = content_factory()
+	kernel = DocumentKernel(path, content, imported_module_registry)
+	service = ProjectionService(kernel)
+	return service
+
+def make_kernel_service_from_file(kernel_interface, path, imported_module_registry):
+	kernel = DocumentKernel.load(path, imported_module_registry)
+	service = ProjectionService(kernel)
+	return service
+
+
+
+
+
+
+#
+#
+# DOCUMENT
+#
+#
+
+class Document (object):
+	def __init__(self, doc_list, name, filename, location):
+		self.__doc_list = doc_list
+		self.__name = name
+		self.__filename = filename
+		self.__loc = location
+
+
+	@property
+	def name(self):
+		return self.__name
+
+	@property
+	def filename(self):
+		return self.__filename
+
+	@property
+	def location(self):
+		return self.__loc
+
+
+
+	def save(self):
+		self.__doc_list._app.kernel_interface.kernel_message(self.__doc_list.category, self.__loc, 'save')
 		return self.__filename
 
 
@@ -336,63 +448,40 @@ class Document (object):
 	def load(app, doc_list, path, imported_module_registry):
 		doc = app._get_document_for_path(path)
 		if doc is None:
-			try:
-				with open(path, 'rU') as f:
-					content = pickle.load(f)
-			except:
-				print 'Error: could not load {0}: {1}'.format(path, sys.exc_info())
-			else:
-				filename = os.path.split(path)[1]
-				name = os.path.splitext(filename)[0]
-				doc = Document(doc_list, name, name, content, imported_module_registry)
-				app._set_document_for_path(path, doc)
-				return doc
+			filename = os.path.split(path)[1]
+			name = os.path.splitext(filename)[0]
+			location = name_to_location(name)
+
+			app.kernel_interface.new_kernel(doc_list.category, location, make_kernel_service_from_file, path, imported_module_registry)
+
+			doc = Document(doc_list, name, filename, location)
+			app._set_document_for_path(path, doc)
+			return doc
 		else:
 			return doc
 
 
+	@staticmethod
+	def for_content(doc_list, name, filename, content_factory, imported_module_registry):
+		path = os.path.join(doc_list.path, filename)
+		location = name_to_location(name)
 
+		doc_list._app.new_kernel(doc_list.category, location, make_kernel_service_for_content_factory, path, content_factory, imported_module_registry)
 
-import traceback
-
-class _ImportHookFinderWrapper (object):
-	def __init__(self, document,  finder):
-		self.__document = document
-		self.__finder = finder
-
-	def load_module(self, fullname):
-		try:
-			return self.__finder.__load_module__(self.__document, fullname)
-		except:
-			traceback.print_exc()
-			raise
+		return Document(doc_list, name, filename, location)
 
 
 
-
-class _DocListImportHooks (object):
-	def __init__(self, doc_list):
-		self.__doc_list = doc_list
-
-
-	def find_module(self, fullname, path=None):
-		try:
-			for doc in self.__doc_list:
-				finder = doc.find_module(fullname, path)
-				if finder is not None:
-					return _ImportHookFinderWrapper(doc, finder)
-			return None
-		except:
-			traceback.print_exc()
-			raise
 
 
 
 
 
 class DocumentList (object):
-	def __init__(self, app, path, loc_prefix):
+	def __init__(self, app, category, path, loc_prefix):
 		self.__incr = IncrementalValueMonitor()
+
+		self.category = category
 
 		self.__imported_module_registry = ImportedModuleRegistry()
 
@@ -405,8 +494,6 @@ class DocumentList (object):
 		self.__docs_by_filename = {}
 
 		self.__load_documents()
-
-		self.__import_hooks = _DocListImportHooks(self)
 
 
 
@@ -447,10 +534,10 @@ class DocumentList (object):
 		self.__docs_by_filename[doc.filename] = doc
 		self.__incr.on_changed()
 
-	def new_document_for_content(self, name, content):
+	def new_document_for_content(self, name, content_factory):
 		if name in self.__docs_by_filename:
 			raise DocumentNameInUseError, name
-		doc = Document(self, name, _sanitise_filename(name), content)
+		doc = Document.for_content(self, name, _sanitise_filename(name), content_factory, self.__imported_module_registry)
 		doc.save()
 		self.__add_document(doc)
 
@@ -474,10 +561,6 @@ class DocumentList (object):
 				self.__add_document(doc)
 
 
-
-	def enable_import_hooks(self):
-		if self.__import_hooks not in sys.meta_path:
-			sys.meta_path.append(self.__import_hooks)
 
 
 
@@ -607,8 +690,7 @@ class NewDocumentTool (Tool):
 			if self.__doc_list.doc_for_filename(filename) is not None:
 				self._tool_list.add(DocNameInUseTool(filename))
 			else:
-				document = self.__document_factory()
-				self.__doc_list.new_document_for_content(self.__name.static_value, document)
+				self.__doc_list.new_document_for_content(self.__name.static_value, self.__document_factory)
 			self.close()
 
 		def on_cancel(event):
@@ -732,9 +814,11 @@ class ToolList (object):
 
 
 class LarchApplication (object):
-	def __init__(self, app_location, user_docs_path=None, documentation_path=None, logout_url_path=None):
+	def __init__(self, kernel_interface, app_location, user_docs_path=None, documentation_path=None, logout_url_path=None):
 		self.__path_to_document = {}
 		self.__app_location = app_location
+
+		self.kernel_interface = kernel_interface
 
 		if user_docs_path is None:
 			user_docs_path = os.getcwd()
@@ -746,12 +830,10 @@ class LarchApplication (object):
 		self.__user_docs_path = user_docs_path
 		self.__logout_url_path = logout_url_path
 
-		self.__user_docs = DocumentList(self, user_docs_path, 'files')
-		self.__user_docs.enable_import_hooks()
+		self.__user_docs = DocumentList(self, 'files', user_docs_path, 'files')
 
 		if documentation_path is not None:
-			self.__docs = DocumentList(self, documentation_path, 'docs')
-			self.__docs.enable_import_hooks()
+			self.__docs = DocumentList(self, 'docs', documentation_path, 'docs')
 		else:
 			self.__docs = None
 
@@ -780,6 +862,12 @@ class LarchApplication (object):
 	def _set_document_for_path(self, path, doc):
 		a = os.path.abspath(path)
 		self.__path_to_document[a] = doc
+
+
+
+
+	def kernel_message(self, message, *args, **kwargs):
+		raise ValueError, 'Unreckognised message {0}'.format(message)
 
 
 
@@ -877,9 +965,9 @@ class LarchApplication (object):
 
 
 
-def create_service(app_location, options=None, documentation_path=None, logout_url_path=None):
+def create_service(kernel_interface, app_location, options=None, documentation_path=None, logout_url_path=None):
 	docpath = options.docpath   if options is not None   else None
-	app = LarchApplication(app_location, docpath, documentation_path, logout_url_path)
+	app = LarchApplication(kernel_interface, app_location, docpath, documentation_path, logout_url_path)
 
 	return ProjectionService(app)
 
