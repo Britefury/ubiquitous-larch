@@ -347,7 +347,7 @@ larch.media.initAudioCaptureButton = function(node, numChannels, format) {
             fd.append('data', audioData);
             $.ajax({
                 data: fd,
-                url: larch.__root_url + '/form/' + larch.__view_id,
+                url: '/form/' + larch.__doc_url + '/' + larch.__view_id,
                 dataType: 'json',
                 type: 'POST',
                 processData: false,

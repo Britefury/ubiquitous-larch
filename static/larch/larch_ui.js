@@ -421,7 +421,7 @@ larch.controls.initForm = function (node) {
         var segment_id = larch.__getSegmentIDForEvent(node);
         form.ajaxSubmit({
             data: {__larch_segment_id: segment_id},
-            url: larch.__root_url + '/form/' + larch.__view_id,
+            url: '/form/' + larch.__doc_url + '/' + larch.__view_id,
             dataType: 'json',
             type: 'POST',
             success: function (msg) {

@@ -28,13 +28,13 @@ def serve_static(filename):
 
 @app.route('/')
 def index():
-	redirect('/main/larchapp/pages')
+	redirect('/pages/main/larchapp')
 
 
-@app.route('/<category>/<name>')
-@app.route('/<category>/<name>/')
-@app.route('/<category>/<name>/pages')
-@app.route('/<category>/<name>/pages/')
+@app.route('/pages')
+@app.route('/pages/')
+@app.route('/pages/<category>/<name>')
+@app.route('/pages/<category>/<name>/')
 def root_page(category, name):
 	try:
 		get_params = {}
@@ -45,7 +45,7 @@ def root_page(category, name):
 		return 'Page at {0} not found'.format('')
 
 
-@app.route('/<category>/<name>/pages/<location:path>')
+@app.route('/pages/<category>/<name>/<location:path>')
 def page(category, name, location):
 	try:
 		get_params = {}
@@ -56,7 +56,7 @@ def page(category, name, location):
 		return 'Page at {0} not found'.format(location)
 
 
-@app.route('/<category>/<name>/event/<view_id>', method='POST')
+@app.route('/event/<category>/<name>/<view_id>', method='POST')
 def event(category, name, view_id):
 	event_data = request.forms.get('event_data')
 	data = hub.event(category, name, view_id, event_data)
@@ -64,7 +64,7 @@ def event(category, name, view_id):
 	return data
 
 
-@app.route('/<category>/<name>/form/<view_id>', method='POST')
+@app.route('/form/<category>/<name>/<view_id>', method='POST')
 def form(category, name, view_id):
 	form_data = {}
 
@@ -81,7 +81,7 @@ def form(category, name, view_id):
 	return data
 
 
-@app.route('/<category>/<name>/rsc/<view_id>/<rsc_id>', method='GET')
+@app.route('/rsc/<category>/<name>/<view_id>/<rsc_id>', method='GET')
 def rsc(category, name, view_id, rsc_id):
 	data_and_mime_type = hub.resource(category, name, view_id, rsc_id)
 	if data_and_mime_type is not None:

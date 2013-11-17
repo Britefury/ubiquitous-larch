@@ -80,7 +80,11 @@ class Subject (object):
 		:return: The location represented by this subject
 		"""
 		trail = self.reduce('location_trail', lambda cumulative, t: t + cumulative, [])
-		return '/' + '/'.join(trail)
+		loc = '/'.join(trail)
+		if loc.startswith('/'):
+			return loc
+		else:
+			return '/' + loc
 
 
 	@property

@@ -19,13 +19,13 @@ app = Flask(__name__, static_url_path='/static', static_folder='static')
 
 @app.route('/')
 def index():
-	return redirect('/main/larchapp/pages')
+	return redirect('/pages/main/larchapp')
 
 
-@app.route('/<category>/<name>')
-@app.route('/<category>/<name>/')
-@app.route('/<category>/<name>/pages')
-@app.route('/<category>/<name>/pages/')
+@app.route('/pages')
+@app.route('/pages/')
+@app.route('/pages/<category>/<name>')
+@app.route('/pages/<category>/<name>/')
 def root_page(category, name):
 	get_params = {}
 	get_params.update(request.args)
@@ -35,7 +35,7 @@ def root_page(category, name):
 		abort(404)
 
 
-@app.route('/<category>/<name>/pages/<path:location>')
+@app.route('/pages/<category>/<name>/<path:location>')
 def page(category, name, location):
 	get_params = {}
 	get_params.update(request.args)
@@ -45,14 +45,14 @@ def page(category, name, location):
 		abort(404)
 
 
-@app.route('/<category>/<name>/event/<view_id>', methods=['POST'])
+@app.route('/event/<category>/<name>/<view_id>', methods=['POST'])
 def event(category, name, view_id):
 	event_data = request.form['event_data']
 	data = hub.event(category, name, view_id, event_data)
 	return Response(response=data, status=200, mimetype='application/json')
 
 
-@app.route('/<category>/<name>/form/<view_id>', methods=['POST'])
+@app.route('/form/<category>/<name>/<view_id>', methods=['POST'])
 def form(category, name, view_id):
 	form_data = {}
 	files = []
@@ -82,7 +82,7 @@ def form(category, name, view_id):
 	return Response(response=data, status=200, mimetype='application/json')
 
 
-@app.route('/<category>/<name>/rsc/<view_id>/<rsc_id>', methods=['GET'])
+@app.route('/rsc/<category>/<name>/<view_id>/<rsc_id>', methods=['GET'])
 def rsc(category, name, view_id, rsc_id):
 	data_and_mime_type = hub.resource(category, name, view_id, rsc_id)
 	if data_and_mime_type is not None:

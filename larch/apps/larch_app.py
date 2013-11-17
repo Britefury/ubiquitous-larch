@@ -244,12 +244,13 @@ class _DocKernelImportHooks (object):
 #
 
 class DocumentKernel (object):
-	def __init__(self, path, content, imported_module_registry=None):
+	def __init__(self, path, name, content, imported_module_registry=None):
 		if imported_module_registry is None:
 			imported_module_registry = ImportedModuleRegistry()
 		self.__imported_module_registry = imported_module_registry
 
 		self.__path = path
+		self.__name = name
 		self.__content = content
 		self.__document_modules = {}
 
@@ -369,7 +370,7 @@ class DocumentKernel (object):
 
 
 	def __resolve_self__(self, subject):
-		subject.add_step(focus=self.__content)
+		subject.add_step(focus=self.__content, title=self.__name)
 		return self.__content
 
 
@@ -384,25 +385,25 @@ class DocumentKernel (object):
 
 
 	@staticmethod
-	def load(path, imported_module_registry):
+	def load(path, name, imported_module_registry):
 		try:
 			with open(path, 'rU') as f:
 				content = pickle.load(f)
 		except:
 			print 'Error: could not load {0}: {1}'.format(path, sys.exc_info())
 		else:
-			return DocumentKernel(path, content, imported_module_registry)
+			return DocumentKernel(path, name, content, imported_module_registry)
 
 
 
-def make_kernel_service_for_content_factory(kernel_interface, path, content_factory, imported_module_registry):
+def make_kernel_service_for_content_factory(kernel_interface, path, name, content_factory, imported_module_registry):
 	content = content_factory()
-	kernel = DocumentKernel(path, content, imported_module_registry)
+	kernel = DocumentKernel(path, name, content, imported_module_registry)
 	service = ProjectionService(kernel)
 	return service
 
-def make_kernel_service_from_file(kernel_interface, path, imported_module_registry):
-	kernel = DocumentKernel.load(path, imported_module_registry)
+def make_kernel_service_from_file(kernel_interface, path, name, imported_module_registry):
+	kernel = DocumentKernel.load(path, name, imported_module_registry)
 	service = ProjectionService(kernel)
 	return service
 
@@ -452,7 +453,7 @@ class Document (object):
 			name = os.path.splitext(filename)[0]
 			location = name_to_location(name)
 
-			app.kernel_interface.new_kernel(doc_list.category, location, make_kernel_service_from_file, path, imported_module_registry)
+			app.kernel_interface.new_kernel(doc_list.category, location, make_kernel_service_from_file, path, name, imported_module_registry)
 
 			doc = Document(doc_list, name, filename, location)
 			app._set_document_for_path(path, doc)
@@ -466,7 +467,7 @@ class Document (object):
 		path = os.path.join(doc_list.path, filename)
 		location = name_to_location(name)
 
-		doc_list._app.new_kernel(doc_list.category, location, make_kernel_service_for_content_factory, path, content_factory, imported_module_registry)
+		doc_list._app.new_kernel(doc_list.category, location, make_kernel_service_for_content_factory, path, name, content_factory, imported_module_registry)
 
 		return Document(doc_list, name, filename, location)
 
@@ -581,7 +582,7 @@ class DocumentList (object):
 			doc.save_and_display_notification(page)
 
 		save_button = button.button('Save', on_save)
-		doc_title = '<a href="/{0}/{1}" class="larch_app_doc_title">{2}</a>'.format(self.loc_prefix, doc.location, doc.name)
+		doc_title = '<a href="/pages/{0}/{1}" class="larch_app_doc_title">{2}</a>'.format(self.loc_prefix, doc.location, doc.name)
 		doc_filename = '<span class="larch_app_doc_filename">{0}</span><span class="larch_app_doc_extension">.ularch</span>'.format(doc.filename)
 		controls = Html('<div class="larch_app_doc_controls">', save_button, '</div>')
 		return Html('<tr class="larch_app_doc">	<td>', doc_title, '</td><td>', doc_filename, '</td><td>', controls, '</td></tr>')
@@ -644,7 +645,7 @@ class ConsoleList (object):
 		self.__incr.on_access()
 		contents = ['<div class="larch_app_console_list">']
 		for i, con in enumerate(self.__consoles):
-			console_link = '<p class="larch_app_console"><a href="{0}/pages/consoles/{1}">Console {1}</a></p>'.format(self._app.app_location, i)
+			console_link = '<p class="larch_app_console"><a href="/pages/{0}/consoles/{1}">Console {1}</a></p>'.format(self._app.app_location, i)
 			contents.append( console_link)
 		contents.append('</div>')
 		return Html(*contents)
@@ -887,7 +888,7 @@ class LarchApplication (object):
 
 
 	def __resolve_self__(self, subject):
-		doc_url = '/docs/index'   if self.__docs is not None   else None
+		doc_url = '/pages/docs/index'   if self.__docs is not None   else None
 		subject.add_step(title='The Ubiquitous Larch', augment_page=_make_apply_page_frame(self.__logout_url_path, doc_url))
 		return self
 
