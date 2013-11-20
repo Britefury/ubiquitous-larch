@@ -68,3 +68,7 @@ class LarchDefaultHub (AbstractLarchHub, KernelInterface):
 		return service.resource(view_id, rsc_id)   if service is not None   else None
 
 
+def start_hub_and_client(main_doc_category, main_doc_name, main_constructor, *main_cons_args, **main_cons_kwargs):
+	hub = LarchDefaultHub()
+	hub.new_kernel(main_doc_category, main_doc_name, main_constructor, *main_cons_args, **main_cons_kwargs)
+	return hub

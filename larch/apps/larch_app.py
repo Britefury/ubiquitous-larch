@@ -948,8 +948,8 @@ class LarchApplication (object):
 		reset_button = button.button('Reload', _on_reload)
 		reset_section = Html('<div>', reset_button, '</div>')
 
-		add_notebook = menu.item('Notebook', lambda event: self.__tools.add(NewDocumentTool(self.__user_docs, lambda: notebook.Notebook(), 'Notebook')))
-		add_project = menu.item('Project', lambda event: self.__tools.add(NewDocumentTool(self.__user_docs, lambda: project_root.ProjectRoot(), 'Project')))
+		add_notebook = menu.item('Notebook', lambda event: self.__tools.add(NewDocumentTool(self.__user_docs, notebook.Notebook, 'Notebook')))
+		add_project = menu.item('Project', lambda event: self.__tools.add(NewDocumentTool(self.__user_docs, project_root.ProjectRoot, 'Project')))
 		new_item = menu.sub_menu('New', [add_notebook, add_project])
 		new_document_menu = menu.menu([new_item], drop_down=True)
 
