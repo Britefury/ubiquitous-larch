@@ -457,30 +457,54 @@ class Document (object):
 
 
 	@staticmethod
-	def load(app, doc_list, path, app_context, imported_module_registry):
+	def load(on_doc_loaded, app, doc_list, path, app_context, imported_module_registry):
+		"""
+		Load a document (uses continuation passing style instead of a return value)
+
+		:param on_doc_loaded: a callback of the form function(doc) that us invoked when the document has been loaded; this is invoked instead of a returning a value, in order to permit asynchronous operation
+		:param app: the larch application
+		:param doc_list: the document list
+		:param path: the path at which the document file can be found
+		:param app_context: a LarchAppContext
+		:param imported_module_registry: module registry for handling imported modules
+		"""
 		doc = app._get_document_for_path(path)
 		if doc is None:
 			filename = os.path.split(path)[1]
 			name = os.path.splitext(filename)[0]
 			location = name_to_location(name)
 
-			app.kernel_interface.new_kernel(doc_list.category, location, make_kernel_service_from_file, path, name, app_context, imported_module_registry)
+			def on_created():
+				doc = Document(doc_list, name, name, location)
+				app._set_document_for_path(path, doc)
+				on_doc_loaded(doc)
 
-			# Document file names do NOT include the extension
-			doc = Document(doc_list, name, name, location)
-			app._set_document_for_path(path, doc)
-			return doc
+			app.kernel_interface.new_kernel(doc_list.category, location, on_created, make_kernel_service_from_file, path, name, app_context, imported_module_registry)
 		else:
-			return doc
+			on_doc_loaded(doc)
 
 
 	@staticmethod
-	def for_content(doc_list, name, filename, path, content_factory, app_context, imported_module_registry):
+	def for_content(on_doc_created, doc_list, name, filename, path, content_factory, app_context, imported_module_registry):
+		"""
+		Create a new document (uses continuation passing style instead of a return value)
+
+		:param on_doc_created: a callback of the form function(doc) that us invoked when the document has been created; this is invoked instead of a returning a value, in order to permit asynchronous operation
+		:param doc_list: the document list
+		:param name: the name for the new document
+		:param filename: the filename for the new document
+		:param path: the path to the file in which the new document is to be saved
+		:param content_factory: a callback of the form function() that creates the content of the document
+		:param app_context: a LarchAppContext
+		:param imported_module_registry: module registry for handling imported modules
+		"""
 		location = name_to_location(name)
 
-		doc_list._app.kernel_interface.new_kernel(doc_list.category, location, make_kernel_service_for_content_factory, path, name, content_factory, app_context, imported_module_registry)
+		def on_created():
+			doc = Document(doc_list, name, filename, location)
+			on_doc_created(doc)
 
-		return Document(doc_list, name, filename, location)
+		doc_list._app.kernel_interface.new_kernel(doc_list.category, location, on_created, make_kernel_service_for_content_factory, path, name, content_factory, app_context, imported_module_registry)
 
 
 
@@ -553,9 +577,12 @@ class DocumentList (object):
 		# Document file names do NOT include the extension
 		filename = _sanitise_filename(name)
 		file_path = os.path.join(self.__path, filename + '.ularch')
-		doc = Document.for_content(self, name, filename, file_path, content_factory, self.__app_context, self.__imported_module_registry)
-		doc.save()
-		self.__add_document(doc)
+
+		def on_doc_created(doc):
+			doc.save()
+			self.__add_document(doc)
+
+		Document.for_content(on_doc_created, self, name, filename, file_path, content_factory, self.__app_context, self.__imported_module_registry)
 
 
 	def reload(self):
@@ -571,10 +598,13 @@ class DocumentList (object):
 
 	def __load_documents(self):
 		file_paths = glob.glob(os.path.join(self.__path, '*' + _EXTENSION))
+
+		def on_doc_loaded(doc):
+			self.__add_document(doc)
+
 		for p in sorted(file_paths):
-			doc = Document.load(self._app, self, p, self.__app_context, self.__imported_module_registry)
-			if doc is not None:
-				self.__add_document(doc)
+			Document.load(on_doc_loaded, self._app, self, p, self.__app_context, self.__imported_module_registry)
+
 
 
 

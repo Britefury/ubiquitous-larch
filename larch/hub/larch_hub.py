@@ -23,7 +23,7 @@ class KernelInterface (object):
 	def kernel_message(self, doc_category, doc_name, message, *args, **kwargs):
 		raise NotImplementedError, 'abstract'
 
-	def new_kernel(self, doc_category, doc_name, service_constructor, *service_cons_args, **service_cons_kwargs):
+	def new_kernel(self, doc_category, doc_name, on_created, service_constructor, *service_cons_args, **service_cons_kwargs):
 		raise NotImplementedError, 'abstract'
 
 
@@ -39,10 +39,11 @@ class LarchDefaultHub (AbstractLarchHub, KernelInterface):
 		return service.kernel_message(message, *args, **kwargs)
 
 
-	def new_kernel(self, doc_category, doc_name, service_constructor, *service_cons_args, **service_cons_kwargs):
+	def new_kernel(self, doc_category, doc_name, on_created, service_constructor, *service_cons_args, **service_cons_kwargs):
 		k = doc_category, doc_name
 		service = service_constructor(self, *service_cons_args, **service_cons_kwargs)
 		self.__services[k] = service
+		on_created()
 
 	def page(self, doc_category, doc_name, location='', get_params=None, user=None):
 		k = doc_category, doc_name
@@ -69,6 +70,8 @@ class LarchDefaultHub (AbstractLarchHub, KernelInterface):
 
 
 def start_hub_and_client(main_doc_category, main_doc_name, main_constructor, *main_cons_args, **main_cons_kwargs):
+	def on_created():
+		pass
 	hub = LarchDefaultHub()
-	hub.new_kernel(main_doc_category, main_doc_name, main_constructor, *main_cons_args, **main_cons_kwargs)
+	hub.new_kernel(main_doc_category, main_doc_name, on_created, main_constructor, *main_cons_args, **main_cons_kwargs)
 	return hub
