@@ -429,11 +429,13 @@ def make_kernel_service_from_file(kernel_interface, path, name, app_context, imp
 #
 
 class Document (object):
-	def __init__(self, doc_list, name, filename, location):
+	def __init__(self, doc_list, name, filename, location, service_id):
 		self.__doc_list = doc_list
 		self.__name = name
 		self.__filename = filename
 		self.__loc = location
+		self.__service_id = service_id
+
 
 
 	@property
@@ -468,20 +470,23 @@ class Document (object):
 		:param app_context: a LarchAppContext
 		:param imported_module_registry: module registry for handling imported modules
 		"""
+		filename = os.path.split(path)[1]
+		name = os.path.splitext(filename)[0]
+		location = name_to_location(name)
+
 		doc = app._get_document_for_path(path)
 		if doc is None:
-			filename = os.path.split(path)[1]
-			name = os.path.splitext(filename)[0]
-			location = name_to_location(name)
 
-			def on_created():
-				doc = Document(doc_list, name, name, location)
+			def on_created(service_id):
+				doc = Document(doc_list, name, name, location, service_id)
 				app._set_document_for_path(path, doc)
+				app.kernel_interface.map_category_and_name_to_kernel(doc_list.category, location, service_id)
 				on_doc_loaded(doc)
 
-			app.kernel_interface.new_kernel(doc_list.category, location, on_created, make_kernel_service_from_file, path, name, app_context, imported_module_registry)
+			app.kernel_interface.new_kernel(on_created, make_kernel_service_from_file, path, name, app_context, imported_module_registry)
 		else:
 			on_doc_loaded(doc)
+			app.kernel_interface.map_category_and_name_to_kernel(doc_list.category, location, doc.__service_id)
 
 
 	@staticmethod
@@ -500,11 +505,12 @@ class Document (object):
 		"""
 		location = name_to_location(name)
 
-		def on_created():
-			doc = Document(doc_list, name, filename, location)
+		def on_created(service_id):
+			doc = Document(doc_list, name, filename, location, service_id)
+			doc_list._app.kernel_interface.map_category_and_name_to_kernel(doc_list.category, location, service_id)
 			on_doc_created(doc)
 
-		doc_list._app.kernel_interface.new_kernel(doc_list.category, location, on_created, make_kernel_service_for_content_factory, path, name, content_factory, app_context, imported_module_registry)
+		doc_list._app.kernel_interface.new_kernel(on_created, make_kernel_service_for_content_factory, path, name, content_factory, app_context, imported_module_registry)
 
 
 
@@ -605,20 +611,6 @@ class DocumentList (object):
 		for p in sorted(file_paths):
 			Document.load(on_doc_loaded, self._app, self, p, self.__app_context, self.__imported_module_registry)
 
-
-
-
-
-
-
-
-	def __resolve__(self, name, subject):
-		doc = self.doc_for_location(name)
-		if doc is not None:
-			subject.add_step(focus=doc, location_trail=[name], document=doc, title=doc.name)
-			return doc
-		else:
-			return None
 
 
 
@@ -950,13 +942,7 @@ class LarchApplication (object):
 
 
 	def __resolve__(self, name, subject):
-		if name == 'files':
-			subject.add_step(focus=self.__user_docs, location_trail=[name])
-			return self.__user_docs
-		elif name == 'docs'  and  self.__docs is not None:
-			subject.add_step(focus=self.__docs, location_trail=[name])
-			return self.__docs
-		elif name == 'consoles':
+		if name == 'consoles':
 			subject.add_step(focus=self.__consoles, location_trail=[name])
 			return self.__consoles
 		else:
