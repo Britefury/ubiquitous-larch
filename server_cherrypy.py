@@ -8,6 +8,7 @@ from cherrypy import _cpreqbody
 
 from larch.core.dynamicpage.service import UploadedFile
 from larch.core.projection_service import CouldNotResolveLocationError
+from larch.hub import larch_hub
 
 from larch.apps import larch_app
 
@@ -21,12 +22,12 @@ config = {'/static':
 
 
 class LarchWebApp (object):
-	def __init__(self, service):
-		self.service = service
+	def __init__(self, hub):
+		self.hub = hub
 
 
 	def index(self):
-		raise cherrypy.HTTPRedirect('/pages')
+		raise cherrypy.HTTPRedirect('/pages/main/larchapp')
 
 	index.exposed = True
 
@@ -34,7 +35,13 @@ class LarchWebApp (object):
 
 	def pages(self, *location_components, **get_params):
 		try:
-			return self.service.page('/'.join(location_components), get_params)
+			if len(location_components) >= 2:
+				category = location_components[0]
+				name = location_components[1]
+				loc = '/'.join(location_components[2:])
+				return self.hub.page(category, name, loc, get_params)
+			else:
+				raise cherrypy.HTTPRedirect('/pages/main/larchapp')
 		except CouldNotResolveLocationError:
 			cherrypy.response.status = 404
 			return 'Document not found'
@@ -44,13 +51,13 @@ class LarchWebApp (object):
 
 
 	def event(self, *location_components, **post_data):
-		if len(location_components) == 1:
+		if len(location_components) == 3:
+			category, name, view_id = location_components
 			event_data = post_data.get('event_data')
 			if event_data is None:
 				cherrypy.response.status = 400
 				return 'No event data'
-			view_id = location_components[0]
-			return self.service.event(view_id, event_data)
+			return self.hub.event(category, name, view_id, event_data)
 		else:
 			cherrypy.response.status = 404
 			return 'Invalid event URL'
@@ -59,8 +66,8 @@ class LarchWebApp (object):
 
 
 	def form(self, *location_components, **post_data):
-		if len(location_components) == 1:
-			view_id = location_components[0]
+		if len(location_components) == 3:
+			category, name, view_id = location_components
 
 			form_data = {}
 
@@ -70,7 +77,7 @@ class LarchWebApp (object):
 				else:
 					form_data[k] = v
 
-			return self.service.form(view_id, form_data)
+			return self.hub.form(category, name, view_id, form_data)
 		else:
 			cherrypy.response.status = 404
 			return 'Invalid form URL'
@@ -79,9 +86,9 @@ class LarchWebApp (object):
 
 
 	def rsc(self, *location_components, **kwargs):
-		if len(location_components) == 2:
-			view_id, rsc_id = location_components
-			data_and_mime_type = self.service.resource(view_id, rsc_id)
+		if len(location_components) == 4:
+			category, name, view_id, rsc_id = location_components
+			data_and_mime_type = self.hub.resource(category, name, view_id, rsc_id)
 			if data_and_mime_type is not None:
 				data, mime_type = data_and_mime_type
 				cherrypy.response.headers['Content-Type'] = mime_type
@@ -98,7 +105,8 @@ class LarchWebApp (object):
 
 if __name__ == '__main__':
 	options = larch_app.parse_cmd_line()
+	hub = larch_hub.start_hub_and_client('main', 'larchapp', larch_app.create_service, '/main/larchapp', options)
 	print 'Point your browser at http://127.0.0.1:{0}/ to try The Ubiquitous Larch'.format(options.port)
-	larch = LarchWebApp(larch_app.create_service(larch_app.parse_cmd_line()))
+	larch = LarchWebApp(hub)
 	cherrypy.server.socket_port = options.port
 	cherrypy.quickstart(larch, config=config)

@@ -26,9 +26,11 @@ def index():
 @app.route('/pages/')
 @app.route('/pages/<category>/<name>')
 @app.route('/pages/<category>/<name>/')
-def root_page(category, name):
+def root_page(category=None, name=None):
 	get_params = {}
 	get_params.update(request.args)
+	if category is None  or  name is None:
+		return redirect('/pages/main/larchapp')
 	try:
 		return hub.page(category, name, '', get_params)
 	except CouldNotResolveLocationError:

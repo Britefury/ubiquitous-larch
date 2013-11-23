@@ -15,9 +15,22 @@ from larch.core.dynamicpage.service import UploadedFile
 from larch.core.dynamicpage import user
 from larch.core.projection_service import CouldNotResolveLocationError
 from larch.apps import larch_app
+from larch.hub import larch_hub
 
 
-service = larch_app.create_service(logout_url_path='/accounts/logout')
+hub = larch_hub.start_hub_and_client('main', 'larchapp', larch_app.create_service, '/main/larchapp')
+
+
+
+USE_SIMPLE_AND_INSECURE_LOGIN = False
+
+
+if USE_SIMPLE_AND_INSECURE_LOGIN:
+	pass
+else:
+	def login_required(f):
+		return f
+
 
 
 def _user_for_request(request):
@@ -30,44 +43,46 @@ def _user_for_request(request):
 
 @login_required
 def index(request):
-	try:
-		return HttpResponse(service.page(user=_user_for_request(request)))
-	except CouldNotResolveLocationError:
-		raise Http404
+	return redirect('/pages/main/larchapp')
 
 
 
 @login_required
 def root_page(request):
+	return redirect('/pages/main/larchapp')
+
+
+@login_required
+def front_page(request, category, name):
 	try:
 		get_params = {}
 		get_params.update(request.GET)
-		return HttpResponse(service.page('', get_params, user=_user_for_request(request)))
+		return HttpResponse(hub.page(category, name, '', get_params, user=_user_for_request(request)))
 	except CouldNotResolveLocationError:
 		raise Http404
 
 
 @login_required
-def page(request, location):
+def page(request, category, name, location):
 	try:
 		get_params = {}
 		get_params.update(request.GET)
-		return HttpResponse(service.page(location, get_params, user=_user_for_request(request)))
+		return HttpResponse(hub.page(category, name, location, get_params, user=_user_for_request(request)))
 	except CouldNotResolveLocationError:
 		raise Http404
 
 
 @require_POST
 @login_required
-def event(request, view_id):
+def event(request, category, name, view_id):
 	event_data = request.POST['event_data']
-	data = service.event(view_id, event_data)
+	data = hub.event(category, name, view_id, event_data)
 	return HttpResponse(data, content_type='application/json')
 
 
 @require_POST
 @login_required
-def form(request, view_id):
+def form(request, category, name, view_id):
 	form_data = {}
 
 	for k in request.POST.keys():
@@ -92,7 +107,7 @@ def form(request, view_id):
 
 		files.append((f, temp_file_path))
 
-	data = service.form(view_id, form_data)
+	data = hub.form(category, name, view_id, form_data)
 
 	for f in files:
 		f[0].file.close()
@@ -103,8 +118,8 @@ def form(request, view_id):
 
 @require_GET
 @login_required
-def rsc(request, view_id, rsc_id):
-	data_and_mime_type = service.resource(view_id, rsc_id)
+def rsc(request, category, name, view_id, rsc_id):
+	data_and_mime_type = hub.resource(category, name, view_id, rsc_id)
 	if data_and_mime_type is not None:
 		data, mime_type = data_and_mime_type
 		return HttpResponse(data, content_type=mime_type)
