@@ -4,6 +4,7 @@
 import tempfile
 import os
 import sys
+import webbrowser
 
 from flask import Flask, request, Response, abort, redirect
 from larch.core.dynamicpage.service import UploadedFile
@@ -100,8 +101,5 @@ if __name__ == '__main__':
 	options = larch_app.parse_cmd_line()
 	hub = larch_hub.start_hub_and_client('main', 'larchapp', larch_app.create_service, '/main/larchapp', options)
 	print 'Point your browser at http://127.0.0.1:{0}/ to try The Ubiquitous Larch'.format(options.port)
-	#webbrowser.get().open('http://127.0.0.1:{0}/'.format(options.port))
-	app.run(debug=True, port=options.port)
-	#app.run()
-else:
-	hub = larch_hub.start_hub_and_client('main', 'larchapp', larch_app.create_service, '/main/larchapp')
+	webbrowser.get().open('http://127.0.0.1:{0}/'.format(options.port))
+	app.run(debug=False, port=options.port)
