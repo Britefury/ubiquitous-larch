@@ -380,7 +380,7 @@ class DocumentKernel (object):
 
 
 	def __resolve_self__(self, subject):
-		subject.add_step(focus=self.__content, title=self.__name, augment_page=_make_apply_page_frame(self.__app_context))
+		subject.add_step(document=self, focus=self.__content, title=self.__name, augment_page=_make_apply_page_frame(self.__app_context))
 		return self.__content
 
 
