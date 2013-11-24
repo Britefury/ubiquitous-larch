@@ -16,6 +16,7 @@
 
 .larch_app_title_bar {
     font-family: 'Oswald', sans-serif;
+    font-weight: lighter;
     font-size: 96px;
     text-align: center;
     text-shadow: 0 2px 4px #808080;
