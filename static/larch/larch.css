@@ -4,29 +4,65 @@
 -*************************
 */
 
-.__lch_seg_placeholder {
-    display: none;
-    visibility: hidden;
+@import url(http://fonts.googleapis.com/css?family=Oswald:300|Roboto);
+
+body {
+    color: #404040;
+    font-family: 'Roboto', 'Open Sans', sans-serif;
 }
 
-.__lch_seg_begin {
-    display: none;
-    visibility: hidden;
+.page_title {
+    text-align: center;
+    padding: 0.5em 0;
+    font-family: 'Oswald', sans-serif;
+    font-size: 3em;
+    color: #60676e;
 }
 
-.__lch_seg_end {
-    display: none;
-    visibility: hidden;
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Oswald', sans-serif;
+    font-weight: normal;
 }
 
-.__lch_event_elem {
+h1, h2, h3 {
+    color: #4090a0;
 }
 
-.__lch_exec_js_elem {
+h4 {
+    color: #70989e;
 }
+
+h5 {
+    color: #8c9a9c;
+}
+
+h6 {
+    color: #989b9c;
+}
+
+p, ul, ol {
+    font-weight: normal;
+    color: #383838;
+}
+
+a {
+    color: #a03060;
+}
+
+a:visited {
+    color: #9c6c2f;
+}
+
+a:hover {
+    color: #6b2f9c;
+}
+
+
+
+
+
 
 .larch_liveliness_indicator {
-    font-family: sans-serif;
     font-weight: bold;
     padding: 3px 6px;
     border-radius: 5px;
@@ -56,7 +92,7 @@
 
 
 .dropdown_expander_header {
-    font-family: "Tahoma", "Geneva", sans-serif;
+    font-family: 'Oswald', sans-serif;
     border: 1px solid #808080;
     background: #f0f0f0;
     border-radius: 5px;
@@ -64,7 +100,6 @@
 }
 
 .dropdown_expander_content {
-    font-family: "Tahoma", "Geneva", sans-serif;
     margin-left: 15px;
 }
 
@@ -78,53 +113,6 @@
 
 
 
-.page_title {
-    text-align: center;
-    padding: 0.5em 0;
-    font-family: "Garamond", serif;
-    font-size: 3em;
-    color: #60676e;
-}
-
-p {
-    color: #404040;
-    font-family: "Oxygen", "Tahoma", "Geneva", sans-serif;
-}
-
-h1 {
-    font-family: "Garamond", "Georgia", serif;
-    color: #808080;
-}
-
-h2 {
-    font-family: "Garamond", "Georgia", serif;
-    color: #787878;
-}
-
-h3 {
-    font-family: "Garamond", "Georgia", serif;
-    color: #707070;
-}
-
-h4 {
-    font-family: "Garamond", "Georgia", serif;
-    color: #686868;
-}
-
-h5 {
-    font-family: "Garamond", "Georgia", serif;
-    color: #606060;
-}
-
-h6 {
-    font-family: "Garamond", "Georgia", serif;
-    color: #585858;
-}
-
-body {
-    color: #404040;
-    font-family: "Oxygen", "Tahoma", "Geneva", sans-serif;
-}
 
 .tool_box {
     width: 100%;
@@ -136,28 +124,24 @@ body {
 }
 
 .gui_label {
-    font-family: "Palatino linotype", "Book Antiqua", serif;
     padding: 0 1em;
 }
 
 .gui_section_1 {
     color: #303030;
-    font-family: "Open Sans", sans-serif;
-    font-weight: lighter;
+    font-family: 'Oswald', sans-serif;
     font-size: 1.5em;
 }
 
 .gui_section_2 {
     color: #303030;
-    font-family: "Open Sans", sans-serif;
-    font-weight: lighter;
+    font-family: 'Oswald', sans-serif;
     font-size: 1.25em;
 }
 
 .gui_section_3 {
     color: #303030;
-    font-family: "Open Sans", sans-serif;
-    font-weight: lighter;
+    font-family: 'Oswald', sans-serif;
     font-size: 1em;
 }
 
@@ -242,7 +226,6 @@ body {
 
 
 .notes_text {
-    font-family: "Open Sans", sans-serif;
     font-size: 0.8em;
     color: #505050;
     font-style: italic;
@@ -311,4 +294,33 @@ span.command_table_desc:hover {
 
 .invalid_page_style {
     color: #ffffff;
+}
+
+
+
+
+
+/*
+Larch control structures
+*/
+
+.__lch_seg_placeholder {
+    display: none;
+    visibility: hidden;
+}
+
+.__lch_seg_begin {
+    display: none;
+    visibility: hidden;
+}
+
+.__lch_seg_end {
+    display: none;
+    visibility: hidden;
+}
+
+.__lch_event_elem {
+}
+
+.__lch_exec_js_elem {
 }

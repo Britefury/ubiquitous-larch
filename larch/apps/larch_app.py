@@ -682,7 +682,7 @@ class ConsoleList (object):
 		self.__incr.on_access()
 		contents = ['<div class="larch_app_console_list">']
 		for i, con in enumerate(self.__consoles):
-			console_link = '<p class="larch_app_console"><a href="/pages/{0}/consoles/{1}">Console {1}</a></p>'.format(self._app.app_location, i)
+			console_link = '<p class="larch_app_console"><a href="{0}/consoles/{1}">Console {1}</a></p>'.format(self._app.app_location, i)
 			contents.append( console_link)
 		contents.append('</div>')
 		return Html(*contents)
@@ -881,7 +881,7 @@ class ToolList (object):
 class LarchApplication (object):
 	def __init__(self, kernel_interface, app_location, user_docs_path=None, documentation_path=None, logout_url_path=None):
 		self.__path_to_document = {}
-		self.__app_location = app_location
+		self.__app_location = '/pages' + app_location
 
 		self.kernel_interface = kernel_interface
 

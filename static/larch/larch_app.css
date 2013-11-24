@@ -4,8 +4,6 @@
 -*************************
 */
 
-@import url(http://fonts.googleapis.com/css?family=Oswald:300);
-
 .larch_app_enclosure {
     width: 1280px;
     margin: 0 auto;
@@ -37,7 +35,7 @@
 .larch_app_doc_list_header {
     font-weight: bold;
     color: #505050;
-    font-family: "Palatino linotype", "Book Antiqua", serif;
+    font-family: 'Oswald', sans-serif;
     background: #e0e0d0;
 }
 
@@ -54,16 +52,13 @@
 }
 
 .larch_app_doc_title {
-    font-family: "Palatino linotype", "Book Antiqua", serif;
     margin-right: 2em;
 }
 
 .larch_app_doc_filename {
-    font-family: "Palatino linotype", "Book Antiqua", serif;
 }
 
 .larch_app_doc_extension {
-    font-family: "Palatino linotype", "Book Antiqua", serif;
     font-style: italic;
     margin-right: 2em;
 }
@@ -107,19 +102,9 @@
     border: 1px solid #ff6363;
     border-radius: 5px;
     background: #fff0f0;
-    font-family: "Garamond", "Georgia", serif;
-}
-
-h1.larch_app_title {
-    text-align: center;
-    padding: 0.5em 0;
-    font-family: "Garamond", serif;
-    font-size: 3em;
-    color: #60676e;
 }
 
 .larch_app_powered_by {
-    font-family: "Oxygen", sans-serif;
     margin-top: 2.5em;
     text-align: right;
 }
