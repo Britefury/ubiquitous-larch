@@ -23,7 +23,7 @@ class Pres (object):
 
 	def with_event_handler(self, event_filter_or_handler, event_handler=None):
 		if event_handler is None:
-			return EventSource(event_filter_or_handler, self)
+				return EventSource(event_filter_or_handler, self)
 		else:
 			if isinstance(event_filter_or_handler, basestring):
 				def _handle(event):

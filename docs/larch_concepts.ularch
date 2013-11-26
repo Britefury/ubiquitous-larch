@@ -99,7 +99,7 @@ Ntp44
 Rp45
 (dp46
 g26
-V<h3>Presentation types can be nested</h3><p>Presentation types can be freely nested within one another; they are composeable:</p>
+V<h3>Presentation types can be nested</h3><p>Presentation types can be freely nested within one another; they are composeable:<br></p>
 p47
 sg28
 g18
@@ -130,26 +130,48 @@ Ntp55
 Rp56
 (dp57
 g26
-V<h3>Representing plain HTML</h3><p>As seen in <a data-cke-saved-href="/pages/docs/basic_html" href="/pages/docs/basic_html">Basic HTML</a>, for this we use the <code>Html</code> presentation type:</p>
+V<h3>Many operations on presentation types are performed using&nbsp;chain methods</h3><p>Chain methods are a pattern that is used frequently by presentation types. For example:</p><pre>x = y.with_event_handler(handler)</pre><p>invokes the <code>with_event_handler</code>&nbsp;chain method, that attaches an event handler. In contrast to chain methods used in many other systems, the original object (<code>y</code>) is not returned. Instead, a new object is returned that contains <code>y</code>. The new object also derives from the <code>Pres</code> base class, so has a compatible interface, along with the ability to use other chain methods.</p><p>It is worth noting that the above chain method is synonymous with calling:</p><pre>x = EventSource(handler, y)</pre><p><code>x</code> is therefore an instance of&nbsp;EventSource, that&nbsp;is also a presentation type. <code>x</code> also contains <code>y</code>, nested within it.</p>
 p58
+sg28
+g18
+sbag0
+(g22
+g2
+Ntp59
+Rp60
+(dp61
+g26
+V<h3>Presentation types can set up dynamic behaviour</h3><p>In <a data-cke-saved-href="/pages/docs/js_css" href="/pages/docs/js_css">Javascript and CSS</a> we show how chain methods can be used to attach CSS and Javascript&nbsp;to presentations that use it. We also show how to use Javascript code&nbsp;to initialise and shutdown presentations as they are added to and removed from the browse DOM. In <a data-cke-saved-href="/pages/docs/event_handling" href="/pages/docs/event_handling">Event Handling</a>&nbsp;we show how Python funtions can be used to handle&nbsp;events from the browser DOM.</p>
+p62
+sg28
+g18
+sbag0
+(g22
+g2
+Ntp63
+Rp64
+(dp65
+g26
+V<h3>Representing plain HTML</h3><p>As seen in <a data-cke-saved-href="/pages/docs/basic_html" href="/pages/docs/basic_html">Basic HTML</a>, for this we use the <code>Html</code> presentation type:</p>
+p66
 sg28
 g18
 sbag0
 (g33
 g2
-Ntp59
-Rp60
-(dp61
+Ntp67
+Rp68
+(dp69
 g37
 g0
 (g38
 g2
-Ntp62
-Rp63
-(dp64
+Ntp70
+Rp71
+(dp72
 g37
 Vfrom larch.pres.html import Html\u000a\u000aHtml('<h4>Hello world</h4>')
-p65
+p73
 sg43
 I01
 sbsg28
@@ -157,30 +179,30 @@ g18
 sbag0
 (g22
 g2
-Ntp66
-Rp67
-(dp68
+Ntp74
+Rp75
+(dp76
 g26
 V<h3>Motivation</h3><p>Given that the output is rendered by a web browser, a simple means of achieving this would be to convert it to plain HTML, stored either within a string or other container. While feasible, such a representation would not lend itself naturally to:</p><ul><li>Using style-sheets. (Style-sheets could be included&nbsp;in-line, but this would lead to duplication wherever they were used)</li><li>Using Javascript. (Same work-around and issues as style-sheets)</li><li>Receiving user events. (Could be done in client side Javascript, but what about sending messages back to the server to affect data there?)</li><li>Dynamic content (How would you update part of the page in response to changes to&nbsp;server side data? Most likely, you would have to implement dynamic behaviour&nbsp;by hand in each instance where you need it; very time consuming)</li></ul><p>Ubiquitous Larch provides a set of presentation types that simplify the above tasks.</p>
-p69
+p77
 sg28
 g18
 sbag0
 (g22
 g2
-Ntp70
-Rp71
-(dp72
+Ntp78
+Rp79
+(dp80
 g26
 V<h3>Implementation</h3><p>The Larch presentation types are classes that are rooted at the abstract base class&nbsp;<code>Pres</code>&nbsp;that is defined within the&nbsp;<code>larch.pres.pres</code>&nbsp;module.</p>
-p73
+p81
 sg28
 g18
 sbasbsS'name'
-p74
+p82
 Vpres_system
-p75
+p83
 sS'id'
-p76
+p84
 I0
 sbasb.
