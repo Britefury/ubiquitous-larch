@@ -50,7 +50,7 @@ Rp24
 (dp25
 S'text'
 p26
-V<h1 style="text-align:center">Larch concepts:&nbsp;presentation system</h1><p><br></p><p>The Larch presentation system is based around the concepts&nbsp;of presentation types and type coercion.</p><h3>Presentation types</h3><p>The Larch&nbsp;<em>presentation types</em>&nbsp;are used to represent visually presentable content.</p><p>In contrast, within a standard Python console, values are displayed in textual form. As a result, any value is first converted to a string in order for it to be displayed. The conversion process uses type coercion; while the value to be displayed can be any type, it is converted to a string for display.</p><p>Ubiquitous Larch displays&nbsp;values visually through a similar mechanism. Rather than converting a value to a string, it is converted to a presentation type (technically,&nbsp;an instance of a presentation type).</p>
+V<h1 style="text-align:center">Larch concepts:&nbsp;presentation system</h1><p><br></p><p>The Larch presentation system is based around the concepts&nbsp;of presentation types and type coercion.</p><h3>Presentation types</h3><p>The Larch&nbsp;<em>presentation types</em>&nbsp;are used to represent visually presentable content.</p><p>In contrast, within a standard Python console, values are displayed as text, by converting them to strings and outputting&nbsp;the text. This&nbsp;conversion process is known as type coercion.</p><p>Ubiquitous Larch displays&nbsp;values visually through a similar mechanism. Rather than converting a value to a string, it is converted to a presentation type (technically,&nbsp;an instance of a presentation type).</p>
 p27
 sS'notebook'
 p28
@@ -62,7 +62,7 @@ Ntp29
 Rp30
 (dp31
 g26
-V<h3>Presentation types act as descriptions and factories</h3><p>Presentation types describe the visual content that is to be displayed. They also&nbsp;act as factories in that they create the visual content that they describe&nbsp;when they are used.</p><p>For example, using the&nbsp;<code>Html</code>&nbsp;presentation type described&nbsp;in&nbsp;<a data-cke-saved-href="http://127.0.0.1:5000/pages/docs/basic_html" href="http://127.0.0.1:5000/pages/docs/basic_html">Basic HTML</a>, we can demonstrate that it acts as a factory that can stamp out multiple copies of the presentation it describes:</p>
+V<h3>Presentation types act as descriptions and factories</h3><p>Presentation types describe the visual content that is to be displayed. They also&nbsp;act as factories, as&nbsp;they create the visual content that they describe&nbsp;when they are used.</p><p>For example, using the&nbsp;<code>Html</code>&nbsp;presentation type described&nbsp;in&nbsp;<a data-cke-saved-href="http://127.0.0.1:5000/pages/docs/basic_html" href="http://127.0.0.1:5000/pages/docs/basic_html">Basic HTML</a>, we can demonstrate that it acts as a factory that can create&nbsp;multiple copies of the presentation it describes:</p>
 p32
 sg28
 g18
@@ -85,7 +85,7 @@ Ntp39
 Rp40
 (dp41
 g37
-V# Import Html\u000afrom larch.pres.html import Html\u000a\u000a# Create HTML representing an SVG circle\u000acircle = Html('<svg width="25" height="25"><circle cx="12.5" cy="12.5" r="10" fill="#4090a0"/></svg>')\u000a\u000a# Repeated 5 times in a list. Each button is capable of operating independently.\u000a[circle, circle, circle, circle, circle]
+V# Import Html\u000afrom larch.pres.html import Html\u000a\u000a# Create an SVG circle\u000acircle = Html('<svg width="25" height="25"><circle cx="12.5" cy="12.5" r="10" fill="#4090a0"/></svg>')\u000a\u000a# Repeated 5 times in a list. Each button is capable of operating independently.\u000a[circle, circle, circle, circle, circle]
 p42
 sS'editable'
 p43
@@ -99,7 +99,7 @@ Ntp44
 Rp45
 (dp46
 g26
-V<h3>Presentation types can be nested</h3><p>Presentation types can be freely nested within one another; they are composeable:<br></p>
+V<h3>Presentation types can be nested</h3>
 p47
 sg28
 g18
@@ -117,7 +117,7 @@ Ntp51
 Rp52
 (dp53
 g37
-V# Put the circle in a button\u000abutton = Html('<button>', circle, '</button>')\u000a\u000a# Put buttons within text\u000aHtml('Some ', button, ' text ', button, ' separated ', button, ' by ', button, ' circles ', button, ' in ', button, ' buttons')
+V# Put the circle in a button\u000abutton = Html('<button>', circle, '</button>')\u000a\u000a# Put buttons within text\u000aHtml('Some ', button, ' text ', button, ' separated ', button, ' by ', button, ' circles ', button, ' in ', button, ' buttons, ')
 p54
 sg43
 I01
@@ -130,51 +130,51 @@ Ntp55
 Rp56
 (dp57
 g26
-V<h3>Many operations on presentation types are performed using&nbsp;chain methods</h3><p>Chain methods are a pattern that is used frequently by presentation types. For example:</p><pre>x = y.with_event_handler(handler)</pre><p>invokes the <code>with_event_handler</code>&nbsp;chain method, that attaches an event handler. In contrast to chain methods used in many other systems, the original object (<code>y</code>) is not returned. Instead, a new object is returned that contains <code>y</code>. The new object also derives from the <code>Pres</code> base class, so has a compatible interface, along with the ability to use other chain methods.</p><p>It is worth noting that the above chain method is synonymous with calling:</p><pre>x = EventSource(handler, y)</pre><p><code>x</code> is therefore an instance of&nbsp;EventSource, that&nbsp;is also a presentation type. <code>x</code> also contains <code>y</code>, nested within it.</p>
+V<h3>Presentation types are (mostly) immutable</h3><p>The methods that affect presentation types do not (normally) alter the underlying object; instead they create new objects (see <em>Chain method operations</em>, below). Some convenience methods do alter the underlying object; the <code>append</code> and <code>extend</code> methods of <code>Html</code>&nbsp;for&nbsp;example.</p><p>To demonstrate immutability; observe that <code>circle</code> can still be used by itself, desipite being contained within <code>circle_in_button</code>:</p>
 p58
-sg28
-g18
-sbag0
-(g22
-g2
-Ntp59
-Rp60
-(dp61
-g26
-V<h3>Presentation types can set up dynamic behaviour</h3><p>In <a data-cke-saved-href="/pages/docs/js_css" href="/pages/docs/js_css">Javascript and CSS</a> we show how chain methods can be used to attach CSS and Javascript&nbsp;to presentations that use it. We also show how to use Javascript code&nbsp;to initialise and shutdown presentations as they are added to and removed from the browse DOM. In <a data-cke-saved-href="/pages/docs/event_handling" href="/pages/docs/event_handling">Event Handling</a>&nbsp;we show how Python funtions can be used to handle&nbsp;events from the browser DOM.</p>
-p62
-sg28
-g18
-sbag0
-(g22
-g2
-Ntp63
-Rp64
-(dp65
-g26
-V<h3>Representing plain HTML</h3><p>As seen in <a data-cke-saved-href="/pages/docs/basic_html" href="/pages/docs/basic_html">Basic HTML</a>, for this we use the <code>Html</code> presentation type:</p>
-p66
 sg28
 g18
 sbag0
 (g33
 g2
-Ntp67
-Rp68
-(dp69
+Ntp59
+Rp60
+(dp61
 g37
 g0
 (g38
 g2
-Ntp70
-Rp71
-(dp72
+Ntp62
+Rp63
+(dp64
 g37
-Vfrom larch.pres.html import Html\u000a\u000aHtml('<h4>Hello world</h4>')
-p73
+VHtml('The button containing a circle: ', button, ', followed by the circle by itself: ', circle)
+p65
 sg43
 I01
 sbsg28
+g18
+sbag0
+(g22
+g2
+Ntp66
+Rp67
+(dp68
+g26
+V<h3>Chain method operations</h3><p>Chain methods are a pattern that is used frequently by presentation types. For example:</p><pre>y = x.with_event_handler(handler)</pre><p>invokes the <code>with_event_handler</code>&nbsp;chain method, that attaches an event handler. Many presentation system chain methods do not return the original object (x). Instead, a new object is returned that contains x. The new object also derives from the <code>Pres</code> base class, so has a compatible interface, along with the ability to use other chain methods.</p><p>The above chain method is equivalent to:</p><pre>y = EventSource(handler, x)</pre><p>y is therefore an instance of&nbsp;EventSource, that&nbsp;is also a presentation type. y&nbsp;also contains x&nbsp;nested within it.</p>
+p69
+sg28
+g18
+sbag0
+(g22
+g2
+Ntp70
+Rp71
+(dp72
+g26
+V<h3>Presentation types can set up dynamic behaviour</h3><p>In <a data-cke-saved-href="/pages/docs/js_css" href="/pages/docs/js_css">Javascript and CSS</a> we show how chain methods can be used to attach CSS and Javascript&nbsp;to presentations that use it. We also show how to use Javascript code&nbsp;to initialise and shutdown presentations as they are added to and removed from the browse DOM. In <a data-cke-saved-href="/pages/docs/event_handling" href="/pages/docs/event_handling">Event Handling</a>&nbsp;we show how Python funtions can be used to handle&nbsp;events from the browser DOM.</p>
+p73
+sg28
 g18
 sbag0
 (g22
@@ -183,26 +183,212 @@ Ntp74
 Rp75
 (dp76
 g26
-V<h3>Motivation</h3><p>Given that the output is rendered by a web browser, a simple means of achieving this would be to convert it to plain HTML, stored either within a string or other container. While feasible, such a representation would not lend itself naturally to:</p><ul><li>Using style-sheets. (Style-sheets could be included&nbsp;in-line, but this would lead to duplication wherever they were used)</li><li>Using Javascript. (Same work-around and issues as style-sheets)</li><li>Receiving user events. (Could be done in client side Javascript, but what about sending messages back to the server to affect data there?)</li><li>Dynamic content (How would you update part of the page in response to changes to&nbsp;server side data? Most likely, you would have to implement dynamic behaviour&nbsp;by hand in each instance where you need it; very time consuming)</li></ul><p>Ubiquitous Larch provides a set of presentation types that simplify the above tasks.</p>
+V<h3>Representing plain HTML</h3><p>As seen in <a data-cke-saved-href="/pages/docs/basic_html" href="/pages/docs/basic_html">Basic HTML</a>, for this we use the <code>Html</code> presentation type:</p>
 p77
+sg28
+g18
+sbag0
+(g33
+g2
+Ntp78
+Rp79
+(dp80
+g37
+g0
+(g38
+g2
+Ntp81
+Rp82
+(dp83
+g37
+Vfrom larch.pres.html import Html\u000a\u000aHtml('<h4>Hello world</h4>')
+p84
+sg43
+I01
+sbsg28
+g18
+sbag0
+(g22
+g2
+Ntp85
+Rp86
+(dp87
+g26
+V<h3>Motivation</h3><p>Given that the output is rendered by a web browser, a simple means of achieving this would be to convert it to plain HTML, stored either within a string or other container. While feasible, such a representation would not lend itself naturally to:</p><ul><li>Using style-sheets. (Style-sheets could be included&nbsp;in-line, but this would lead to duplication wherever they were used)</li><li>Using Javascript. (Same work-around and issues as style-sheets)</li><li>Receiving user events. (Could be done in client side Javascript, but what about sending messages back to the server to affect data there?)</li><li>Dynamic content (How would you update part of the page in response to changes to&nbsp;server side data? Most likely, you would have to implement dynamic behaviour&nbsp;by hand in each instance where you need it; very time consuming)</li></ul><p>Ubiquitous Larch provides a set of presentation types that simplify the above tasks.</p>
+p88
 sg28
 g18
 sbag0
 (g22
 g2
-Ntp78
-Rp79
-(dp80
+Ntp89
+Rp90
+(dp91
 g26
 V<h3>Implementation</h3><p>The Larch presentation types are classes that are rooted at the abstract base class&nbsp;<code>Pres</code>&nbsp;that is defined within the&nbsp;<code>larch.pres.pres</code>&nbsp;module.</p>
-p81
+p92
 sg28
 g18
 sbasbsS'name'
-p82
+p93
 Vpres_system
-p83
+p94
 sS'id'
-p84
+p95
 I0
+sbag0
+(g11
+g2
+Ntp96
+Rp97
+(dp98
+g15
+g0
+(g16
+g2
+Ntp99
+Rp100
+(dp101
+g20
+(lp102
+g0
+(g22
+g2
+Ntp103
+Rp104
+(dp105
+g26
+V<h1 style="text-align:center">Understanding the Larch presentation system</h1><p><br></p><p>In contrast to a normal Python console, the output of blocks within a Larch notebook is visual. The two systems operate on similar principals in that they both use type coercion; values are first converted to a string (in a normal console) or a visual representation (in Larch) to display them.</p><p>Lets take a quick tour of how to build and use visual representations -&nbsp;from here on known as presentation types -&nbsp; in Lach.</p>
+p106
+sg28
+g100
+sbag0
+(g22
+g2
+Ntp107
+Rp108
+(dp109
+g26
+V<h3>HTML</h3><p>Lets look at the <code>Html</code> presentation type. We can display a simple heading:</p>
+p110
+sg28
+g100
+sbag0
+(g33
+g2
+Ntp111
+Rp112
+(dp113
+g37
+g0
+(g38
+g2
+Ntp114
+Rp115
+(dp116
+g37
+Vfrom larch.pres.html import Html\u000a\u000aHtml('<h4>A heading</h4>')
+p117
+sg43
+I01
+sbsg28
+g100
+sbag0
+(g22
+g2
+Ntp118
+Rp119
+(dp120
+g26
+V<p>We can make an image using SVG:</p>
+p121
+sg28
+g100
+sbag0
+(g33
+g2
+Ntp122
+Rp123
+(dp124
+g37
+g0
+(g38
+g2
+Ntp125
+Rp126
+(dp127
+g37
+Vcircle = Html('<svg width="25" height="25"><circle cx="12.5" cy="12.5" r="10" fill="#4090a0"/></svg>')\u000a\u000acircle
+p128
+sg43
+I01
+sbsg28
+g100
+sbag0
+(g22
+g2
+Ntp129
+Rp130
+(dp131
+g26
+V<h3>Nesting</h3><p>We can nest <code>Html</code> visuals within one another:</p>
+p132
+sg28
+g100
+sbag0
+(g33
+g2
+Ntp133
+Rp134
+(dp135
+g37
+g0
+(g38
+g2
+Ntp136
+Rp137
+(dp138
+g37
+Vbutton = Html('<button>', circle, '</button>')\u000a\u000abutto
+p139
+sg43
+I01
+sbsg28
+g100
+sbag0
+(g22
+g2
+Ntp140
+Rp141
+(dp142
+g26
+V<p>Presentation types act as descriptions of the visuals that are to be built. They can be reuse as many times as necessary. Each time they appear in a presentation, a new visual is created:</p>
+p143
+sg28
+g100
+sbag0
+(g33
+g2
+Ntp144
+Rp145
+(dp146
+g37
+g0
+(g38
+g2
+Ntp147
+Rp148
+(dp149
+g37
+VHtml('Some ', button, ' text ', circle, ' separated ', button, ' by ', circle, ' buttons ', button, ' and ', circle, ' circles')
+p150
+sg43
+I01
+sbsg28
+g100
+sbasbsg93
+Vvisual_larch_intro
+p151
+sg95
+I1
 sbasb.

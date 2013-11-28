@@ -619,7 +619,7 @@ Ntp236
 Rp237
 (dp238
 g39
-V<h1 style="text-align:center">WebGL based 3D tropical ocean</h1><p><br></p><p>Please execute the code (Ctrl-Enter or click the button at the top of the page) and scroll to the bottom of the page to see a cool demo, showing a tropical ocean.</p><p><br></p><p>This demo is split up into a number of modules. They are contained in an overall <a data-cke-saved-href="/pages/docs/webglscene_example" href="/pages/docs/webglscene_example">project</a>.</p><p><br></p><p>Please note that this demo uses a home-grown WebGL based 3D graphics library. It is likely to be deprecated in favour of something else in the future, to please don't start using it for anything (even if you do manage to figure out how to use the undocumented API!)</p>
+V<h1 style="text-align:center">WebGL based 3D tropical ocean</h1><p><br></p><p>Please execute the code (<code>Ctrl-Enter</code> or click the button at the top of the page) and scroll to the bottom of the page to see a cool demo, showing a tropical ocean.</p><p><br></p><p>This demo is split up into a number of modules. They are contained in an overall <a data-cke-saved-href="/pages/docs/webglscene_example" href="/pages/docs/webglscene_example">project</a>.</p><p><br></p><p>Please note that this demo uses a home-grown WebGL based 3D graphics library. It is likely to be deprecated in favour of something else in the future, to please don't start using it for anything (even if you do manage to figure out how to use the undocumented API!)</p>
 p239
 sg41
 g233
