@@ -404,7 +404,7 @@ Ntp155
 Rp156
 (dp157
 g26
-V<h3>Inside Python data structures</h3><p>Presentation types display as expected&nbsp;within Python data structures:</p>
+V<h3>Within Python data structures</h3><p>Presentation types display as expected&nbsp;within Python data structures:</p>
 p158
 sg28
 g100
@@ -525,7 +525,7 @@ Ntp199
 Rp200
 (dp201
 g26
-V<p>Now for the Python code that uses it:</p>
+V<p>Now for the Python code that uses it (click and drag the blue circle to resize it):</p>
 p202
 sg28
 g100
@@ -587,13 +587,67 @@ Ntp221
 Rp222
 (dp223
 g26
-V<h3>Dynamic behaviour with Python</h3><p>Restricting dynamic behaviour to Javascript only would be very limiting, as Javascript lacks libraries and features that Python has access to, e.g. NumPy, SciPy, etc.</p>
+V<h3>Dynamic behaviour with Python</h3><p>Restricting dynamic behaviour to Javascript only would be very limiting, as Javascript lacks libraries and features that Python has access to, e.g. NumPy, SciPy, etc.</p><p>For this example, we will introduce the <code>LiveValue</code> class. It will be covered in more detail later. For now however, consider it to be a container that contains a single value. It is presented visually as the value it contains; it gives no hint that it 'surrounds' the value. Additionally, changing its value will cause any visual representations to be updated automatically.</p><p>In this example, we will construct a jQuery slider, which we will use to control the radius of the circle.</p>
 p224
+sg28
+g100
+sbag0
+(g188
+g2
+Ntp225
+Rp226
+(dp227
+g37
+g0
+(g192
+g2
+Ntp228
+Rp229
+(dp230
+g37
+Vfunction init_resize_slider(elem, options) {\u000a    // options contains values from the Python (server) side\u000a    \u000a    // Set the function that responds to slide events\u000a    options.slide = function(event, ui) {\u000a        // Get the value\u000a        var slider_value = ui.value;\u000a        // Send an event to the server side Python code using larch.postEvent\u000a        // First argument: the DOM element from which the event originates\u000a        // Second argument: the name of the event\u000a        // Third argument: event specific data; the value in this case\u000a        larch.postEvent(elem, 'slider_value_event', slider_value);\u000a    };\u000a    \u000a    // Create a jQuery UI slider\u000a    $(elem).slider(options);\u000a}\u000a
+p231
+sg43
+I01
+sbsg197
+Vdyn_py_js
+p232
+sg28
+g100
+sbag0
+(g33
+g2
+Ntp233
+Rp234
+(dp235
+g37
+g0
+(g38
+g2
+Ntp236
+Rp237
+(dp238
+g37
+Vfrom larch.live import LiveValue\u000a\u000a# THE CIRCLE\u000a\u000a# This live value will contain our circle\u000adynamic_python_circle = LiveValue()\u000a\u000a# This function:\u000a# - takes a radius\u000a# - builds an SVG circle of that radius\u000a# - sets the value of dynamic_python_circle to that SVG image\u000adef set_radius(radius):\u000a    sz = radius * 2 + 5.0\u000a    pos = radius + 2.5\u000a    dynamic_python_circle.value = Html('<svg width="{0}" height="{0}"><circle r="{1}" cx="{2}" cy="{2}" fill="#4090a0"/></svg>'.format(sz, radius, pos))\u000a\u000a# Initialise the circle\u000aset_radius(10.0);\u000a\u000a\u000a# THE SLIDER\u000a    \u000adef on_slider_value_event(event):\u000a    # event.name will be 'slider_value_event', as only those events will be received by this function\u000a    # event.data will contain the value sent from the client side Javascript code; the second argument to larch.postEvent in the JS above\u000a    set_radius(event.data)\u000a\u000a# The slider to control the radius: range between 10 and 200, step of 1\u000aslider_options = {'value': 10.0, 'min': 10.0, 'max': 200.0, 'step': 1.0}\u000a# Use jQuery to turn a 400px wide div into a slider. Pass the options above as a parameter; notice that it comes through\u000a# on the client side Javascript as a parameter to the init_resize_slider function.\u000aslider = Html('<div style="width: 400px;"></div>').js_function_call('init_resize_slider', slider_options).use_js(source=dyn_py_js)\u000a# Attach an event handler that will receive 'slider_value_event' events received from the client side Javascript\u000aconnected_slider = slider.with_event_handler('slider_value_event', on_slider_value_event)\u000a\u000a\u000a# PUTTING THEM TOGETHER\u000a\u000aHtml(connected_slider, '<br>', dynamic_python_circle, '<br>', slider)
+p239
+sg43
+I01
+sbsg28
+g100
+sbag0
+(g22
+g2
+Ntp240
+Rp241
+(dp242
+g26
+V<p>Note that the top slider changes the radius of the circle, while the bottom one has no effect. This is because of the fact that slider has no event handler attached. Events emitted by this slider propagate through the server side representation of the page and are never handled.</p><p>This demonstrates that Python code can be used to implemented dynamic behaviour in a Larch page.</p>
+p243
 sg28
 g100
 sbasbsg93
 Vvisual_larch_intro
-p225
+p244
 sg95
 I1
 sbasb.
