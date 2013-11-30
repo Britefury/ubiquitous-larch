@@ -816,9 +816,6 @@ class DownloadIPynbFromWebTool (Tool):
 
 
 	def __present__(self, fragment):
-		def on_edit(text):
-			self.__url = text
-
 		def on_import(event):
 			url = self.__url.static_value
 			url_l = url.lower()

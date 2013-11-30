@@ -1416,7 +1416,7 @@ Ntp521
 Rp522
 (dp523
 g27
-V<h1 style="text-align:center">Dialog&nbsp;control</h1><p>The dialog control displays it's contents in a JQuery dialog box. There are few limitations on the content that can be placed in a dialog; live, interactive content and objects may be used as normal. Note that it is not enough to simply construct the dialog control; you must call the&nbsp;<code>show_on</code> method to display it.</p><h2>API</h2><p>\u200bPackage:&nbsp;<code>larch.controls.dialog</code></p><p><code>class dialog (object)</code></p><p style="margin-left: 40px;">Constructor: <code>dialog(self,&nbsp;contents, **options)</code></p><p style="margin-left: 80px;">Parameters:</p><ul style="margin-left: 80px;"><li><code>contents</code>: the dialog box contents</li><li><code>options</code>: JQuery UI dialog <a data-cke-saved-href="http://api.jqueryui.com/dialog/" href="http://api.jqueryui.com/dialog/">options</a></li></ul><p style="margin-left: 40px;">Methods:</p><p style="margin-left: 80px;"><code>def show_on(self, target)</code></p><p style="margin-left: 120px;">Shows the dialog box. You must call this method to display the dialog box.</p><p style="margin-left: 120px;">Parameters:</p><ul style="margin-left: 120px;"><li><code>target</code>: identifies the page on which to show the dialog box.&nbsp;Can be: an <code>Event</code>,&nbsp;<code>DynamicPage</code>, <code>DynamicSegment</code>, <code>_FragmentView</code> or&nbsp;<code>IncrementalView</code>.</li></ul>
+V<h1 style="text-align:center">Dialog&nbsp;control</h1><p>The dialog control displays it's contents in a JQuery dialog box. There are few limitations on the content that can be placed in a dialog; live, interactive content and objects may be used as normal. Note that it is not enough to simply construct the dialog control; you must call the&nbsp;<code>show_on</code> method to display it.</p><h2>API</h2><p>\u200bPackage:&nbsp;<code>larch.controls.dialog</code></p><p><code>class dialog (object)</code></p><p style="margin-left:40px">Constructor: <code>dialog(self,&nbsp;contents, **options)</code></p><p style="margin-left:80px">Parameters:</p><ul style="margin-left:80px"><li><code>contents</code>: the dialog box contents</li><li><code>options</code>: JQuery UI dialog <a data-cke-saved-href="http://api.jqueryui.com/dialog/" href="http://api.jqueryui.com/dialog/">options</a></li></ul><p style="margin-left:40px">Methods:</p><p style="margin-left:80px"><code>def show_on(self, target)</code></p><p style="margin-left:120px">Shows the dialog box. You must call this method to display the dialog box.</p><p style="margin-left:120px">Parameters:</p><ul style="margin-left:120px"><li><code>target</code>: identifies the page on which to show the dialog box.&nbsp;Can be: an <code>Event</code>,&nbsp;<code>DynamicPage</code>, <code>DynamicSegment</code>, <code>_FragmentView</code> or&nbsp;<code>IncrementalView</code>.</li></ul>
 p524
 sg29
 g518
@@ -1850,4 +1850,55 @@ VMenu
 p682
 sg139
 I12
+sbag0
+(g12
+g2
+Ntp683
+Rp684
+(dp685
+g16
+g0
+(g17
+g2
+Ntp686
+Rp687
+(dp688
+g21
+(lp689
+g0
+(g23
+g2
+Ntp690
+Rp691
+(dp692
+g27
+V<h1 style="text-align:center">Tabs control</h1><p>The tabs control takes a list of pairs of tab labels and tab contents and presents them in a jQuery UI tabbed box.</p><h2>API</h2><p>\u200bPackage:&nbsp;<code>larch.controls.tabs</code></p><p><code>class tabs(object)</code></p><p style="margin-left:40px">Constructor:&nbsp;<code>dialog(self,&nbsp;tab_label_and_content_pairs)</code></p><p style="margin-left:80px">Parameters:</p><ul style="margin-left:80px"><li><code>tab_label_and_content_pairs</code>: a sequence of pairs, where each pair is of the form <code>(tab_label, tab_content)</code></li></ul>
+p693
+sg29
+g687
+sbag0
+(g34
+g2
+Ntp694
+Rp695
+(dp696
+g38
+g0
+(g39
+g2
+Ntp697
+Rp698
+(dp699
+g38
+V# Import Html\u000afrom larch.pres.html import Html\u000a# Import tabs\u000afrom larch.controls.tabs import tabs\u000a\u000atabs([('First tab', Html('<p>This is the contents of the first tab</p>')),\u000a      ('Second tab', Html('<p>This is the contents of the second tab</p>')),\u000a      ('Third tab', Html('<p>This is the contents of the third tab</p>'))])\u000a
+p700
+sg44
+I01
+sbsg29
+g687
+sbasbsg137
+VTabs
+p701
+sg139
+I13
 sbasb.

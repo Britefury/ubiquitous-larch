@@ -234,8 +234,9 @@ class ProjectRoot (ProjectContainer):
 
 		contents = [
 			'<div class="larch_app_title_bar"><h1 class="page_title">Project</h1></div>',
+			'<p class="project_control">Merge contents',
 			'<p class="project_root_package_name">Root package name: ', entry, '<br><span class="notes_text">(this is the base name from which the contents of this project will be importable)</span></p>',
-			'<p class="project_reset">Unload modules imported from project (Esc - U): ', unload_button, '</p>',
+			'<p class="project_control">Unload modules imported from project (Esc - U): ', unload_button, '</p>',
 			super_pres,
 		]
 		return Html(*contents).use_css(url="/static/larch/project.css")
