@@ -40,6 +40,7 @@ tmp_js_min_file = 'tmp.min.js'
 
 dirs_for_copy = [
 	( 'static', '*.*' ),
+	( 'docs', '*.*' ),
 	( 'testimages', '*.*' ),
 	]
 
@@ -57,13 +58,14 @@ dirs_for_minify = [
 
 root_files = [
 	'bottle.py',
-	'server_cherrypy.py',
-	'server_flask.py',
-	'start_server.py',
-	'django_settings.py',
-	'django_urls.py',
-	'django_wsgi.py',
-	'manage.py',
+#	'server_cherrypy.py',
+#	'server_flask.py',
+	'start_ularch.py',
+#	'django_app.py',
+#	'django_settings.py',
+#	'django_urls.py',
+#	'django_wsgi.py',
+#	'manage.py',
 	'LICENSE-*.txt',
 	'README.txt',
 ] + ularch_files
@@ -71,10 +73,10 @@ root_files = [
 
 root_compile_files = [
 	'bottle.py',
-	'django_app.py',
-	'django_settings.py',
-	'django_urls.py',
-	'django_wsgi.py',
+	#'django_app.py',
+	#'django_settings.py',
+	#'django_urls.py',
+	#'django_wsgi.py',
 ]
 
 
