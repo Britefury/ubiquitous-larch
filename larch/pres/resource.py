@@ -13,7 +13,7 @@ from larch.core.subject import Subject
 from larch import msg, js
 
 
-class Resource (pres.Pres, js.JS):
+class AbstractResource (pres.Pres, js.JS):
 	requires_url = False
 
 	def page_ref(self, pres_ctx, rsc_instance):
@@ -38,7 +38,7 @@ class Resource (pres.Pres, js.JS):
 
 
 
-class MessageChannel (Resource):
+class MessageChannel (AbstractResource):
 	def __init__(self):
 		self.__message_listeners = []
 		self.__instances = set()
@@ -78,7 +78,7 @@ class MessageChannel (Resource):
 
 
 
-class URLResource (Resource):
+class URLResource (AbstractResource):
 	requires_url = True
 
 	def get_data(self):

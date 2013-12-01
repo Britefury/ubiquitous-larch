@@ -3,7 +3,7 @@
 ##-*************************
 import os, sys, io
 from copy import deepcopy
-import pickle
+import cPickle
 
 from larch.pres.html import Html
 from larch.controls import text_entry, button, dialog, file_chooser
@@ -212,7 +212,7 @@ class ProjectRoot (ProjectContainer):
 
 	def _merge_from_file(self, filename, fp):
 		s = fp.read().replace('\r\n', '\n')
-		other_data = pickle.loads(s)
+		other_data = cPickle.loads(s)
 		if isinstance(other_data, ProjectRoot):
 			self._merge_from_project(other_data)
 		else:
