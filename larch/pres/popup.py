@@ -1,7 +1,7 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-from larch.pres import js
+from larch import js
 from larch.core.dynamicpage import segment, page, event
 from larch.core import incremental_view
 from larch.default_perspective import DefaultPerspective
@@ -64,6 +64,16 @@ class Popup (object):
 		:return:
 		"""
 		return self.show_using_js_eval( js.JSCall(js_fn_name, (_popup_id_js, _nodes_js,) + args))
+
+
+	@staticmethod
+	def coerce_target_to_segment(target):
+		if isinstance(target, event.Event):
+			return target.segment
+		elif isinstance(target, segment.DynamicSegment):
+			return target
+		else:
+			raise TypeError, 'Cannot coerce {0} to segment'.format(type(target))
 
 
 

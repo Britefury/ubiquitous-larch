@@ -17,6 +17,10 @@ class Event (object):
 		return self.__page.public_api
 
 	@property
+	def segment(self):
+		return self.__segment
+
+	@property
 	def fragment(self):
 		if self.__segment is not None:
 			return self.__segment.fragment

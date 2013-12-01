@@ -1,3 +1,6 @@
+##-*************************
+##-* This source code is (C)copyright Geoffrey French 2011-2013.
+##-*************************
 import urllib2
 
 from larch.pres.html import Html

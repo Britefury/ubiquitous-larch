@@ -8,11 +8,9 @@ import mimetypes
 
 from larch.core.dynamicpage.segment import HtmlContent
 from larch.live import LiveFunction
-from larch.pres import pres, js, html
+from larch.pres import pres, html
 from larch.core.subject import Subject
-from larch import msg
-
-
+from larch import msg, js
 
 
 class Resource (pres.Pres, js.JS):

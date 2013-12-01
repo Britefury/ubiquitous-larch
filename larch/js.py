@@ -4,7 +4,7 @@
 import json
 
 
-def _node_to_js_src(x, pres_ctx):
+def _coerce_to_js_src_str(x, pres_ctx):
 	if isinstance(x, JS):
 		return x.build_js(pres_ctx)
 	else:
@@ -57,9 +57,9 @@ class JSCall (JSExpr):
 
 
 	def build_js(self, pres_ctx):
-		target_src = _node_to_js_src(self.__target, pres_ctx)
+		target_src = _coerce_to_js_src_str(self.__target, pres_ctx)
 		target_src = _wrap_complex_expr_in_parens(self.__target, target_src)
-		args_srcs = [_node_to_js_src(a, pres_ctx)   for a in self.__args]
+		args_srcs = [_coerce_to_js_src_str(a, pres_ctx)   for a in self.__args]
 		return '{0}({1})'.format(target_src, ', '.join(args_srcs))
 
 
@@ -69,7 +69,7 @@ class JSGetProp (JSSimpleExpr):
 		self.__prop_name = prop_name
 
 	def build_js(self, pres_ctx):
-		target_src = _node_to_js_src(self.__target, pres_ctx)
+		target_src = _coerce_to_js_src_str(self.__target, pres_ctx)
 		return '{0}.{1}'.format(target_src, self.__prop_name)
 
 
@@ -80,3 +80,8 @@ class JSExprSrc (JSExpr):
 
 	def build_js(self, pres_ctx):
 		return self.__src
+
+
+
+name_node = JSName('node')
+

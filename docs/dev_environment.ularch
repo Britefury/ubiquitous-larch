@@ -274,7 +274,7 @@ Ntp110
 Rp111
 (dp112
 g48
-Vfrom tut02.lib import rectangle\u000a\u000arectangle.rect_circumference(10, 20)		# Should result in 60
+Vfrom devenv.lib import rectangle\u000a\u000arectangle.rect_circumference(10, 20)		# Should result in 60
 p113
 sg54
 I01

@@ -7,14 +7,12 @@ from larch.core.dynamicpage.segment import HtmlContent
 from larch.core.dynamicpage import dependencies
 from larch.pres.presctx import PresentationContext
 from larch.pres.key_event import KeyAction
-from larch.pres import js
+from larch import js
 
 
 
 _ext_dependencies = {}
 
-
-_node_js = js.JSName('node')
 
 class Pres (object):
 	def build(self, pres_ctx):
@@ -53,7 +51,7 @@ class Pres (object):
 		return self._wrap_in_eval([expr], [])
 
 	def js_function_call(self, js_fn_name, *args):
-		return self._wrap_in_eval([js.JSCall(js_fn_name, (_node_js,) + args)], [])
+		return self._wrap_in_eval([js.JSCall(js_fn_name, (js.name_node,) + args)], [])
 
 
 	def js_shutdown_eval(self, expr):
@@ -64,7 +62,7 @@ class Pres (object):
 		return self._wrap_in_eval([], [expr])
 
 	def js_shutdown_function_call(self, js_fn_name, *args):
-		return self._wrap_in_eval([], [js.JSCall(js_fn_name, (_node_js,) + args)])
+		return self._wrap_in_eval([], [js.JSCall(js_fn_name, (js.name_node,) + args)])
 
 
 	def use_css(self, url=None, source=None):

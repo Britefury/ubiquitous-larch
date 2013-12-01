@@ -459,4 +459,9 @@ larch.controls.createDialog = function (popup_id, nodes, options) {
     $(contents).dialog(options);
 };
 
+larch.controls.closeContainingDialog = function(node) {
+    $(node).closest('.ui-dialog-content').dialog('close');
+};
+
+
 

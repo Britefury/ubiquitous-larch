@@ -1,7 +1,7 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-from larch.pres import js, pres, popup
+from larch.pres import pres
 from larch.pres.html import Html
 
 

@@ -1,8 +1,8 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-from larch.pres import js, pres, popup
-from larch.pres.html import Html
+from larch import js
+from larch.pres import pres, popup
 
 
 _js_createNotyPopup = js.JSName('larch.controls.createNotyPopup')

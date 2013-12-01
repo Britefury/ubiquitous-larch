@@ -4,6 +4,7 @@
 __author__ = 'Geoff'
 
 from HTMLParser import HTMLParser
+from larch import js
 
 
 
@@ -138,13 +139,15 @@ class DynamicSegment (object):
 	def get_initialise_scripts(self):
 		return self.__initialise_scripts
 
+	def add_initialise_script(self, script):
+		"""
+		Add an initialisation script. Initialisation scripts will be executed when the element is initialised after being inserted into the DOM.
 
-	def add_initialise_script(self, initialiser):
-		"""Add an initialiser
+		:param script: a Javascript expression to evaluate. For each DOM element represented by this segment, the code will be evaluated with the element bound to the name 'node'.
 		"""
 		if self.__initialise_scripts is None:
 			self.__initialise_scripts = []
-		self.__initialise_scripts.append(initialiser)
+		self.__initialise_scripts.append(script)
 
 
 
@@ -152,13 +155,32 @@ class DynamicSegment (object):
 	def get_shutdown_scripts(self):
 		return self.__shutdown_scripts
 
-
 	def add_shutdown_script(self, script):
-		"""Add a shutdown script
+		"""
+		Add a shutdown script. Shutdown scripts will be executed when the element is shutdown before being removed from the DOM
+
+		:param script: a Javascript expression to evaluate. For each DOM element represented by this segment, the code will be evaluated with the element bound to the name 'node'.
 		"""
 		if self.__shutdown_scripts is None:
 			self.__shutdown_scripts = []
 		self.__shutdown_scripts.append(script)
+
+
+
+	# Queued scripts
+	def queue_script(self, script):
+		"""
+		Queue a Javascript expression to evaluate
+
+		:param script: a Javascript expression to evaluate. For each DOM element represented by this segment, the code will be evaluated with the element bound to the name 'node'.
+		"""
+		if isinstance(script, js.JS):
+			script = script.build_js(self.__fragment.create_presentation_context())
+		self.__page._queue_segment_script(self.__id, script)
+
+
+	def queue_script_function_call(self, js_fn_name, *args):
+		return self.queue_script(js.JSCall(js_fn_name, (js.name_node,) + args))
 
 
 

@@ -1,8 +1,8 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-from larch.pres import js, pres, popup
-from larch.pres.html import Html
+from larch import js
+from larch.pres import pres, popup
 
 
 _js_createDialog = js.JSName('larch.controls.createDialog')
@@ -17,3 +17,9 @@ class dialog (object):
 	def show_on(self, target):
 		p = popup.Popup(self.__contents, target)
 		p.show_using_js_function_call(_js_createDialog, self.__options)
+
+
+	@staticmethod
+	def close_containing_dialog(target):
+		seg = popup.Popup.coerce_target_to_segment(target)
+		seg.queue_script_function_call('larch.controls.closeContainingDialog')

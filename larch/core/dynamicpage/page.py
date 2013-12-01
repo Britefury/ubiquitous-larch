@@ -7,14 +7,13 @@ import sys
 import json
 
 from copy import copy
+from larch import js
 
 from larch.util import priority_list
 from larch.core.dynamicpage.segment import DynamicSegment, SegmentRef
 from larch.core.dynamicpage.event import Event
 from larch.core.dynamicpage import messages, dependencies, global_dependencies
 from larch.inspector import present_exception
-
-from larch.pres import js
 
 
 _page_content = u"""
@@ -244,6 +243,7 @@ class DynamicPage (object):
 		# Queue of JS expressions that must be executed; will be put on the client in one batch later
 		self.__js_queue = []
 		self.__execute_js_message = None
+		self.__segment_id_to_queued_scripts = {}
 
 		# Segments with invalid structure
 		self.__segments_with_invalid_html_structure = set()
@@ -482,6 +482,23 @@ class DynamicPage (object):
 		if close_fn is not None:
 			close_fn()
 			del self._popup_segment_id_to_close_function[content_segment_id]
+
+
+
+
+	#
+	#
+	# QUEUED SEGMENT SCRIPTS
+	#
+	#
+
+	def _queue_segment_script(self, segment_id, script):
+		scripts = self.__segment_id_to_queued_scripts.get(segment_id)
+		if scripts is None:
+			self.__segment_id_to_queued_scripts[segment_id] = [script]
+		else:
+			scripts.append(script)
+		self._notify_page_modified()
 
 
 
@@ -841,7 +858,7 @@ class DynamicPage (object):
 
 
 	def _notify_page_modified(self):
-		# Segment changes notification. Called by _HtmlSegment.
+		# Segment changes notification. Called by _new_segment, _remove_segment and _segment_modified in _SegmentTable
 		if not self.__page_modified:
 			self.__page_modified = True
 			self.queue_task(self.__refresh_page, self._REFRESH_PRIORITY)
@@ -850,8 +867,11 @@ class DynamicPage (object):
 	def __refresh_page(self):
 		# Refresh the page
 
+		segment_id_to_queued_scripts = self.__segment_id_to_queued_scripts
+		self.__segment_id_to_queued_scripts = {}
+
 		# Get the change set
-		change_set = self._table._get_recent_changes()
+		change_set = self._table._get_recent_changes(segment_id_to_queued_scripts)
 		# Clear changes
 		self._table._clear_changes()
 		# Compose the modify page message
@@ -902,7 +922,7 @@ class _ChangeSet (object):
 
 	Represents a set of DOM changes that must be applied by the client.
 	"""
-	def __init__(self, added_segs, removed_segs, modified_segs, popup_segs_to_js_src):
+	def __init__(self, added_segs, removed_segs, modified_segs, popup_segs_to_js_src, segment_id_to_queued_scripts):
 		"""Constructor
 
 		added_segs - the set of new segments added
@@ -928,6 +948,11 @@ class _ChangeSet (object):
 
 		# Schedule the execution of the shutdown scripts of the segments that are being removed.
 		for seg in removed_segs:
+			# If there are any scripts queued for this segment, execute them before the shutdown scripts
+			queued_scripts = segment_id_to_queued_scripts.get(seg.id)
+			if queued_scripts is not None:
+				self.shutdown_scripts.append((seg.id, queued_scripts))
+				del segment_id_to_queued_scripts[seg.id]
 			shutdown_scripts = seg.get_shutdown_scripts()
 			if shutdown_scripts is not None:
 				self.shutdown_scripts.append((seg.id, shutdown_scripts))
@@ -948,6 +973,11 @@ class _ChangeSet (object):
 			initialise_scripts = seg.get_initialise_scripts()
 			if initialise_scripts is not None:
 				self.initialise_scripts.append((seg.id, initialise_scripts))
+
+
+		# Add any scripts that are queued to the list of initialisation scripts
+		for seg_id, scripts in segment_id_to_queued_scripts.items():
+			self.initialise_scripts.append((seg_id, scripts))
 
 
 		if len(self.__added_segs) > 0:
@@ -1020,8 +1050,8 @@ class _SegmentTable (object):
 		self.__changes_popups = {}
 
 
-	def _get_recent_changes(self):
-		return _ChangeSet(copy(self.__changes_added), copy(self.__changes_removed), copy(self.__changes_modified), copy(self.__changes_popups))
+	def _get_recent_changes(self, segment_id_to_queued_scripts):
+		return _ChangeSet(copy(self.__changes_added), copy(self.__changes_removed), copy(self.__changes_modified), copy(self.__changes_popups), segment_id_to_queued_scripts)
 
 
 	def _get_all_initialisers(self):
