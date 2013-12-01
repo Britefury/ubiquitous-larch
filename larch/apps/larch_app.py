@@ -18,7 +18,7 @@ from larch.core.projection_service import ProjectionService
 from larch.incremental import IncrementalValueMonitor
 from larch import command
 from larch.apps.console import console
-from larch.controls import form, button, menu, text_entry, noty
+from larch.controls import form, button, menu, text_entry, noty, file_chooser
 from larch.live import LiveValue
 from larch.pres.pres import CompositePres
 from larch.pres.html import Html
@@ -777,31 +777,27 @@ class UploadIPynbTool (Tool):
 
 
 	def __present__(self, fragment):
-		def _on_upload(event):
-			f = event.data.get('file')
-			if f is not None:
-				notebook_name, factory = _IPynbContentFactory.load(f.file)
+		def _on_upload(event, file_name, fp):
+			notebook_name, factory = _IPynbContentFactory.load(fp)
 
-				filename = _sanitise_filename(notebook_name)
-				filename = self.__doc_list.unused_filename(filename)
-				self.__doc_list.new_document_for_content(filename, factory)
+			filename = _sanitise_filename(notebook_name)
+			filename = self.__doc_list.unused_filename(filename)
+			self.__doc_list.new_document_for_content(filename, factory)
 			self.close()
 
 		def on_cancel(event):
 			self.close()
 
 
-		upload_form_contents = Html('<div><input type="file" name="file" size="50"/></div>',
-					    '<table>',
-					    '<tr><td>', button.button('Cancel', on_cancel), '</td><td>', form.submit_button('Upload'), '</td></tr>',
-					    '</table>')
-		upload_form = form.form(upload_form_contents, _on_upload)
+		chooser = file_chooser.upload_file_chooser(_on_upload, on_cancel)
+
+
 
 		warning = ipynb_filter.markdown_warning()
 
 		return Html('<div class="tool_box">',
 				'<span class="gui_section_1">Upload IPython Noteook</span><br>',
-				upload_form,
+				chooser,
 				warning   if warning is not None   else '',
 				'</div>')
 
@@ -816,16 +812,7 @@ class DownloadIPynbFromWebTool (Tool):
 
 
 	def __present__(self, fragment):
-		def on_import(event):
-			url = self.__url.static_value
-			url_l = url.lower()
-			if not url_l.startswith('http://')  and  not url_l.startswith('https://'):
-				url = 'http://' + url
-			request = urllib2.Request(self.__url)
-			request.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.13 (KHTML, like Gecko) Chrome/24.0.1284.0 Safari/537.13')
-			opener = urllib2.build_opener()
-			fp = opener.open(request)
-
+		def on_downloaded(event, file_name, fp):
 			notebook_name, factory = _IPynbContentFactory.load(fp)
 
 			filename = _sanitise_filename(notebook_name)
@@ -837,15 +824,13 @@ class DownloadIPynbFromWebTool (Tool):
 		def on_cancel(event):
 			self.close()
 
+		chooser = file_chooser.fetch_from_web_file_chooser(on_downloaded, on_cancel)
+
 		warning = ipynb_filter.markdown_warning()
 
 		return Html('<div class="tool_box">',
-				'<span class="gui_section_1">Download IPython notebook from the web</span><br>',
-				'<div><span class="gui_label">Web address (Github/Bitbucket RAW, etc):</span></div>',
-				'<div><span>', text_entry.live_text_entry(self.__url, width="40em"), '</span></div>',
-				'<table>',
-				'<tr><td>', button.button('Cancel', on_cancel), '</td><td>', button.button('Import', on_import), '</td></tr>',
-				'</table>',
+				'<span class="gui_section_1">Download IPython notebook from the web (GitHub, Bitbucket RAW, etc.)</span><br>',
+				chooser,
 				warning   if warning is not None   else '',
 				'</div>')
 
