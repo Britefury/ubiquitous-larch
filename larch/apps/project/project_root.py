@@ -1,14 +1,15 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-import os
-import sys
+import os, sys, io
 from copy import deepcopy
+import pickle
 
 from larch.pres.html import Html
-from larch.controls import text_entry, button
+from larch.controls import text_entry, button, dialog, file_chooser
 
 from larch.apps.project.project_container import ProjectContainer
+from larch.apps.project.project_page import ProjectPage
 
 
 class ProjectRoot (ProjectContainer):
@@ -209,8 +210,53 @@ class ProjectRoot (ProjectContainer):
 
 
 
+	def _merge_from_file(self, filename, fp):
+		s = fp.read().replace('\r\n', '\n')
+		other_data = pickle.loads(s)
+		if isinstance(other_data, ProjectRoot):
+			self._merge_from_project(other_data)
+		else:
+			self._merge_from_page_content(filename, other_data)
+
+
+	def _merge_from_project(self, project):
+		self.merge_contents_from(project)
+
+	def _merge_from_page_content(self, filename, page_content):
+		name = os.path.splitext(filename)[0]
+		page = ProjectPage(name, page_content)
+		self.append(page)
+
+
+
 	def __present__(self, fragment):
 		super_pres = super(ProjectRoot, self).__present__(fragment)
+
+		def on_merge_upload(event):
+			def on_upload(event, name, fp):
+				self._merge_from_file(name, fp)
+				dialog.dialog.close_containing_dialog(event)
+
+			def on_cancel(event):
+				dialog.dialog.close_containing_dialog(event)
+
+			chooser = file_chooser.upload_file_chooser(on_upload, on_cancel)
+
+			dialog.dialog(Html('<h3>Choose file to merge</h3>', chooser)).show_on(event)
+
+
+		def on_merge_download(event):
+			def on_downloaded(event, name, fp):
+				self._merge_from_file(name, fp)
+				dialog.dialog.close_containing_dialog(event)
+
+			def on_cancel(event):
+				dialog.dialog.close_containing_dialog(event)
+
+			chooser = file_chooser.fetch_from_web_file_chooser(on_downloaded, on_cancel)
+
+			dialog.dialog(Html('<h3>Enter URL to download file to merge</h3>', chooser)).show_on(event)
+
 
 		def _on_set_package_name(event, name):
 			self.__set_python_package_name_no_incr_change(name)
@@ -226,6 +272,9 @@ class ProjectRoot (ProjectContainer):
 				unload_modules_and_display_notification(fragment)
 
 
+		merge_upload_button = button.button('Merge from file (upload)', on_merge_upload)
+		merge_download_button = button.button('Merge from web', on_merge_download)
+
 		python_package_name = self.python_package_name
 		python_package_name = python_package_name   if python_package_name is not None  else ''
 		entry = text_entry.text_entry(python_package_name, on_edit=_on_set_package_name)
@@ -234,7 +283,7 @@ class ProjectRoot (ProjectContainer):
 
 		contents = [
 			'<div class="larch_app_title_bar"><h1 class="page_title">Project</h1></div>',
-			'<p class="project_control">Merge contents',
+			'<p class="project_control">Merge in contents from other file: ', merge_upload_button, ' ', merge_download_button, '</p>',
 			'<p class="project_root_package_name">Root package name: ', entry, '<br><span class="notes_text">(this is the base name from which the contents of this project will be importable)</span></p>',
 			'<p class="project_control">Unload modules imported from project (Esc - U): ', unload_button, '</p>',
 			super_pres,

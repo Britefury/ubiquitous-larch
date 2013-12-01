@@ -1,7 +1,8 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-import sys
+import sys, copy
+
 from larch.apps import project
 from larch.live import LiveValue, LiveFunction
 
@@ -98,6 +99,31 @@ class ProjectContainer (ProjectNode):
 
 	def remove(self, x):
 		self._contents.remove( x )
+
+
+
+	def merge_contents_from(self, container):
+		# Bypass the live function normally used to get the contents map
+		contents_map = self._compute_contents_map()
+
+		for x in container:
+			if x.name in contents_map:
+				existing = contents_map[x.name]
+				if isinstance(existing, ProjectContainer)  and  isinstance(x, ProjectContainer):
+					# Can merge these two entries
+					existing.merge_contents_from(x)
+				else:
+					# Merge not possible; rename
+					i = 2
+					potential_name = '{0}_{1}'.format(x.name, i)
+					while potential_name in contents_map:
+						i += 1
+						potential_name = '{0}_{1}'.format(x.name, i)
+					x = copy.deepcopy(x)
+					x.name = potential_name
+					self.append(x)
+			else:
+				self.append(copy.deepcopy(x))
 
 
 
