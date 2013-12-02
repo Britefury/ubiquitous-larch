@@ -126,7 +126,7 @@ class PageFrame (CompositePres):
 		except AttributeError:
 			pass
 		else:
-			menu_bar_contents.extend(method(fragment))
+			menu_bar_contents.extend(method(fragment.page, fragment))
 
 		# Generate the menu bar
 		main_menu_bar = self.__menu_bar_contents_to_table(menu_bar_contents)
@@ -372,7 +372,7 @@ class DocumentKernel (object):
 
 
 
-	def __commands__(self):
+	def __commands__(self, page):
 		return [
 			command.Command([command.Key(ord('S'))], 'Save', self.__on_save_command),
 			command.Command([command.Key(ord('U'))], 'Unload modules', self.__on_unload_modules_command),

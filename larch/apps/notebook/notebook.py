@@ -328,7 +328,7 @@ class Notebook (object):
 			return None
 
 
-	def __commands__(self):
+	def __commands__(self, page):
 		return [
 			command.Command([command.Key(ord('R'))], 'Insert rich text below', lambda page: self._insert_block(NotebookBlockText(self), True, self.__focused_block(page))),
 			command.Command([command.Key(ord('P'))], 'Insert Python code below', lambda page: self._insert_block(NotebookBlockCode(self), True, self.__focused_block(page))),
@@ -347,7 +347,7 @@ class Notebook (object):
 			command.Command([command.Key(ord('X'))], 'Remove block', lambda page: self._delete_block(self.__focused_block(page))),
 		]
 
-	def __menu_bar_contents__(self, fragment):
+	def __menu_bar_contents__(self, page, fragment):
 		#
 		# File menu
 		#

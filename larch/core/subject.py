@@ -119,6 +119,21 @@ class Subject (object):
 		raise AttributeError, 'Subject has no attribute {0}'.format(item)
 
 
+	def optional_attr(self, item, default_value=None):
+		"""Get an optional named attribute, returning a default value if not found
+
+		:param item: - the name of the attribute
+		:param default_value: the default value to return if not found
+		:return: None if no attribute named :param item: can be found, otherwise :param default_value:
+		"""
+		for step in reversed(self.__steps):
+			try:
+				return step[item]
+			except KeyError:
+				pass
+		return default_value
+
+
 	def __getattr__(self, item):
 		"""Get a named attribute
 

@@ -164,7 +164,7 @@ class ProjectionService (DynamicPageService):
 			except AttributeError:
 				pass
 			else:
-				cmds.extend(method())
+				cmds.extend(method(view.dynamic_page.public_api))
 
 		command_set = command.CommandSet(cmds)
 		command_set.attach_to_page(view.dynamic_page)
