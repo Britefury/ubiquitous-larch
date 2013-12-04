@@ -429,12 +429,11 @@ def make_kernel_service_from_file(kernel_interface, path, name, app_context, imp
 #
 
 class Document (object):
-	def __init__(self, doc_list, name, filename, location, service_id):
+	def __init__(self, doc_list, name, filename, location):
 		self.__doc_list = doc_list
 		self.__name = name
 		self.__filename = filename
 		self.__loc = location
-		self.__service_id = service_id
 
 
 
@@ -477,16 +476,15 @@ class Document (object):
 		doc = app._get_document_for_path(path)
 		if doc is None:
 
-			def on_created(service_id):
-				doc = Document(doc_list, name, name, location, service_id)
+			def on_created():
+				doc = Document(doc_list, name, name, location)
 				app._set_document_for_path(path, doc)
-				app.kernel_interface.map_category_and_name_to_kernel(doc_list.category, location, service_id)
 				on_doc_loaded(doc)
 
-			app.kernel_interface.new_kernel(on_created, make_kernel_service_from_file, path, name, app_context, imported_module_registry)
+			app.kernel_interface.new_kernel(on_created, doc_list.category, location, make_kernel_service_from_file, path, name, app_context, imported_module_registry)
 		else:
 			on_doc_loaded(doc)
-			app.kernel_interface.map_category_and_name_to_kernel(doc_list.category, location, doc.__service_id)
+			app.kernel_interface.alias_category_and_name(doc_list.category, location, doc.__doc_list.category, doc.__loc)
 
 
 	@staticmethod
@@ -505,12 +503,11 @@ class Document (object):
 		"""
 		location = name_to_location(name)
 
-		def on_created(service_id):
-			doc = Document(doc_list, name, filename, location, service_id)
-			doc_list._app.kernel_interface.map_category_and_name_to_kernel(doc_list.category, location, service_id)
+		def on_created():
+			doc = Document(doc_list, name, filename, location)
 			on_doc_created(doc)
 
-		doc_list._app.kernel_interface.new_kernel(on_created, make_kernel_service_for_content_factory, path, name, content_factory, app_context, imported_module_registry)
+		doc_list._app.kernel_interface.new_kernel(on_created, doc_list.category, location, make_kernel_service_for_content_factory, path, name, content_factory, app_context, imported_module_registry)
 
 
 

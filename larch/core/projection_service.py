@@ -46,6 +46,14 @@ class ProjectionService (DynamicPageService):
 
 
 	def page(self, doc_url, location='', get_params=None, user=None):
+		"""
+		Render a page
+
+		:param doc_url: the document url prefix
+		:param location: the location within the document
+		:param get_params: the HTTP get parameters
+		:param user: the user
+		"""
 		view = self.new_view(doc_url, location, get_params, user=user)
 		subject = self.__resolve_location(doc_url, location)
 
