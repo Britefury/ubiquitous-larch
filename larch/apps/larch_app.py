@@ -483,8 +483,9 @@ class Document (object):
 
 			app.kernel_interface.new_kernel(on_created, doc_list.category, location, make_kernel_service_from_file, path, name, app_context, imported_module_registry)
 		else:
-			on_doc_loaded(doc)
-			app.kernel_interface.alias_category_and_name(doc_list.category, location, doc.__doc_list.category, doc.__loc)
+			def on_aliased():
+				on_doc_loaded(doc)
+			app.kernel_interface.alias_category_and_name(on_aliased, doc_list.category, location, doc.__doc_list.category, doc.__loc)
 
 
 	@staticmethod

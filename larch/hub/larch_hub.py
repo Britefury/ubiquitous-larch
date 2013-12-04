@@ -28,7 +28,7 @@ class KernelInterface (object):
 	def new_kernel(self, on_created, doc_category, doc_name, service_constructor, *service_cons_args, **service_cons_kwargs):
 		raise NotImplementedError, 'abstract'
 
-	def alias_category_and_name(self, new_category, new_name, existing_category, existing_name):
+	def alias_category_and_name(self, on_aliased, new_category, new_name, existing_category, existing_name):
 		raise NotImplementedError, 'abstract'
 
 
@@ -54,10 +54,11 @@ class LarchDefaultHub (AbstractLarchHub, KernelInterface):
 		on_created()
 
 
-	def alias_category_and_name(self, new_category, new_name, existing_category, existing_name):
+	def alias_category_and_name(self, on_aliased, new_category, new_name, existing_category, existing_name):
 		new_service_id = '{0}/{1}'.format(new_category, new_name)
 		existing_service_id = '{0}/{1}'.format(existing_category, existing_name)
 		self.__services[new_service_id] = self.__services[existing_service_id]
+		on_aliased()
 
 
 	def page(self, doc_category, doc_name, location='', get_params=None, user=None):
