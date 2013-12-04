@@ -22,10 +22,6 @@ class AbstractLarchHub (object):
 
 
 class KernelInterface (object):
-	def __init__(self):
-		self.__category_and_name_to_service_id = {}
-
-
 	def kernel_message(self, doc_category, doc_name, message, *args, **kwargs):
 		raise NotImplementedError, 'abstract'
 
@@ -33,12 +29,10 @@ class KernelInterface (object):
 		raise NotImplementedError, 'abstract'
 
 	def map_category_and_name_to_kernel(self, doc_category, doc_name, service_id):
-		service_name = doc_category, doc_name
-		self.__category_and_name_to_service_id[service_name] = service_id
+		raise NotImplementedError, 'abstract'
 
 	def get_service_id(self, doc_category, doc_name):
-		service_name = doc_category, doc_name
-		return self.__category_and_name_to_service_id.get(service_name)
+		raise NotImplementedError, 'abstract'
 
 
 
@@ -62,6 +56,16 @@ class LarchDefaultHub (AbstractLarchHub, KernelInterface):
 		service = service_constructor(self, *service_cons_args, **service_cons_kwargs)
 		self.__services[service_id] = service
 		on_created(service_id)
+
+
+	def map_category_and_name_to_kernel(self, doc_category, doc_name, service_id):
+		service_name = doc_category, doc_name
+		self.__category_and_name_to_service_id[service_name] = service_id
+
+	def get_service_id(self, doc_category, doc_name):
+		service_name = doc_category, doc_name
+		return self.__category_and_name_to_service_id.get(service_name)
+
 
 	def page(self, doc_category, doc_name, location='', get_params=None, user=None):
 		service_id = self.get_service_id(doc_category, doc_name)
