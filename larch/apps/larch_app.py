@@ -518,7 +518,7 @@ class Document (object):
 
 
 class DocumentList (object):
-	def __init__(self, app, category, path, loc_prefix, app_context):
+	def __init__(self, app, category, path, loc_prefix, app_context, on_docs_loaded):
 		self.__incr = IncrementalValueMonitor()
 
 		self.category = category
@@ -534,7 +534,7 @@ class DocumentList (object):
 		self.__docs_by_location = {}
 		self.__docs_by_filename = {}
 
-		self.__load_documents()
+		self.__load_documents(on_docs_loaded)
 
 
 
@@ -594,17 +594,22 @@ class DocumentList (object):
 		self.__docs_by_location = {}
 		self.__docs_by_filename = {}
 
-		self.__load_documents()
+		self.__load_documents(None)
 
 		self.__incr.on_changed()
 
 
 
-	def __load_documents(self):
+	def __load_documents(self, on_all_docs_loaded):
 		file_paths = glob.glob(os.path.join(self.__path, '*' + _EXTENSION))
+		num_docs_to_load = len(file_paths)
+		docs_loaded = [0]
 
 		def on_doc_loaded(doc):
 			self.__add_document(doc)
+			docs_loaded[0] += 1
+			if docs_loaded[0] == num_docs_to_load  and  on_all_docs_loaded is not None:
+				on_all_docs_loaded()
 
 		for p in sorted(file_paths):
 			Document.load(on_doc_loaded, self._app, self, p, self.__app_context, self.__imported_module_registry)
@@ -878,12 +883,14 @@ class LarchApplication (object):
 		self.__user_docs_path = user_docs_path
 		self.__logout_url_path = logout_url_path
 
-		self.__user_docs = DocumentList(self, 'files', user_docs_path, 'files', self.__app_context)
+		def on_user_docs_loaded():
+			if documentation_path is not None:
+				self.__docs = DocumentList(self, 'docs', documentation_path, 'docs', self.__app_context, None)
+			else:
+				self.__docs = None
 
-		if documentation_path is not None:
-			self.__docs = DocumentList(self, 'docs', documentation_path, 'docs', self.__app_context)
-		else:
-			self.__docs = None
+		self.__user_docs = DocumentList(self, 'files', user_docs_path, 'files', self.__app_context, on_user_docs_loaded)
+
 
 		self.__consoles = ConsoleList(self)
 
