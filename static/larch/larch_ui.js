@@ -292,6 +292,11 @@ larch.controls.initSpinner = function (node, channel) {
             if (!ignoreChanges[0]) {
                 larch.postEvent(control.get(0), "spinner_change", ui.value);
             }
+        },
+        change: function (event, ui) {
+            if (!ignoreChanges[0]) {
+                larch.postEvent(control.get(0), "spinner_change", control.spinner("value"));
+            }
         }
     });
 
