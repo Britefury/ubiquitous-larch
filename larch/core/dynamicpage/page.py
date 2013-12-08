@@ -322,6 +322,11 @@ class DynamicPage (object):
 		self.__inc_view = value
 
 
+	@property
+	def doc_url(self):
+		return self._doc_url
+
+
 
 	#
 	#

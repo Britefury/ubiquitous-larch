@@ -1,10 +1,5 @@
-import os
-import glob
-import sys
-import py_compile
-import zipfile
-import subprocess
-
+import os, glob, sys, py_compile, zipfile, subprocess
+from optparse import OptionParser
 
 ularch_files = [
 	'Quick tour*.ularch',
@@ -16,14 +11,27 @@ ularch_files = [
 	'Turtle.ularch',
 ]
 
+usage = "usage: %prog [options] <version>"
+op_parser = OptionParser(usage)
+op_parser.add_option('-d', '--distribution', dest='distribution', help='Distribution (everything|publicbin) default=everything', default='everything')
 
-if len( sys.argv ) != 2:
-	print 'Usage:'
-	print '\t%s <version>'  %  sys.argv[0]
+options, args = op_parser.parse_args()
+
+if len(args) != 1:
+	op_parser.error('You didn\'t supply a version')
 	sys.exit( 0 )
+else:
+	version_string = args[0]
+
+distribution = options.distribution
+
+if distribution != 'everything'  and  distribution != 'publicbin':
+	op_parser.error('Unknown distribution {0}'.format(distribution))
+	sys.exit(0)
 
 
-version_string = sys.argv[1]
+
+
 bin_zip_filename = 'UbiquitousLarch-' + version_string + '.zip'
 package_name = 'UbiquitousLarch-' + version_string
 
@@ -31,6 +39,8 @@ ignore_list = [ '.hg' ]
 
 tmp_pyc_file = 'tmp.pyc'
 tmp_js_min_file = 'tmp.min.js'
+
+
 
 
 
@@ -55,29 +65,36 @@ dirs_for_minify = [
 ]
 
 
+everything_root_files = [
+	'server_cherrypy.py',
+	'server_flask.py',
+	'django_app.py',
+	'django_settings.py',
+	'django_urls.py',
+	'django_wsgi.py',
+	'manage.py',
+]
+
 
 root_files = [
 	'bottle.py',
-#	'server_cherrypy.py',
-#	'server_flask.py',
 	'start_ularch.py',
-#	'django_app.py',
-#	'django_settings.py',
-#	'django_urls.py',
-#	'django_wsgi.py',
-#	'manage.py',
 	'LICENSE-*.txt',
 	'README.txt',
-] + ularch_files
+] + ularch_files + (everything_root_files   if distribution == 'everything'   else [])
 
+
+
+everything_root_compile_files = [
+	'django_app.py',
+	'django_settings.py',
+	'django_urls.py',
+	'django_wsgi.py',
+]
 
 root_compile_files = [
 	'bottle.py',
-	#'django_app.py',
-	#'django_settings.py',
-	#'django_urls.py',
-	#'django_wsgi.py',
-]
+] + (everything_root_compile_files   if distribution == 'everything'   else [])
 
 
 def copy_file(z, src, dst):

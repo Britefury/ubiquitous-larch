@@ -81,6 +81,10 @@ class MessageChannel (AbstractResource):
 class URLResource (AbstractResource):
 	requires_url = True
 
+	def __init__(self):
+		pass
+
+
 	def get_data(self):
 		raise NotImplementedError, 'abstract'
 
@@ -269,7 +273,8 @@ class SubjectResource (URLResource):
 
 	def page_ref(self, pres_ctx, rsc_instance):
 		if self.__data is None:
-			self.__data = pres_ctx.fragment_view.service.page_for_subject(self.__subject, rsc_instance.url.strip('/'))
+			doc_url = pres_ctx.fragment_view.view.dynamic_page.doc_url
+			self.__data = pres_ctx.fragment_view.service.page_for_subject(doc_url, self.__subject, rsc_instance.url.strip('/'))
 			self.__mime_type = 'text/html'
 
 
@@ -293,7 +298,8 @@ class PresResource (URLResource):
 	def page_ref(self, pres_ctx, rsc_instance):
 		subj = Subject()
 		subj.add_step(focus=self.__contents, perspective=pres_ctx.perspective, title='Resource')
-		self.__data = pres_ctx.fragment_view.service.page_for_subject(subj, rsc_instance.url.strip('/'))
+		doc_url = pres_ctx.fragment_view.view.dynamic_page.doc_url
+		self.__data = pres_ctx.fragment_view.service.page_for_subject(doc_url, subj, rsc_instance.url.strip('/'))
 		self.__mime_type = 'text/html'
 
 
@@ -324,8 +330,8 @@ class SubjectIFrame (SubjectResource):
 
 
 class PresIFrame (PresResource):
-	def __init__(self, subject, width, height):
-		super(PresIFrame, self).__init__(subject)
+	def __init__(self, contents, width, height):
+		super(PresIFrame, self).__init__(contents)
 		self.__width = width
 		self.__height = height
 
@@ -358,8 +364,8 @@ class SubjectLink (SubjectResource):
 
 
 class PresLink (PresResource):
-	def __init__(self, subject, link_content):
-		super(PresLink, self).__init__(subject)
+	def __init__(self, contents, link_content):
+		super(PresLink, self).__init__(contents)
 		self.__link_content = html.Html.coerce(link_content)
 
 
