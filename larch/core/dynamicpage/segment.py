@@ -191,7 +191,7 @@ class DynamicSegment (object):
 	def _inline_html(self, ref_resolver):
 		items = []
 		self._build_inline_html(items, ref_resolver)
-		return ''.join(items)
+		return u''.join(items)
 
 	def _build_inline_html(self, items, ref_resolver):
 		items.append('<span class="__lch_seg_begin" data-larchsegid="{0}"></span>'.format(self.__id))

@@ -107,7 +107,7 @@ TextBlockStyle = namedtuple('TextBlockStyle', ['block_style', 'name_style', 'con
 class TextOutBlock (object):
 	def __init__(self, name, style):
 		self.name = name
-		self.content = ''
+		self.content = u''
 		self.style = style
 
 

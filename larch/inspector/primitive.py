@@ -1,6 +1,7 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
+import cgi
 from larch.core.dynamicpage.global_dependencies import GlobalCSS
 
 from larch.pres.html import Html
@@ -11,7 +12,7 @@ GlobalCSS('/static/larch/python.css')
 
 
 def _punct_html(x):
-	return '<span class="pyprim_punctuation">{0}</span>'.format(x)
+	return u'<span class="pyprim_punctuation">{0}</span>'.format(x)
 
 
 _none = Html('<span class="pyprim_none">None</span>')
@@ -29,16 +30,16 @@ _quote = _punct_html('"')
 _triple_quote = _punct_html('"""')
 
 def present_string(x):
-	xx = x.replace('<', '&lt;').replace('>', '&gt;')
+	xx = cgi.escape(x)
 	print 'TODO: handle escape characters when presenting strings'
 	if '\n' in x:
-		lines = ['<span class="pyprim_string">{0}</span>'.format(line)   for line in xx.split('\n')]
+		lines = [u'<span class="pyprim_string">{0}</span>'.format(line)   for line in xx.split('\n')]
 		lines[0] = _triple_quote + lines[0]
 		lines[-1] += _triple_quote
-		lines = ['<div>{0}</div>'.format(line)   for line in lines]
-		return Html(''.join(lines))
+		lines = [u'<div>{0}</div>'.format(line)   for line in lines]
+		return Html(u''.join(lines))
 	else:
-		return Html(_quote + '<span class="pyprim_string">{0}</span>'.format(xx) + _quote)
+		return Html(_quote + u'<span class="pyprim_string">{0}</span>'.format(xx) + _quote)
 
 
 def present_int(x):

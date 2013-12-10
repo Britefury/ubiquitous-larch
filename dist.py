@@ -2,13 +2,8 @@ import os, glob, sys, py_compile, zipfile, subprocess
 from optparse import OptionParser
 
 ularch_files = [
-	'Quick tour*.ularch',
-	'Tutorial*.ularch',
-	'Documentation*.ularch',
 	'Speech processing.ularch',
 	'Shell.ularch',
-	'Function plotter.ularch',
-	'Turtle.ularch',
 ]
 
 usage = "usage: %prog [options] <version>"
