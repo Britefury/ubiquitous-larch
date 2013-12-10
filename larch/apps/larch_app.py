@@ -1014,8 +1014,8 @@ class LarchApplication (object):
 
 
 
-def create_service(kernel_interface, app_location, options=None, documentation_path=None, logout_url_path=None):
-	docpath = options.docpath   if options is not None   else None
+def create_service(kernel_interface, app_location, options=None, args=None, documentation_path=None, logout_url_path=None):
+	docpath = args[0]   if len(args) > 0   else None
 	app = LarchApplication(kernel_interface, app_location, docpath, documentation_path, logout_url_path)
 
 	return ProjectionService(app)
@@ -1023,9 +1023,8 @@ def create_service(kernel_interface, app_location, options=None, documentation_p
 
 
 def parse_cmd_line():
-	parser = OptionParser()
+	usage = "usage: %prog [options] <documents_path>"
+	parser = OptionParser(usage)
 	parser.add_option('-p', '--port', dest='port', help='server port', type='int', default=5000)
-	parser.add_option('-d', '--docpath', dest='docpath', help='Documents path', default=None)
 
-	options, args = parser.parse_args()
-	return options
+	return parser.parse_args()

@@ -104,8 +104,8 @@ class LarchWebApp (object):
 
 
 if __name__ == '__main__':
-	options = larch_app.parse_cmd_line()
-	hub = larch_hub.start_hub_and_client('main', 'larchapp', larch_app.create_service, '/main/larchapp', options)
+	options, args = larch_app.parse_cmd_line()
+	hub = larch_hub.start_hub_and_client('main', 'larchapp', larch_app.create_service, '/main/larchapp', options, args)
 	print 'Point your browser at http://127.0.0.1:{0}/ to try The Ubiquitous Larch'.format(options.port)
 	larch = LarchWebApp(hub)
 	cherrypy.server.socket_port = options.port
