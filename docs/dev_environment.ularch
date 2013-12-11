@@ -109,7 +109,7 @@ Ntp50
 Rp51
 (dp52
 g48
-Vprint 'Hello world'
+Vprint 'Text sent to stdout is displayed as seen here'
 p53
 sS'editable'
 p54

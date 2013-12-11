@@ -63,8 +63,8 @@ class LarchDefaultHub (AbstractLarchHub, KernelInterface):
 
 	def page(self, doc_category, doc_name, location='', get_params=None, user=None):
 		service_id = '{0}/{1}'.format(doc_category, doc_name)
-		if service_id is not None:
-			service = self.__services.get(service_id)
+		service = self.__services.get(service_id)
+		if service is not None:
 			return service.page('{0}/{1}'.format(doc_category, doc_name), location, get_params, user)
 		else:
 			raise CouldNotResolveLocationError
