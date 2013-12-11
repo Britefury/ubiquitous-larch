@@ -3,6 +3,7 @@
 ##-*************************
 import imp
 import sys
+from larch import larch_builtins
 from larch.incremental import IncrementalValueMonitor
 from larch.pres.html import Html
 from larch.pres.key_event import KeyAction
@@ -106,6 +107,7 @@ class PythonConsole (AbstractConsole):
 	def __init__(self, code=''):
 		super(PythonConsole, self).__init__(code)
 		self._module = imp.new_module('<Console>')
+		larch_builtins.init_module(self._module)
 
 
 	def _source_text_to_code_object(self, source_text):

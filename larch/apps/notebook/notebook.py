@@ -6,7 +6,7 @@ import sys
 from larch.apps import source_code
 
 from larch.incremental import IncrementalValueMonitor
-from larch import command
+from larch import command, larch_builtins
 from larch.live import LiveValue
 from larch.pres.html import Html
 from larch.pres.key_event import KeyAction
@@ -257,6 +257,7 @@ class Notebook (object):
 
 	def execute(self):
 		self._module = imp.new_module('<Notebook>')
+		larch_builtins.init_module(self._module)
 		self.__execute_in_module(self._module)
 		self.__exec_state_executed()
 

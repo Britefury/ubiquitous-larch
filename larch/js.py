@@ -7,8 +7,13 @@ import json
 def _coerce_to_js_src_str(x, pres_ctx):
 	if isinstance(x, JS):
 		return x.build_js(pres_ctx)
+	elif isinstance(x, list) or isinstance(x, tuple):
+		return '[{0}]'.format(','.join([_coerce_to_js_src_str(a, pres_ctx)   for a in x]))
+	elif isinstance(x, dict):
+		return '{' + ','.join(['{0}:{1}'.format(json.dumps(a), _coerce_to_js_src_str(b, pres_ctx))   for a, b in x.items()]) + '}'
 	else:
 		return json.dumps(x)
+
 
 
 def _wrap_complex_expr_in_parens(expr, expr_src):
@@ -80,6 +85,16 @@ class JSExprSrc (JSExpr):
 
 	def build_js(self, pres_ctx):
 		return self.__src
+
+
+
+class JSPlainJSON (JSExpr):
+	def __init__(self, v):
+		self.__v = v
+
+
+	def build_js(self, pres_ctx):
+		return json.dumps(self.__v)
 
 
 
