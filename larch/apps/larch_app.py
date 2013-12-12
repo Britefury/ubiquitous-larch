@@ -694,57 +694,6 @@ class DocumentList (object):
 
 
 
-class ConsoleList (object):
-	def __init__(self, app):
-		self._app = app
-		self.__consoles = []
-		self.__incr = IncrementalValueMonitor()
-
-
-
-	def __getitem__(self, item):
-		return self.__consoles[item]
-
-	def __len__(self):
-		return len(self.__consoles)
-
-	def new_console(self):
-		con = console.PythonConsole()
-		self.__consoles.append(con)
-		self.__incr.on_changed()
-
-
-
-	def __resolve__(self, name, subject):
-		try:
-			index = int(name)
-		except ValueError:
-			return None
-		if index < 0  or  index > len(self):
-			return None
-		console = self[index]
-		if console is not None:
-			subject.add_step(focus=console, location_trail=[name])
-			return console
-		else:
-			return None
-
-
-
-
-	def __present__(self, fragment):
-		self.__incr.on_access()
-		contents = ['<div class="larch_app_console_list">']
-		for i, con in enumerate(self.__consoles):
-			console_link = '<p class="larch_app_console"><a href="{0}/consoles/{1}">Console {1}</a></p>'.format(self._app.app_location, i)
-			contents.append( console_link)
-		contents.append('</div>')
-		return Html(*contents)
-
-
-
-
-
 class Tool (object):
 	def __init__(self):
 		self._tool_list = None
@@ -943,8 +892,6 @@ class LarchApplication (object):
 		self.__user_docs = DocumentList(self, 'files', user_docs_path, 'files', self.__app_context, on_user_docs_loaded)
 
 
-		self.__consoles = ConsoleList(self)
-
 		self.__tools = ToolList()
 
 
@@ -956,10 +903,6 @@ class LarchApplication (object):
 	@property
 	def user_docs(self):
 		return self.__user_docs
-
-	@property
-	def consoles(self):
-		return self.__consoles
 
 
 	def _get_document_for_path(self, path):
@@ -977,14 +920,6 @@ class LarchApplication (object):
 		raise ValueError, 'Unreckognised message {0}'.format(message)
 
 
-
-
-	def __resolve__(self, name, subject):
-		if name == 'consoles':
-			subject.add_step(focus=self.__consoles, location_trail=[name])
-			return self.__consoles
-		else:
-			return None
 
 
 	def __resolve_self__(self, subject):
@@ -1018,13 +953,6 @@ class LarchApplication (object):
 					 '<td class="larch_app_control">', import_ipynb_menu, '</td></tr></table>')
 
 
-		def on_new_console(event):
-			self.__consoles.new_console()
-
-
-		new_console_button = button.button('New console', on_new_console)
-
-
 		contents = ["""
 			<div class="larch_app_title_bar">The Ubiquitous Larch</div>
 
@@ -1037,12 +965,8 @@ class LarchApplication (object):
 			document_controls,
 			self.__tools,
 			"""</section>
-			<section class="larch_app_consoles_section">
-				<h2>Consoles:</h2>
-			""",
-			self.__consoles,
-			new_console_button,
-			"""
+			<section>
+			<p>For more information on using the Ubiquitous Larch, please see the <a href="/pages/docs/index">documentation</a>.</p>
 			</section>
 			<p class="larch_app_powered_by">The Ubiquitous Larch &copy; copyright Geoffrey French<br/>
 			Powered by
