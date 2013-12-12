@@ -502,4 +502,8 @@ larch.controls.initInspectorEntry = function(node, segment_id) {
     function (event) {
         larch.__unhighlightSegment(segment_id);
     });
+
+    anchor.click(function(event) {
+        larch.__unhighlightSegment(segment_id);
+    });
 };

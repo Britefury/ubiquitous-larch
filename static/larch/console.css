@@ -5,7 +5,7 @@
 */
 
 .python_console_header {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Roboto', sans-serif;
     border: 1px solid #68805f;
     border-radius: 5px;
     color: #344030;
@@ -16,4 +16,28 @@
 
 .python_console_block {
     margin: 0.5em 0;
+}
+
+.console_notifications {
+    background: #f8f8f8;
+    border: 1px solid #e8e8e8;
+    border-radius: 5px;
+    margin: 4px;
+    padding: 4px;
+
+}
+
+.python_console_value_python {
+    color: #080;
+    font-family: monospace;
+}
+
+.python_console_value_pres {
+    color: #06c;
+    font-family: monospace;
+}
+
+.python_console_var_name {
+    color: #408;
+    font-family: monospace;
 }

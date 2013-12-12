@@ -6,6 +6,7 @@ import sys
 from larch import larch_builtins
 from larch.incremental import IncrementalValueMonitor
 from larch.pres.html import Html
+from larch.pres.pres import Pres
 from larch.pres.key_event import KeyAction
 from larch.core.subject import Subject
 from larch.apps.source_code import AbstractSourceCode, PythonCode
@@ -84,6 +85,11 @@ class AbstractConsole (object):
 
 		preamble = self._get_console_preamble_text() + '\n' + 'Press Control+Enter to execute.'
 		contents = ['<div class="python_console_header">{0}</div>'.format(preamble.replace('\n', '<br>'))]
+		notifications = self._get_console_notifications()
+		if notifications is not None:
+			contents.append('<div class="console_notifications">')
+			contents.append(notifications)
+			contents.append('</div>')
 		for block in self.__blocks + [self.__current_block]:
 			contents.extend(['<div>', block, '</div>'])
 
@@ -100,6 +106,9 @@ class AbstractConsole (object):
 	def _get_console_preamble_text(self):
 		raise NotImplementedError, 'abstract'
 
+	def _get_console_notifications(self):
+		return None
+
 
 
 
@@ -109,9 +118,12 @@ class PythonConsole (AbstractConsole):
 		self._module = imp.new_module('<Console>')
 		larch_builtins.init_module(self._module)
 
+		self.__bindings = []
 
-	def add_global(self, name, value):
+
+	def add_binding(self, name, value):
 		setattr(self._module, name, value)
+		self.__bindings.append((name, value))
 
 
 	def _source_text_to_code_object(self, source_text):
@@ -123,6 +135,19 @@ class PythonConsole (AbstractConsole):
 
 	def _get_console_preamble_text(self):
 		return sys.version
+
+	def __binding_notification(self, name, value):
+		value_is_presentable = isinstance(value, Pres)
+		value_type_css_class = 'python_console_value_pres'   if value_is_presentable   else 'python_console_value_python'
+		type_descr = ' (presentation type)'   if value_is_presentable   else ' (a Python object)'
+		type_name = '<span class="{0}">{1}</span>'.format(value_type_css_class, type(value).__name__)
+		return  Html('A {0} {1} has been bound to the variable <span class="python_console_var_name">{2}</span>'.format(type_name, type_descr, name))
+
+	def _get_console_notifications(self):
+		if self.__bindings is not None:
+			return Html().extend([self.__binding_notification(*binding)   for binding in self.__bindings])
+		else:
+			return None
 
 
 	def __subject__(self, enclosing_subject, location_trail, perspective):

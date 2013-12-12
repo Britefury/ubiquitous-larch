@@ -74,7 +74,7 @@ def _inspector_entry(fragment):
 	model = fragment.model
 
 	destination = console.PythonConsole()
-	destination.add_global('m', model)
+	destination.add_binding('m', model)
 
 	model_is_presentable = isinstance(model, Pres)
 	model_type_css_class = 'inspector_model_pres'   if model_is_presentable   else 'inspector_model_python'
