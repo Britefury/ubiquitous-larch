@@ -34,3 +34,51 @@
 .__larch_ui_ckeditor_edit_container {
     min-height: 1em;
 }
+
+
+
+
+ul.fragment_inspector_list {
+    list-style: none;
+    margin: 4px 4px;
+    padding: 0;
+}
+
+ul.fragment_inspector_list > li {
+    float: left;
+}
+
+ul.fragment_inspector_list > li > a {
+    display: block;
+
+    background: #f0f0f0;
+    padding: 8px 12px;
+    border: 1px solid #d0d0d0;
+    border-radius: 4px;
+    margin: 4px 4px;
+
+    box-shadow: 0 4px 8px #808080;
+
+    font-size: 0.85em;
+    color: #303030;
+    text-decoration: none;
+    text-align: left;
+}
+
+ul.fragment_inspector_list > li > a:hover {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+}
+
+.inspector_model_python {
+    color: #008000;
+}
+
+.inspector_model_pres {
+    color: #004080;
+}
+
+.inspector_id {
+    color: #800060;
+}
+

@@ -24,6 +24,25 @@ def _exception_during_presentation_to_html(exc_pres):
 
 
 
+def _inspector_event_handler(event):
+	if event.name == '__larch_invoke_inspector':
+		fragment = event.fragment
+
+		# Find the first fragment for which inspection is not disabled
+		while fragment is not None  and  not fragment.is_inspector_enabled():
+			fragment = fragment.parent
+
+		fragment.view._inspect_fragment(event, fragment)
+
+		return True
+	else:
+		return False
+
+
+
+
+
+
 class _FragmentView (object):
 	_FLAG_SUBTREE_REFRESH_REQUIRED = 0x1
 	_FLAG_NODE_REFRESH_REQUIRED = 0x2
@@ -59,6 +78,8 @@ class _FragmentView (object):
 
 		# Segments
 		self.__segment = self.__inc_view.dynamic_page.new_segment(desc='{0}'.format(type(self.__model).__name__), fragment=self)
+		self.__segment.add_event_handler(_inspector_event_handler)
+		self.__segment.add_initialise_script('larch.controls.initObjectInspector(node);')
 		self.__sub_segments = []
 
 		# Resources
@@ -113,6 +134,9 @@ class _FragmentView (object):
 
 	def disable_inspector(self):
 		self.__set_flag(self._FLAG_DISABLE_INSPECTOR)
+
+	def is_inspector_enabled(self):
+		return not self.__test_flag(self._FLAG_DISABLE_INSPECTOR)
 
 
 
@@ -1029,3 +1053,17 @@ class IncrementalView (object):
 
 	def on_fragment_content_change_to(self, fragment_view, content):
 		pass
+
+
+
+
+	#
+	#
+	# Fragment inspector
+	#
+	#
+
+	def _inspect_fragment(self, event, fragment):
+		invoke_inspector = self.subject.optional_attr('invoke_inspector')
+		if invoke_inspector is not None:
+			invoke_inspector(event, fragment)

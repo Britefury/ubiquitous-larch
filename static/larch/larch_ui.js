@@ -470,3 +470,36 @@ larch.controls.closeContainingDialog = function(node) {
 
 
 
+
+larch.controls.initObjectInspector = function(node) {
+    // Pick up the click event
+    $(node).mousedown(function(event) {
+        if (!event.isImmediatePropagationStopped()  &&  event.which == 3  &&  (event.altKey && event.shiftKey  ||  event.altKey && event.ctrlKey)) {
+            // Alt-shift-right-click
+            event.preventDefault();
+            event.stopImmediatePropagation();
+
+            console.log("sending inspector message");
+
+            larch.postEvent(node, '__larch_invoke_inspector', null);
+        }
+    });
+
+    // Prevent the context menu from appearing
+    $(node).contextmenu(function(event) {
+        if (event.altKey && event.shiftKey  ||  event.altKey && event.ctrlKey) {
+            event.preventDefault();
+        }
+    });
+};
+
+larch.controls.initInspectorEntry = function(node, segment_id) {
+    var anchor = $(node);
+
+    anchor.hover(function (event) {
+        larch.__highlightSegment(segment_id);
+    },
+    function (event) {
+        larch.__unhighlightSegment(segment_id);
+    });
+};

@@ -110,6 +110,10 @@ class PythonConsole (AbstractConsole):
 		larch_builtins.init_module(self._module)
 
 
+	def add_global(self, name, value):
+		setattr(self._module, name, value)
+
+
 	def _source_text_to_code_object(self, source_text):
 		return PythonCode(source_text)
 

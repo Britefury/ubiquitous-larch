@@ -20,8 +20,9 @@ from larch import command
 from larch.apps.console import console
 from larch.controls import form, button, menu, text_entry, noty, file_chooser
 from larch.live import LiveValue
-from larch.pres.pres import CompositePres
+from larch.pres.pres import Pres, CompositePres
 from larch.pres.html import Html
+from larch.pres import resource
 
 
 _EXTENSION = '.ularch'
@@ -55,6 +56,56 @@ class LarchAppContext (object):
 	def __init__(self, logout_url_path, documentation_url):
 		self.logout_url_path = logout_url_path
 		self.documentation_url = documentation_url
+
+
+
+
+
+
+
+
+#
+#
+# FRAGMENT INSPECTOR
+#
+#
+
+def _inspector_entry(fragment):
+	model = fragment.model
+
+	destination = console.PythonConsole()
+	destination.add_global('m', model)
+
+	model_is_presentable = isinstance(model, Pres)
+	model_type_css_class = 'inspector_model_pres'   if model_is_presentable   else 'inspector_model_python'
+	model_type_descr = ' (presentation type)'   if model_is_presentable   else ' (a Python object)'
+	model_descr = Html('<span class="{0}">{1}</span>{2}<br><span class="inspector_id">id: {3}</span>'.format(model_type_css_class, type(model).__name__, model_type_descr, id(model)))
+
+	rsc = resource.PresLink(destination, model_descr)
+	anchor = rsc.js_function_call('larch.controls.initInspectorEntry', fragment.segment_id)
+	return Html('<li>', anchor, '</li>')
+
+
+def invoke_inspector(event, fragment):
+	# Build a list of fragments above it
+	fragments = []
+	while fragment is not None:
+		if fragment.is_inspector_enabled():
+			fragments.append(fragment)
+		fragment = fragment.parent
+
+
+	entries = [_inspector_entry(f)   for f in fragments]
+	content = Html('<ul class="fragment_inspector_list">').extend(entries).append('</ul>')
+	noty.noty(content, layout='bottom').show_on(event)
+
+
+
+
+
+
+
+
 
 
 
@@ -380,7 +431,7 @@ class DocumentKernel (object):
 
 
 	def __resolve_self__(self, subject):
-		subject.add_step(document=self, focus=self.__content, title=self.__name, augment_page=_make_apply_page_frame(self.__app_context))
+		subject.add_step(document=self, focus=self.__content, title=self.__name, augment_page=_make_apply_page_frame(self.__app_context), invoke_inspector=invoke_inspector)
 		return self.__content
 
 
@@ -937,7 +988,7 @@ class LarchApplication (object):
 
 
 	def __resolve_self__(self, subject):
-		subject.add_step(title='The Ubiquitous Larch', augment_page=_make_apply_page_frame(self.__app_context))
+		subject.add_step(title='The Ubiquitous Larch', augment_page=_make_apply_page_frame(self.__app_context), invoke_inspector=invoke_inspector)
 		return self
 
 
