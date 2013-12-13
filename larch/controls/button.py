@@ -40,9 +40,9 @@ class button (CompositePres):
 			options['icons'] = icons
 
 		if self.__text is not None:
-			p = Html('<button onclick="{0}">'.format(post_event_js_code_for_handler('clicked')), self.__text, '</button>').js_function_call('larch.controls.initButton', options)
+			p = Html('<button type="button" onclick="{0}">'.format(post_event_js_code_for_handler('clicked')), self.__text, '</button>').js_function_call('larch.controls.initButton', options)
 		else:
 			options['text'] = False
-			p = Html('<button onclick="{0}"></button>').js_function_call('larch.controls.initButton', options)
+			p = Html('<button type="button" onclick="{0}"></button>').js_function_call('larch.controls.initButton', options)
 		p = p.with_event_handler('clicked', self.clicked).use_js('/static/larch/larch_ui.js').use_css('/static/larch/larch_ui.css')
 		return p
