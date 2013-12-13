@@ -2,7 +2,6 @@ import os, glob, sys, py_compile, zipfile, subprocess
 from optparse import OptionParser
 
 ularch_files = [
-	'Speech processing.ularch',
 	'Shell.ularch',
 ]
 

@@ -989,7 +989,7 @@ class LarchApplication (object):
 
 
 
-def create_service(kernel_interface, app_location, options=None, args=None, documentation_path=None, logout_url_path=None):
+def create_service(kernel_interface, app_location, options=None, args=[], documentation_path=None, logout_url_path=None):
 	docpath = args[0]   if len(args) > 0   else None
 	app = LarchApplication(kernel_interface, app_location, docpath, documentation_path, logout_url_path)
 

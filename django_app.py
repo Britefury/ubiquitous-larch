@@ -18,7 +18,7 @@ from larch.apps import larch_app
 from larch.hub import larch_hub
 
 
-hub = larch_hub.start_hub_and_client('main', 'larchapp', larch_app.create_service, '/main/larchapp')
+hub = larch_hub.start_hub_and_client('main', 'larchapp', larch_app.create_service, '/main/larchapp', None, [])
 
 
 
