@@ -7,11 +7,26 @@
 }
 
 
+/* Contains the ckEditor rich text and the edit popover */
+.__larch_ui_ckeditor_edit_container {
+
+    min-height: 1em;
+    z-index: -999;
+}
+
+.__larch_ui_ckeditor_edit_popover_container {
+    position: absolute;
+    width: 95%;
+    height: 0;      /* Needed to ensure that it does not block mouse events to text behind it */
+}
+
 .__larch_ui_ckeditor_edit_popover {
     display: none;
 
+    float: right;
+
     width: 10em;
-    margin: 0 1em 0 auto;
+    margin: 0 1em 0 0;
 
     background: rgba(0,0,0,0.7);
     border: 1px solid rgba(0.5, 0.5, 0.5, 0.7);
@@ -20,19 +35,11 @@
     padding: 3px 10px;
 
     color: #fff;
-}
-
-.__larch_ui_ckeditor_edit_popover_container {
-    position: absolute;
-    width: 95%;
+    z-index: 9999;
 }
 
 .__larch_ui_ckeditor_edit_container:hover .__larch_ui_ckeditor_edit_popover {
     display: block;
-}
-
-.__larch_ui_ckeditor_edit_container {
-    min-height: 1em;
 }
 
 
