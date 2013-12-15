@@ -7,7 +7,7 @@ ularch_files = [
 
 usage = "usage: %prog [options] <version>"
 op_parser = OptionParser(usage)
-op_parser.add_option('-d', '--distribution', dest='distribution', help='Distribution (everything|publicbin) default=everything', default='everything')
+op_parser.add_option('-d', '--distribution', dest='distribution', help='Distribution (everything|publicbin) default=everything', default='publicbin')
 
 options, args = op_parser.parse_args()
 
