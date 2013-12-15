@@ -74,6 +74,7 @@ root_files = [
 	'bottle.py',
 	'start_ularch.py',
 	'LICENSE-*.txt',
+	'LICENSE.txt',
 	'README.txt',
 ] + ularch_files + (everything_root_files   if distribution == 'everything'   else [])
 
