@@ -60,7 +60,6 @@ dirs_for_minify = [
 
 
 everything_root_files = [
-	'server_cherrypy.py',
 	'server_flask.py',
 	'django_app.py',
 	'django_settings.py',

@@ -971,7 +971,7 @@ class LarchApplication (object):
 			<p class="larch_app_powered_by">The Ubiquitous Larch &copy; copyright Geoffrey French<br/>
 			Powered by
 			<a class="larch_app_pwr_link" href="http://www.python.org">Python</a>,
-			<a class="larch_app_pwr_link" href="http://flask.pocoo.org">Flask</a>/<a class="larch_app_pwr_link" href="http://bottlepy.org">Bottle</a>/<a class="larch_app_pwr_link" href="http://www.cherrypy.org/">CherryPy</a>/<a class="larch_app_pwr_link" href="http://www.djangoproject.com/">Django</a>,
+			<a class="larch_app_pwr_link" href="http://flask.pocoo.org">Flask</a>/<a class="larch_app_pwr_link" href="http://bottlepy.org">Bottle</a>/<a class="larch_app_pwr_link" href="http://www.djangoproject.com/">Django</a>,
 			<a class="larch_app_pwr_link" href="http://jquery.com/">jQuery</a>,
 			<a class="larch_app_pwr_link" href="http://www.json.org/js.html">json.js</a>,
 			<a class="larch_app_pwr_link" href="http://codemirror.net/">Code Mirror</a>,
