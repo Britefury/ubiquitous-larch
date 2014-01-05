@@ -28,3 +28,23 @@ body {
 .login_form_text_field {
     width: 20em;
 }
+
+
+.sec_warning_content {
+    margin: 50px auto 0 auto;
+    width: 1024px;
+}
+
+.risk {
+    color: #c00040;
+}
+
+div.code_block {
+    font-family: monospace;
+
+    margin: 10px 0;
+    background: #e0e0e0;
+    border: 1px solid #c0c0c0;
+    border-radius: 5px;
+    padding: 7px;
+}
