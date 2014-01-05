@@ -71,7 +71,10 @@ everything_root_files = [
 
 root_files = [
 	'bottle.py',
+	'ularch_cmdline.py',
+	'ularch_bottle_app.py',
 	'start_ularch.py',
+	'wsgi_ularch.py',
 	'LICENSE-*.txt',
 	'LICENSE.txt',
 	'README.txt',
@@ -88,6 +91,8 @@ everything_root_compile_files = [
 
 root_compile_files = [
 	'bottle.py',
+	'ularch_cmdline.py',
+	'ularch_bottle_app.py',
 ] + (everything_root_compile_files   if distribution == 'everything'   else [])
 
 

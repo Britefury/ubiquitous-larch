@@ -9,7 +9,6 @@ import imp
 import sys
 import urllib2
 import json
-from optparse import OptionParser
 from larch.apps.notebook import ipynb_filter
 from larch.apps.project import project_root
 from larch.apps.notebook import notebook
@@ -989,17 +988,10 @@ class LarchApplication (object):
 
 
 
-def create_service(kernel_interface, app_location, options=None, args=[], documentation_path=None, logout_url_path=None):
-	docpath = args[0]   if len(args) > 0   else None
+def create_service(kernel_interface, app_location, docpath=None, documentation_path=None, logout_url_path=None):
 	app = LarchApplication(kernel_interface, app_location, docpath, documentation_path, logout_url_path)
 
 	return ProjectionService(app)
 
 
 
-def parse_cmd_line():
-	usage = "usage: %prog [options] <documents_path>"
-	parser = OptionParser(usage)
-	parser.add_option('-p', '--port', dest='port', help='server port', type='int', default=5000)
-
-	return parser.parse_args()
