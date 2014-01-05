@@ -558,7 +558,7 @@ class DynamicPage (object):
 		resource_id = event.data['resource_id']
 		message = event.data['message']
 		rsc_instance = self.__rsc_id_to_rsc_instance.get(resource_id)
-		rsc_instance.on_message(message)
+		rsc_instance.on_resource_message(message)
 
 
 
@@ -1137,11 +1137,11 @@ class DynamicPageResourceInstance (object):
 
 
 
-	def send_message(self, message):
+	def send_resource_message(self, message):
 		self.__page._send_resource_message(self, message)
 
-	def on_message(self, message):
-		self.__resource.on_message(self, message)
+	def on_resource_message(self, message):
+		self.__resource.on_resource_message(self, message)
 
 
 	@property
@@ -1164,7 +1164,7 @@ class DynamicPageResourceInstance (object):
 
 
 	@property
-	def url(self):
+	def resource_url(self):
 		if not self.__resource.requires_url:
 			raise RuntimeError, 'Attempting to acquire a URL for a resource that does not support URL based access'
 		return '/rsc/{0}/{1}/{2}'.format(self.__page._doc_url, self.__page._view_id, self.__rsc_id)

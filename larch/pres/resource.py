@@ -61,9 +61,9 @@ class MessageChannel (AbstractResource):
 	def send(self, message):
 		m = msg.message('message', message=message)
 		for instance in self.__instances:
-			instance.send_message(m)
+			instance.send_resource_message(m)
 
-	def on_message(self, rsc_instance, message):
+	def on_resource_message(self, rsc_instance, message):
 		for listener in self.__message_listeners:
 			listener(message)
 
@@ -96,12 +96,12 @@ class URLResource (AbstractResource):
 
 	def build_js(self, pres_ctx):
 		instance = self._get_instance(pres_ctx)
-		j = js.JSCall('larch.__createURLResource', [instance.id, instance.url])
+		j = js.JSCall('larch.__createURLResource', [instance.id, instance.resource_url])
 		return j.build_js(pres_ctx)
 
 	def _url(self, pres_ctx):
 		rsc_instance = pres_ctx.fragment_view.get_resource_instance(self, pres_ctx)
-		return rsc_instance.url
+		return rsc_instance.resource_url
 
 
 
@@ -188,7 +188,7 @@ class LiveFnResource (URLResource):
 	def __live_listener(self, incr):
 		modified_message = msg.message('modified')
 		for instance in self.__instances:
-			instance.send_message(modified_message)
+			instance.send_resource_message(modified_message)
 
 
 	def get_data(self):
@@ -274,7 +274,7 @@ class SubjectResource (URLResource):
 	def page_ref(self, pres_ctx, rsc_instance):
 		if self.__data is None:
 			doc_url = pres_ctx.fragment_view.view.dynamic_page.doc_url
-			self.__data = pres_ctx.fragment_view.service.page_for_subject(doc_url, self.__subject, rsc_instance.url.strip('/'))
+			self.__data = pres_ctx.fragment_view.service.page_for_subject(doc_url, self.__subject, rsc_instance.resource_url.strip('/'))
 			self.__mime_type = 'text/html'
 
 
@@ -299,7 +299,7 @@ class PresResource (URLResource):
 		subj = Subject()
 		subj.add_step(focus=self.__contents, perspective=pres_ctx.perspective, title='Resource')
 		doc_url = pres_ctx.fragment_view.view.dynamic_page.doc_url
-		self.__data = pres_ctx.fragment_view.service.page_for_subject(doc_url, subj, rsc_instance.url.strip('/'))
+		self.__data = pres_ctx.fragment_view.service.page_for_subject(doc_url, subj, rsc_instance.resource_url.strip('/'))
 		self.__mime_type = 'text/html'
 
 

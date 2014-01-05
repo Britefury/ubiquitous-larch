@@ -250,8 +250,7 @@ class _FragmentView (object):
 
 	def get_resource_instance(self, resource, pres_ctx):
 		rsc_instance = self.__inc_view.dynamic_page.get_resource_instance(resource, pres_ctx)
-		if rsc_instance not in self.__resource_instances:
-			self.__resource_instances.add(rsc_instance)
+		self.__resource_instances.add(rsc_instance)
 		return rsc_instance
 
 
