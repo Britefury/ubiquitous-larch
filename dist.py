@@ -1,3 +1,7 @@
+##-*************************
+##-* This source code is (C)copyright Geoffrey French 2011-2013.
+##-*************************
+
 import os, glob, sys, py_compile, zipfile, subprocess
 from optparse import OptionParser
 
