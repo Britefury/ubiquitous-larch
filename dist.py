@@ -60,7 +60,8 @@ dirs_for_minify = [
 
 
 everything_root_files = [
-	'server_flask.py',
+	'ularch_flask_app.py',
+	'start_ularch_flask.py',
 	'django_app.py',
 	'django_settings.py',
 	'django_urls.py',
@@ -72,6 +73,7 @@ everything_root_files = [
 root_files = [
 	'bottle.py',
 	'ularch_cmdline.py',
+	'ularch_pages.py',
 	'ularch_bottle_app.py',
 	'start_ularch.py',
 	'wsgi_ularch.py',
