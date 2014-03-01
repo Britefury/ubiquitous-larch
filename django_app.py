@@ -6,9 +6,9 @@ import tempfile
 import os
 
 from django.http import HttpResponse, Http404
+from django.middleware.csrf import get_token
 from django.views.decorators.http import require_POST, require_GET
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import requires_csrf_token, csrf_protect, csrf_exempt, ensure_csrf_cookie
 from django.shortcuts import redirect, render_to_response, render
 from django.template import Template, RequestContext
 from larch.core.dynamicpage.service import UploadedFile
@@ -17,28 +17,48 @@ from larch.core.projection_service import CouldNotResolveLocationError
 from larch.apps import larch_app
 from larch.hub import larch_hub
 
-
-hub = larch_hub.start_hub_and_client('main', 'larchapp', larch_app.create_service, '/main/larchapp', None, [])
-
-
-
-USE_SIMPLE_AND_INSECURE_LOGIN = False
+import django_settings
+import ularch_pages
 
 
-if USE_SIMPLE_AND_INSECURE_LOGIN:
-	pass
-else:
+hub = larch_hub.start_hub_and_client('main', 'larchapp', larch_app.create_service, '/main/larchapp', django_settings.ULARCH_DOCUMENTS_PATH, documentation_path=django_settings.ULARCH_DOCUMENTATION_PATH,
+				     logout_url_path='/accounts/logout')
+
+
+
+
+def is_authenticated(request):
+	return request.session.get('authenticated', False)
+
+def authenticate(request, pwd_from_user):
+	if pwd_from_user == django_settings.ULARCH_GLOBAL_PASSWORD:
+		request.session['authenticated'] = True
+		return True
+	else:
+		return False
+
+def deauthenticate(request):
+	if request.session.get('authenticated') is not None:
+		del request.session['authenticated']
+
+
+if django_settings.ULARCH_RUNNING_LOCALLY:
 	def login_required(f):
 		return f
+else:
+	def login_required(fn):
+		def check_logged_in(request, *args, **kwargs):
+			if is_authenticated(request):
+				return fn(request, *args, **kwargs)
+			else:
+				path = request.path
+				request.session['next_path'] = path
+				return redirect('/accounts/login')
+		check_logged_in.__name__ = fn.__name__
+		return check_logged_in
 
 
 
-def _user_for_request(request):
-	django_user = request.user
-	if django_user.is_authenticated():
-		return user.User(django_user.id, django_user.username)
-	else:
-		return None
 
 
 @login_required
@@ -57,7 +77,7 @@ def front_page(request, category, name):
 	try:
 		get_params = {}
 		get_params.update(request.GET)
-		return HttpResponse(hub.page(category, name, '', get_params, user=_user_for_request(request)))
+		return HttpResponse(hub.page(category, name, '', get_params))
 	except CouldNotResolveLocationError:
 		raise Http404
 
@@ -67,7 +87,7 @@ def page(request, category, name, location):
 	try:
 		get_params = {}
 		get_params.update(request.GET)
-		return HttpResponse(hub.page(category, name, location, get_params, user=_user_for_request(request)))
+		return HttpResponse(hub.page(category, name, location, get_params))
 	except CouldNotResolveLocationError:
 		raise Http404
 
@@ -129,71 +149,38 @@ def rsc(request, category, name, view_id, rsc_id):
 
 
 
+def _csrf_hidden_input(request):
+	return '<input type="hidden" name="csrfmiddlewaretoken" value="{0}"/>'.format(get_token(request))
 
 
-
-__login_template = Template("""
-<html>
-<head>
-<title>Login</title>
-<link rel="stylesheet" type="text/css" href="/static/jquery/css/ui-lightness/jquery-ui-1.10.2.custom.min.css"/>
-<link rel="stylesheet" type="text/css" href="/static/larch/larch.css"/>
-<link rel="stylesheet" type="text/css" href="/static/larch/larch_login.css"/>
-<script type="text/javascript" src="/static/jquery/js/jquery-1.9.1.js"></script>
-<script type="text/javascript" src="/static/jquery/js/jquery-ui-1.10.2.custom.min.js"></script>
-</head>
-
-
-<body>
-<div class="title_bar">The Ubiquitous Larch</div>
-
-<div class="login_form">
-<p>Please login:</p>
-
-<form action="/accounts/process_login" method="POST">{% csrf_token %}
-<table>
-	<tr><td>Username</td><td><input type="text" name="username" class="login_form_text_field"/></td></tr>
-	<tr><td>Password</td><td><input type="password" name="password" class="login_form_text_field"/></td></tr>
-	<tr><td></td><td><input id="submit_button" type="submit" value="Login"/></td></tr>
-</table>
-</form>
-
-{% if prompt == 'Bad login' %}
-<p>Invalid username or password; please try again.</p>
-{% endif %}
-
-</div>
-
-<script type="text/javascript">
-	$("#submit_button").button();
-</script>
-</body>
-</html>
-""")
-
-
+@ensure_csrf_cookie
 def login_form(request):
-	django_user = request.user
-	if django_user.is_authenticated():
+	if is_authenticated(request):
 		return redirect('/pages')
 	else:
-		ctx = RequestContext(request)
-		return HttpResponse(__login_template.render(ctx), content_type='text/html')
+		csrf_token = _csrf_hidden_input(request)
+		return HttpResponse(ularch_pages.login_form_page.format(status_msg='', csrf_token=csrf_token), RequestContext(request))
 
 
+@ensure_csrf_cookie
 def process_login(request):
-	username = request.POST['username']
 	password = request.POST['password']
-	user = authenticate(username=username, password=password)
-	if user is not None  and  user.is_active:
-		login(request, user)
-		return redirect('/pages')
+	if authenticate(request, password):
+		next_path = request.session.get('next_path')
+		if next_path is None:
+			next_path = '/pages'
+		return redirect(next_path)
 	else:
-		ctx = RequestContext(request, {'prompt': 'Bad login'})
-		return HttpResponse(__login_template.render(ctx), content_type='text/html')
+		csrf_token = _csrf_hidden_input(request)
+		return HttpResponse(ularch_pages.login_form_page.format(status_msg='<p>Incorrect password; please try again.</p>', csrf_token=csrf_token), RequestContext(request))
 
 
 
 def account_logout(request):
-	logout(request)
+	deauthenticate(request)
 	return redirect('/')
+
+
+
+def security_warning(request):
+	return HttpResponse(ularch_pages.security_warning_page)

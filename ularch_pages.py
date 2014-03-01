@@ -92,13 +92,14 @@ login_form_page = """
 <p>Please login:</p>
 
 <form action="/accounts/process_login" method="POST">
+{csrf_token}
 <table>
 	<tr><td>Password</td><td><input type="password" name="password" class="login_form_text_field"/></td></tr>
 	<tr><td></td><td><input id="submit_button" type="submit" value="Login"/></td></tr>
 </table>
 </form>
 
-{0}
+{status_msg}
 
 </div>
 

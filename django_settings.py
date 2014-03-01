@@ -1,7 +1,26 @@
+import sys
+
 # Django settings for The Ubiquitous Larch.
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+
+
+# Ubiquitous Larch settings
+
+ULARCH_RUNNING_LOCALLY = len(sys.argv) >= 2  and  sys.argv[1].lower() == 'runserver'
+ULARCH_RUNNING_LOCALLY = False
+
+# Documents path; where to look for the documents, uses the current directory if None
+ULARCH_DOCUMENTS_PATH = None
+
+# Documentation oath path; where to look for the documentation files; uses ./docs if None
+ULARCH_DOCUMENTATION_PATH = None
+
+# Global password
+ULARCH_GLOBAL_PASSWORD = 'abc123'
+
+
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -115,14 +134,14 @@ TEMPLATE_DIRS = (
 )
 
 INSTALLED_APPS = (
-    'django.contrib.auth',
+    # 'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Uncomment the next line to enable the admin:
-    'django.contrib.admin',
+    # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )

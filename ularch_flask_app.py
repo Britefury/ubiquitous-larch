@@ -68,7 +68,7 @@ def make_ularch_flask_app(docpath=None, documentation_path=None, running_locally
 				if is_authenticated():
 					return redirect('/pages')
 				else:
-					return ularch_pages.login_form_page.format('')
+					return ularch_pages.login_form_page.format(status_msg='', csrf_token='')
 
 			@app.route('/accounts/process_login', methods=['POST'])
 			def process_login():
@@ -80,7 +80,7 @@ def make_ularch_flask_app(docpath=None, documentation_path=None, running_locally
 						next_path = '/pages'
 					return redirect(next_path)
 				else:
-					return ularch_pages.login_form_page.format('<p>Incorrect password; please try again.</p>')
+					return ularch_pages.login_form_page.format(status_msg='<p>Incorrect password; please try again.</p>', csrf_token='')
 
 			@app.route('/accounts/logout')
 			def logout():

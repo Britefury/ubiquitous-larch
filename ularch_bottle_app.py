@@ -128,7 +128,7 @@ def make_ularch_bottle_app(docpath=None, documentation_path=None, running_locall
 				if is_authenticated():
 					return redirect('/pages')
 				else:
-					return ularch_pages.login_form_page.format('')
+					return ularch_pages.login_form_page.format(status_msg='', csrf_token='')
 
 			@app.route('/accounts/process_login', method='POST')
 			def process_login():
@@ -141,7 +141,7 @@ def make_ularch_bottle_app(docpath=None, documentation_path=None, running_locall
 						next_path = '/pages'
 					return redirect(next_path)
 				else:
-					return ularch_pages.login_form_page.format('<p>Incorrect password; please try again.</p>')
+					return ularch_pages.login_form_page.format(status_msg='<p>Incorrect password; please try again.</p>', csrf_token='')
 
 			@app.route('/accounts/logout')
 			def logout():
