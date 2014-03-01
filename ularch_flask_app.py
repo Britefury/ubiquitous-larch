@@ -16,6 +16,7 @@ import ularch_pages
 
 def make_ularch_flask_app(docpath=None, documentation_path=None, running_locally=False, password='', session_time_hours=24):
 	app = Flask(__name__, static_url_path='/static', static_folder='static')
+	app.secret_key = os.urandom(32)
 
 
 
@@ -69,7 +70,7 @@ def make_ularch_flask_app(docpath=None, documentation_path=None, running_locally
 				else:
 					return ularch_pages.login_form_page.format('')
 
-			@app.route('/accounts/process_login', method='POST')
+			@app.route('/accounts/process_login', methods=['POST'])
 			def process_login():
 				pwd = request.form['password']
 
@@ -89,15 +90,15 @@ def make_ularch_flask_app(docpath=None, documentation_path=None, running_locally
 
 
 			def login_required(fn):
-				def chech_logged_in(*args, **kwargs):
+				def check_logged_in(*args, **kwargs):
 					if is_authenticated():
 						return fn(*args, **kwargs)
 					else:
 						path = request.path
 						session['next_path'] = path
 						return redirect('/accounts/login')
-				chech_logged_in.__name__ = fn.__name__
-				return chech_logged_in
+				check_logged_in.__name__ = fn.__name__
+				return check_logged_in
 
 			logout_url_path = '/accounts/logout'
 		else:
@@ -111,90 +112,96 @@ def make_ularch_flask_app(docpath=None, documentation_path=None, running_locally
 			logout_url_path = None
 
 
-	#
-	# Ubiquitous Larch URLs
-	#
+		#
+		# Ubiquitous Larch URLs
+		#
 
 
-	hub = larch_hub.start_hub_and_client('main', 'larchapp', larch_app.create_service, '/main/larchapp', docpath, documentation_path=documentation_path, logout_url_path=logout_url_path)
+		hub = larch_hub.start_hub_and_client('main', 'larchapp', larch_app.create_service, '/main/larchapp', docpath, documentation_path=documentation_path, logout_url_path=logout_url_path)
 
 
 
-	@app.route('/')
-	def index():
-		return redirect('/pages/main/larchapp')
-
-
-	@app.route('/pages')
-	@app.route('/pages/')
-	@app.route('/pages/<category>/<name>')
-	@app.route('/pages/<category>/<name>/')
-	def root_page(category=None, name=None):
-		get_params = {}
-		get_params.update(request.args)
-		if category is None  or  name is None:
+		@app.route('/')
+		@login_required
+		def index():
 			return redirect('/pages/main/larchapp')
-		try:
-			return hub.page(category, name, '', get_params)
-		except CouldNotResolveLocationError:
-			abort(404)
 
 
-	@app.route('/pages/<category>/<name>/<path:location>')
-	def page(category, name, location):
-		get_params = {}
-		get_params.update(request.args)
-		try:
-			return hub.page(category, name, location, get_params)
-		except CouldNotResolveLocationError:
-			abort(404)
+		@app.route('/pages')
+		@app.route('/pages/')
+		@app.route('/pages/<category>/<name>')
+		@app.route('/pages/<category>/<name>/')
+		@login_required
+		def root_page(category=None, name=None):
+			get_params = {}
+			get_params.update(request.args)
+			if category is None  or  name is None:
+				return redirect('/pages/main/larchapp')
+			try:
+				return hub.page(category, name, '', get_params)
+			except CouldNotResolveLocationError:
+				abort(404)
 
 
-	@app.route('/event/<category>/<name>/<view_id>', methods=['POST'])
-	def event(category, name, view_id):
-		event_data = request.form['event_data']
-		data = hub.event(category, name, view_id, event_data)
-		return Response(response=data, status=200, mimetype='application/json')
+		@app.route('/pages/<category>/<name>/<path:location>')
+		@login_required
+		def page(category, name, location):
+			get_params = {}
+			get_params.update(request.args)
+			try:
+				return hub.page(category, name, location, get_params)
+			except CouldNotResolveLocationError:
+				abort(404)
 
 
-	@app.route('/form/<category>/<name>/<view_id>', methods=['POST'])
-	def form(category, name, view_id):
-		form_data = {}
-		files = []
-
-		for k in request.form.keys():
-			form_data[k] = request.form[k]
-		for k in request.files:
-			upload = request.files[k]
-
-			fd, temp_file_path = tempfile.mkstemp()
-			os.close(fd)
-			os.remove(temp_file_path)
-
-			upload.save(temp_file_path)
-
-			f = UploadedFile(upload.filename, open(temp_file_path, 'rb'))
-
-			form_data[k] = f
-			files.append((f, temp_file_path))
-
-		data = hub.form(category, name, view_id, form_data)
-
-		for f in files:
-			f[0].file.close()
-			os.remove(f[1])
-
-		return Response(response=data, status=200, mimetype='application/json')
+		@app.route('/event/<category>/<name>/<view_id>', methods=['POST'])
+		@login_required
+		def event(category, name, view_id):
+			event_data = request.form['event_data']
+			data = hub.event(category, name, view_id, event_data)
+			return Response(response=data, status=200, mimetype='application/json')
 
 
-	@app.route('/rsc/<category>/<name>/<view_id>/<rsc_id>', methods=['GET'])
-	def rsc(category, name, view_id, rsc_id):
-		data_and_mime_type = hub.resource(category, name, view_id, rsc_id)
-		if data_and_mime_type is not None:
-			data, mime_type = data_and_mime_type
-			return Response(response=data, status=200, mimetype=mime_type)
-		else:
-			abort(404)
+		@app.route('/form/<category>/<name>/<view_id>', methods=['POST'])
+		@login_required
+		def form(category, name, view_id):
+			form_data = {}
+			files = []
+
+			for k in request.form.keys():
+				form_data[k] = request.form[k]
+			for k in request.files:
+				upload = request.files[k]
+
+				fd, temp_file_path = tempfile.mkstemp()
+				os.close(fd)
+				os.remove(temp_file_path)
+
+				upload.save(temp_file_path)
+
+				f = UploadedFile(upload.filename, open(temp_file_path, 'rb'))
+
+				form_data[k] = f
+				files.append((f, temp_file_path))
+
+			data = hub.form(category, name, view_id, form_data)
+
+			for f in files:
+				f[0].file.close()
+				os.remove(f[1])
+
+			return Response(response=data, status=200, mimetype='application/json')
+
+
+		@app.route('/rsc/<category>/<name>/<view_id>/<rsc_id>', methods=['GET'])
+		@login_required
+		def rsc(category, name, view_id, rsc_id):
+			data_and_mime_type = hub.resource(category, name, view_id, rsc_id)
+			if data_and_mime_type is not None:
+				data, mime_type = data_and_mime_type
+				return Response(response=data, status=200, mimetype=mime_type)
+			else:
+				abort(404)
 
 
 

@@ -151,7 +151,7 @@ def make_ularch_bottle_app(docpath=None, documentation_path=None, running_locall
 
 
 			def login_required(fn):
-				def chech_logged_in(*args, **kwargs):
+				def check_logged_in(*args, **kwargs):
 					if is_authenticated():
 						return fn(*args, **kwargs)
 					else:
@@ -159,8 +159,8 @@ def make_ularch_bottle_app(docpath=None, documentation_path=None, running_locall
 						session = get_session()
 						session['next_path'] = path
 						return redirect('/accounts/login')
-				chech_logged_in.__name__ = fn.__name__
-				return chech_logged_in
+				check_logged_in.__name__ = fn.__name__
+				return check_logged_in
 
 			logout_url_path = '/accounts/logout'
 		else:
