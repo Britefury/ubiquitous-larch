@@ -6,6 +6,8 @@ import os
 import glob
 
 
+PRINT_ONLY = True
+
 
 #
 # Licenses
@@ -83,9 +85,10 @@ def _replace_license(path, old_licenses_as_lines, new_license):
 				break
 
 	if license_length is not None:
-		new_lines = new_license.split('\n') + f_lines[:license_length]
-		# with open(path, 'w') as f:
-		# 	f.writelines(new_lines)
+		new_lines = new_license.split('\n') + f_lines[license_length:]
+		if not PRINT_ONLY:
+			with open(path, 'w') as f:
+				f.writelines(new_lines)
 		print 'Replaced {0}'.format(path)
 	else:
 		print '**IGNORED** {0}'.format(path)

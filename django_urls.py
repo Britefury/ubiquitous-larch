@@ -1,3 +1,7 @@
+##-*************************
+##-* This source code is (C)copyright Geoffrey French 2011-2013.
+##-*************************
+
 from django.conf.urls import *
 
 # Uncomment the next two lines to enable the admin:
