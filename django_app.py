@@ -18,28 +18,16 @@ from larch.apps import larch_app
 from larch.hub import larch_hub
 
 import django_settings
-import ularch_pages
+import ularch_auth
+
+
+logout_url_path = None   if django_settings.ULARCH_RUNNING_LOCALLY   else '/accounts/logout'
 
 
 hub = larch_hub.start_hub_and_client('main', 'larchapp', larch_app.create_service, '/main/larchapp', django_settings.ULARCH_DOCUMENTS_PATH, documentation_path=django_settings.ULARCH_DOCUMENTATION_PATH,
-				     logout_url_path='/accounts/logout')
+				     logout_url_path=logout_url_path)
 
 
-
-
-def is_authenticated(request):
-	return request.session.get('authenticated', False)
-
-def authenticate(request, pwd_from_user):
-	if pwd_from_user == django_settings.ULARCH_GLOBAL_PASSWORD:
-		request.session['authenticated'] = True
-		return True
-	else:
-		return False
-
-def deauthenticate(request):
-	if request.session.get('authenticated') is not None:
-		del request.session['authenticated']
 
 
 if django_settings.ULARCH_RUNNING_LOCALLY:
@@ -48,7 +36,7 @@ if django_settings.ULARCH_RUNNING_LOCALLY:
 else:
 	def login_required(fn):
 		def check_logged_in(request, *args, **kwargs):
-			if is_authenticated(request):
+			if ularch_auth.is_authenticated(request.session):
 				return fn(request, *args, **kwargs)
 			else:
 				path = request.path
@@ -56,9 +44,6 @@ else:
 				return redirect('/accounts/login')
 		check_logged_in.__name__ = fn.__name__
 		return check_logged_in
-
-
-
 
 
 @login_required
@@ -77,7 +62,7 @@ def front_page(request, category, name):
 	try:
 		get_params = {}
 		get_params.update(request.GET)
-		return HttpResponse(hub.page(category, name, '', get_params))
+		return HttpResponse(hub.page(category, name, '', get_params, user=ularch_auth.get_user(request.session)))
 	except CouldNotResolveLocationError:
 		raise Http404
 
@@ -87,7 +72,7 @@ def page(request, category, name, location):
 	try:
 		get_params = {}
 		get_params.update(request.GET)
-		return HttpResponse(hub.page(category, name, location, get_params))
+		return HttpResponse(hub.page(category, name, location, get_params, user=ularch_auth.get_user(request.session)))
 	except CouldNotResolveLocationError:
 		raise Http404
 
@@ -155,32 +140,33 @@ def _csrf_hidden_input(request):
 
 @ensure_csrf_cookie
 def login_form(request):
-	if is_authenticated(request):
+	if ularch_auth.is_authenticated(request.session):
 		return redirect('/pages')
 	else:
 		csrf_token = _csrf_hidden_input(request)
-		return HttpResponse(ularch_pages.login_form_page.format(status_msg='', csrf_token=csrf_token), RequestContext(request))
+		return HttpResponse(ularch_auth.login_form_page.format(status_msg='', csrf_token=csrf_token), RequestContext(request))
 
 
 @ensure_csrf_cookie
 def process_login(request):
+	username = request.POST['username']
 	password = request.POST['password']
-	if authenticate(request, password):
+	if ularch_auth.authenticate(request.session, username, password, django_settings.ULARCH_GLOBAL_PASSWORD):
 		next_path = request.session.get('next_path')
 		if next_path is None:
 			next_path = '/pages'
 		return redirect(next_path)
 	else:
 		csrf_token = _csrf_hidden_input(request)
-		return HttpResponse(ularch_pages.login_form_page.format(status_msg='<p>Incorrect password; please try again.</p>', csrf_token=csrf_token), RequestContext(request))
+		return HttpResponse(ularch_auth.login_form_page.format(status_msg='<p>Incorrect password; please try again.</p>', csrf_token=csrf_token), RequestContext(request))
 
 
 
 def account_logout(request):
-	deauthenticate(request)
+	ularch_auth.deauthenticate(request.session)
 	return redirect('/')
 
 
 
 def security_warning(request):
-	return HttpResponse(ularch_pages.security_warning_page)
+	return HttpResponse(ularch_auth.get_security_warning_page('django_settings.py'))

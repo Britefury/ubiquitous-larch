@@ -1,7 +1,7 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-import ularch_bottle_app
+import ularch_flask_app
 
 
 #
@@ -38,4 +38,4 @@ DOCUMENTATION_PATH = None
 # CREATE THE APP
 #
 
-app = ularch_bottle_app.make_ularch_bottle_app(docpath=DOCUMENTS_PATH, documentation_path=DOCUMENTATION_PATH, global_password=ULARCH_GLOBAL_PASSWORD)
+app = ularch_flask_app.make_ularch_flask_app(docpath=DOCUMENTS_PATH, documentation_path=DOCUMENTATION_PATH, global_password=ULARCH_GLOBAL_PASSWORD)

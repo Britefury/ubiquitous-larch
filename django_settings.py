@@ -5,11 +5,11 @@ import sys
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
-
+#
 # Ubiquitous Larch settings
+#
 
 ULARCH_RUNNING_LOCALLY = len(sys.argv) >= 2  and  sys.argv[1].lower() == 'runserver'
-ULARCH_RUNNING_LOCALLY = False
 
 # Documents path; where to look for the documents, uses the current directory if None
 ULARCH_DOCUMENTS_PATH = None
@@ -17,8 +17,21 @@ ULARCH_DOCUMENTS_PATH = None
 # Documentation oath path; where to look for the documentation files; uses ./docs if None
 ULARCH_DOCUMENTATION_PATH = None
 
-# Global password
-ULARCH_GLOBAL_PASSWORD = 'abc123'
+
+# WARNING: By modifying the GLOBAL_PASSWORD setting you understand the security implications and
+# accept full responsibility and liability for any damages or events that occur as a result of
+# the use of this software. The author(s) accept no liability for anything that results
+# from the use of this software.
+
+# Put a password within the quotes to enable the collaborative server
+ULARCH_GLOBAL_PASSWORD = ''
+
+# WARNING: By modifying the GLOBAL_PASSWORD setting you understand the security implications and
+# accept full responsibility and liability for any damages or events that occur as a result of
+# the use of this software. The author(s) accept no liability for anything that results
+# from the use of this software.
+
+
 
 
 

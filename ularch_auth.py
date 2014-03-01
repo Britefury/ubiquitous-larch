@@ -1,8 +1,13 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
+import os
 
-security_warning_page = """
+from larch.core.dynamicpage import user
+
+
+def get_security_warning_page(edit_file_name):
+	return """
 <html>
 <head>
 <title>Ubiquitous Larch collaborative server</title>
@@ -54,13 +59,13 @@ If you are not comfortable with this, please do not use this software.</p>
 
 <h3>Enabling the collaborative server</h3>
 
-<p>Please edit the file <em>wsgi_ularch.py</em> and modify the line:</p>
+<p>Please edit the file <em>{edit_file_name}</em> and modify the line:</p>
 
-<div class="code_block">GLOBAL_PASSWORD = ''</div>
+<div class="code_block">ULARCH_GLOBAL_PASSWORD = ''</div>
 
 <p>by placing a password between the quotes and restart the server. For example:</p>
 
-<div class="code_block">GLOBAL_PASSWORD = 'abc123'</div>
+<div class="code_block">ULARCH_GLOBAL_PASSWORD = 'abc123'</div>
 
 </div>
 
@@ -69,7 +74,7 @@ If you are not comfortable with this, please do not use this software.</p>
 </script>
 </body>
 </html>
-"""
+""".format(edit_file_name=edit_file_name)
 
 
 
@@ -94,7 +99,8 @@ login_form_page = """
 <form action="/accounts/process_login" method="POST">
 {csrf_token}
 <table>
-	<tr><td>Password</td><td><input type="password" name="password" class="login_form_text_field"/></td></tr>
+	<tr><td>Name (anything you like)</td><td><input type="text" name="username" class="login_form_text_field"/></td></tr>
+	<tr><td>Site password</td><td><input type="password" name="password" class="login_form_text_field"/></td></tr>
 	<tr><td></td><td><input id="submit_button" type="submit" value="Login"/></td></tr>
 </table>
 </form>
@@ -109,3 +115,37 @@ login_form_page = """
 </body>
 </html>
 """
+
+
+
+def is_authenticated(session):
+	return session.get('authenticated', False)
+
+def authenticate(session, username, pwd_from_user, global_password):
+	if pwd_from_user == global_password:
+		session['username'] = username
+		session['userid'] = os.urandom(16)
+		session['authenticated'] = True
+		return True
+	else:
+		return False
+
+def deauthenticate(session):
+	if session.get('authenticated') is not None:
+		del session['authenticated']
+		try:
+			del session['username']
+		except KeyError:
+			pass
+
+def get_user(session):
+	if session is not None:
+		user_id = session.get('userid')
+		username = session.get('username')
+		if username is not None:
+			if user_id is None:
+				user_id = os.urandom(16)
+				session['userid'] = user_id
+			return user.User(user_id, username)
+	return None
+

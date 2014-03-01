@@ -11,27 +11,27 @@ from larch.core.projection_service import CouldNotResolveLocationError
 from larch.apps import larch_app
 from larch.hub import larch_hub
 
-import ularch_pages
+import ularch_auth
 
 
-def make_ularch_flask_app(docpath=None, documentation_path=None, running_locally=False, password='', session_time_hours=24):
+def make_ularch_flask_app(docpath=None, documentation_path=None, running_locally=False, global_password='', session_time_hours=24):
 	app = Flask(__name__, static_url_path='/static', static_folder='static')
 	app.secret_key = os.urandom(32)
 
 
 
-	if not running_locally and (password is None  or  password == ''):
+	if not running_locally and (global_password is None  or  global_password == ''):
 		#
 		# We are NOT running locally and no password has been set
 		# Display a security warning on all URLs
 		#
 		@app.route('/')
 		def root():
-			return ularch_pages.security_warning_page
+			return ularch_auth.get_security_warning_page('wsgi_larch_flask.py')
 
 		@app.route('/<path:location>')
 		def anything(location):
-			return ularch_pages.security_warning_page
+			return ularch_auth.get_security_warning_page('wsgi_larch_flask.py')
 
 	else:
 		if not running_locally:
@@ -44,20 +44,6 @@ def make_ularch_flask_app(docpath=None, documentation_path=None, running_locally
 			# Authentication functions
 			#
 
-			def is_authenticated():
-				return session.get('authenticated', False)
-
-			def authenticate(pwd_from_user):
-				if pwd_from_user == password:
-					session['authenticated'] = True
-					return True
-				else:
-					return False
-
-			def deauthenticate():
-				if session.get('authenticated') is not None:
-					del session['authenticated']
-
 
 			#
 			# Login URLs
@@ -65,33 +51,34 @@ def make_ularch_flask_app(docpath=None, documentation_path=None, running_locally
 
 			@app.route('/accounts/login')
 			def login_form():
-				if is_authenticated():
+				if ularch_auth.is_authenticated(session):
 					return redirect('/pages')
 				else:
-					return ularch_pages.login_form_page.format(status_msg='', csrf_token='')
+					return ularch_auth.login_form_page.format(status_msg='', csrf_token='')
 
 			@app.route('/accounts/process_login', methods=['POST'])
 			def process_login():
+				username = request.form['username']
 				pwd = request.form['password']
 
-				if authenticate(pwd):
+				if ularch_auth.authenticate(session, username, pwd, global_password):
 					next_path = session.get('next_path')
 					if next_path is None:
 						next_path = '/pages'
 					return redirect(next_path)
 				else:
-					return ularch_pages.login_form_page.format(status_msg='<p>Incorrect password; please try again.</p>', csrf_token='')
+					return ularch_auth.login_form_page.format(status_msg='<p>Incorrect password; please try again.</p>', csrf_token='')
 
 			@app.route('/accounts/logout')
 			def logout():
-				deauthenticate()
+				ularch_auth.deauthenticate(session)
 				return redirect('/')
 
 
 
 			def login_required(fn):
 				def check_logged_in(*args, **kwargs):
-					if is_authenticated():
+					if ularch_auth.is_authenticated(session):
 						return fn(*args, **kwargs)
 					else:
 						path = request.path
@@ -138,7 +125,7 @@ def make_ularch_flask_app(docpath=None, documentation_path=None, running_locally
 			if category is None  or  name is None:
 				return redirect('/pages/main/larchapp')
 			try:
-				return hub.page(category, name, '', get_params)
+				return hub.page(category, name, '', get_params, user=ularch_auth.get_user(session))
 			except CouldNotResolveLocationError:
 				abort(404)
 
@@ -149,7 +136,7 @@ def make_ularch_flask_app(docpath=None, documentation_path=None, running_locally
 			get_params = {}
 			get_params.update(request.args)
 			try:
-				return hub.page(category, name, location, get_params)
+				return hub.page(category, name, location, get_params, user=ularch_auth.get_user(session))
 			except CouldNotResolveLocationError:
 				abort(404)
 

@@ -91,7 +91,7 @@ class DynamicPageService (object):
 		:param doc_url: The location suffix for event, form and resource URLs
 		:param location: The location being access by the browser, identifying the content that the user wishes to see. You should set up your app so that all paths under a specific URL prefix should take the suffix and pass it as the location.
 		:param get_params: The GET parameters received as part of the location
-		:param user_id: The user ID, if a user is logged in
+		:param user: The user, if a user is logged in
 		:return: The HTML content to be sent to the client browser
 		"""
 		view_id = self.__new_view_id()
