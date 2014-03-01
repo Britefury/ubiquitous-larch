@@ -62,12 +62,16 @@ _old_css_licenses_as_lines = [license.split('\n')   for license in _old_css_lice
 _old_js_licenses_as_lines = [license.split('\n')   for license in _old_js_licenses]
 _old_py_licenses_as_lines = [license.split('\n')   for license in _old_py_licenses]
 
+_new_css_license_writeable_lines = [l + '\n'   for l in _new_css_license.split('\n')]
+_new_js_license_writeable_lines = [l + '\n'   for l in _new_js_license.split('\n')]
+_new_py_license_writeable_lines = [l + '\n'   for l in _new_py_license.split('\n')]
+
 
 #
 # License replacement function
 #
 
-def _replace_license(path, old_licenses_as_lines, new_license):
+def _replace_license(path, old_licenses_as_lines, new_license_writeable_lines):
 	license_length = None
 
 	with open(path, 'r') as f:
@@ -85,7 +89,7 @@ def _replace_license(path, old_licenses_as_lines, new_license):
 				break
 
 	if license_length is not None:
-		new_lines = new_license.split('\n') + f_lines[license_length:]
+		new_lines = new_license_writeable_lines + f_lines[license_length:]
 		if not PRINT_ONLY:
 			with open(path, 'w') as f:
 				f.writelines(new_lines)
@@ -103,13 +107,13 @@ def _replace_license(path, old_licenses_as_lines, new_license):
 #
 
 def _handle_py(path):
-	_replace_license(path, _old_py_licenses_as_lines, _new_py_license)
+	_replace_license(path, _old_py_licenses_as_lines, _new_py_license_writeable_lines)
 
 def _handle_css(path):
-	_replace_license(path, _old_css_licenses_as_lines, _new_css_license)
+	_replace_license(path, _old_css_licenses_as_lines, _new_css_license_writeable_lines)
 
 def _handle_js(path):
-	_replace_license(path, _old_js_licenses_as_lines, _new_js_license)
+	_replace_license(path, _old_js_licenses_as_lines, _new_js_license_writeable_lines)
 
 _ext_handlers = {
 	'.py': _handle_py,
