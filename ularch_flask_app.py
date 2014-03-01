@@ -1,9 +1,7 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-import webbrowser
-
-import sys, os, datetime, tempfile
+import os, tempfile
 
 from flask import Flask, request, Response, abort, redirect, session
 

@@ -1,9 +1,7 @@
 ##-*************************
 ##-* This source code is (C)copyright Geoffrey French 2011-2013.
 ##-*************************
-import webbrowser
-
-import sys, os, datetime
+import os, datetime
 
 from bottle import Bottle, static_file, request, response, redirect
 
